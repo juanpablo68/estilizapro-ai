@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview A Genkit flow for generating personalized outfit 'capsule' recommendations.
@@ -12,9 +11,10 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const WardrobeItemSchema = z.object({
+  id: z.string().describe('Unique ID of the wardrobe item.'),
   name: z.string().describe('The name of the clothing item (e.g., "Blue Jeans").'),
   type: z.string().describe('The type of clothing item (e.g., "top", "bottom", "dress", "outerwear", "accessory").'),
-  imageDataUri: z.string().describe('A photo of the clothing item, as a data URI that must include a MIME type and use Base64 encoding.'),
+  imageDataUri: z.string().describe('A photo of the clothing item, as a data URI.'),
 });
 export type WardrobeItem = z.infer<typeof WardrobeItemSchema>;
 
@@ -42,7 +42,7 @@ const CapsuleItemSchema = z.object({
   name: z.string().describe('The name of the clothing item.'),
   type: z.enum(['top', 'bottom', 'dress', 'outerwear', 'shoe', 'accessory']).describe('The category of the item.'),
   source: z.enum(['wardrobe', 'shop']).describe('Whether it is from wardrobe or suggested.'),
-  imageDataUri: z.string().describe('If from wardrobe, the data URI provided. If from shop, leave as EMPTY STRING.'),
+  wardrobeItemId: z.string().optional().describe('If from wardrobe, the ID of the selected item.'),
   shopLink: z.string().optional().describe('URL to purchase if shop item.'),
 });
 export type CapsuleItem = z.infer<typeof CapsuleItemSchema>;
@@ -71,17 +71,18 @@ const aiCapsuleRecommendationsPrompt = ai.definePrompt({
   prompt: `You are an expert image consultant. Generate a list of personalized outfit 'capsules' (complete looks).
 For each capsule:
 1. Use as many items from the user's wardrobe as possible.
-2. If the wardrobe is incomplete for a great look, suggest 'shop' items.
-3. For 'shop' items, keep 'imageDataUri' as an EMPTY STRING.
+2. If the wardrobe is used, return the correct 'wardrobeItemId' from the list below.
+3. If suggesting a new item to buy, set 'source' to 'shop' and leave 'wardrobeItemId' empty.
 4. Strictly use these categories for 'type': "top", "bottom", "dress", "outerwear", "shoe", "accessory".
 
 User Details:
 - Style: {{stylePreferences.preferredStyles}}
 - Body: {{figureAnalysis}}, Color: {{colorimetryAnalysis}}
 - Request: {{eventType}} in {{weatherConditions}}
-- Wardrobe:
+
+Wardrobe Items Available (USE THESE IDs):
 {{#each wardrobeItems}}
-- {{name}} ({{type}})
+- ID: {{id}}, Name: {{name}} ({{type}})
 {{media url=imageDataUri}}
 {{/each}}`
 });

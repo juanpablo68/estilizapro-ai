@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from 'react';
@@ -33,7 +32,12 @@ export default function CapsulesPage() {
         figureAnalysis: profile.figureAnalysis || 'No definida',
         eventType: params.eventType,
         weatherConditions: params.weather,
-        wardrobeItems: wardrobe.map(i => ({ name: i.name, type: i.type, imageDataUri: i.imageDataUri }))
+        wardrobeItems: wardrobe.map(i => ({ 
+          id: i.id, 
+          name: i.name, 
+          type: i.type, 
+          imageDataUri: i.imageDataUri 
+        }))
       });
       setCapsules(result.capsules);
     } catch (err) {
@@ -44,38 +48,21 @@ export default function CapsulesPage() {
   };
 
   const getItemImage = (item: CapsuleItem) => {
-    // 1. Prioritize real wardrobe data if available
-    if (item.source === 'wardrobe' && item.imageDataUri?.startsWith('data:')) {
-      return item.imageDataUri;
+    // 1. If it's from wardrobe, find the actual local image URI using the ID returned by AI
+    if (item.source === 'wardrobe' && item.wardrobeItemId) {
+      const localItem = wardrobe.find(wi => wi.id === item.wardrobeItemId);
+      if (localItem) return localItem.imageDataUri;
     }
     
-    // 2. If it's already a valid URL
-    if (item.imageDataUri?.startsWith('http')) {
-      return item.imageDataUri;
-    }
-
-    // 3. Fallback to placeholder based on category
+    // 2. Fallback to placeholder based on category for 'shop' items or missing wardrobe images
     const normalizedType = item.type.toLowerCase();
-    
-    // Mapping various potential type strings to our placeholder IDs
     const typeMapping: Record<string, string> = {
       'top': 'fashion-top',
-      'superior': 'fashion-top',
-      'camisa': 'fashion-top',
       'bottom': 'fashion-bottom',
-      'inferior': 'fashion-bottom',
-      'pantalón': 'fashion-bottom',
-      'falda': 'fashion-bottom',
       'dress': 'fashion-dress',
-      'vestido': 'fashion-dress',
       'outerwear': 'fashion-outerwear',
-      'exterior': 'fashion-outerwear',
-      'chaqueta': 'fashion-outerwear',
       'shoe': 'fashion-shoe',
-      'zapatos': 'fashion-shoe',
-      'calzado': 'fashion-shoe',
-      'accessory': 'fashion-accessory',
-      'accesorio': 'fashion-accessory'
+      'accessory': 'fashion-accessory'
     };
 
     const targetId = typeMapping[normalizedType] || 'fashion-top';
@@ -87,14 +74,14 @@ export default function CapsulesPage() {
   const getItemHint = (item: CapsuleItem) => {
     const normalizedType = item.type.toLowerCase();
     const typeMapping: Record<string, string> = {
-      'top': 'fashion top',
-      'bottom': 'fashion pants',
-      'dress': 'fashion dress',
-      'outerwear': 'fashion jacket',
-      'shoe': 'fashion shoes',
-      'accessory': 'fashion accessory'
+      'top': 'fashion top clothing',
+      'bottom': 'fashion pants trousers',
+      'dress': 'fashion dress clothing',
+      'outerwear': 'fashion jacket coat',
+      'shoe': 'fashion shoes footwear',
+      'accessory': 'fashion accessory style'
     };
-    return typeMapping[normalizedType] || 'fashion item';
+    return typeMapping[normalizedType] || 'fashion clothing';
   };
 
   return (
@@ -110,26 +97,30 @@ export default function CapsulesPage() {
         <CardContent className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="flex items-center gap-2"><MapPin className="w-3 h-3" /> Evento</Label>
+              <Label className="flex items-center gap-2 text-xs uppercase tracking-wider font-bold opacity-70">
+                <MapPin className="w-3 h-3" /> Evento
+              </Label>
               <Select value={params.eventType} onValueChange={v => setParams({...params, eventType: v})}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="rounded-xl border-muted bg-white/50"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Trabajo">Oficina</SelectItem>
-                  <SelectItem value="Casual">Casual</SelectItem>
-                  <SelectItem value="Cena Elegante">Evento Noche</SelectItem>
+                  <SelectItem value="Trabajo">Oficina / Trabajo</SelectItem>
+                  <SelectItem value="Casual">Día Casual</SelectItem>
+                  <SelectItem value="Cena Elegante">Cena / Evento Noche</SelectItem>
                   <SelectItem value="Viaje">Viaje / Vacaciones</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label className="flex items-center gap-2"><CloudSun className="w-3 h-3" /> Clima</Label>
+              <Label className="flex items-center gap-2 text-xs uppercase tracking-wider font-bold opacity-70">
+                <CloudSun className="w-3 h-3" /> Clima
+              </Label>
               <Select value={params.weather} onValueChange={v => setParams({...params, weather: v})}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="rounded-xl border-muted bg-white/50"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Caluroso">Caluroso / Verano</SelectItem>
-                  <SelectItem value="Soleado y Templado">Soleado y Templado</SelectItem>
+                  <SelectItem value="Soleado y Templado">Templado / Entretiempo</SelectItem>
                   <SelectItem value="Frío / Invierno">Frío / Invierno</SelectItem>
-                  <SelectItem value="Lluvioso">Lluvioso</SelectItem>
+                  <SelectItem value="Lluvioso">Día Lluvioso</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -137,40 +128,46 @@ export default function CapsulesPage() {
           <Button 
             onClick={generateCapsules} 
             disabled={loading} 
-            className="w-full bg-secondary h-12 text-white font-bold"
+            className="w-full bg-secondary h-12 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98]"
           >
             {loading ? <><Loader2 className="mr-2 animate-spin" /> Creando Looks...</> : <><Sparkles className="mr-2" /> Generar Cápsulas</>}
           </Button>
         </CardContent>
       </Card>
 
-      <div className="space-y-8">
+      <div className="space-y-12">
         {capsules.length === 0 && !loading && (
-          <div className="text-center py-12 text-muted-foreground opacity-60">
-            <Layers className="w-12 h-12 mx-auto mb-4" />
-            <p>Selecciona tus preferencias y pulsa Generar</p>
+          <div className="text-center py-20 text-muted-foreground opacity-40">
+            <Layers className="w-16 h-16 mx-auto mb-4" />
+            <p className="text-sm font-medium">Configura el evento y pulsa Generar</p>
           </div>
         )}
 
         {capsules.map((capsule, idx) => (
-          <div key={idx} className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-1 bg-primary rounded-full" />
-              <h2 className="text-xl font-headline font-bold">{capsule.name}</h2>
+          <div key={idx} className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-1.5 bg-primary rounded-full" />
+              <div>
+                <h2 className="text-2xl font-headline font-bold text-foreground">{capsule.name}</h2>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{capsule.occasion}</p>
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground bg-white/50 border p-4 rounded-xl shadow-sm">{capsule.description}</p>
             
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="bg-white/40 backdrop-blur-sm border rounded-2xl p-5 shadow-sm">
+                <p className="text-sm leading-relaxed text-muted-foreground italic">"{capsule.description}"</p>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {capsule.items.map((item, itemIdx) => (
-                <Card key={itemIdx} className="overflow-hidden border-none shadow-sm relative group hover:shadow-md transition-shadow">
-                  <div className="absolute top-2 left-2 z-10">
+                <Card key={itemIdx} className="overflow-hidden border-none shadow-sm relative group hover:shadow-xl transition-all duration-300 rounded-2xl">
+                  <div className="absolute top-3 left-3 z-10">
                     {item.source === 'wardrobe' ? (
-                      <div className="bg-primary/90 backdrop-blur-sm text-[10px] text-white px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-                        <FolderHeart className="w-3 h-3" /> Armario
+                      <div className="bg-primary/95 backdrop-blur-md text-[9px] font-bold text-white px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-lg border border-white/20">
+                        <FolderHeart className="w-3 h-3" /> TU ARMARIO
                       </div>
                     ) : (
-                      <div className="bg-secondary/90 backdrop-blur-sm text-[10px] text-white px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-                        <ShoppingBag className="w-3 h-3" /> Tienda
+                      <div className="bg-secondary/95 backdrop-blur-md text-[9px] font-bold text-white px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-lg border border-white/20">
+                        <ShoppingBag className="w-3 h-3" /> SUGERENCIA
                       </div>
                     )}
                   </div>
@@ -179,16 +176,16 @@ export default function CapsulesPage() {
                       src={getItemImage(item)} 
                       alt={item.name} 
                       fill 
-                      className="object-cover transition-transform group-hover:scale-105 duration-500" 
+                      className="object-cover transition-transform group-hover:scale-110 duration-700" 
                       data-ai-hint={getItemHint(item)}
                     />
                   </div>
                   <CardContent className="p-3 bg-white">
-                    <p className="font-bold text-[10px] truncate">{item.name}</p>
-                    <p className="text-[9px] text-muted-foreground uppercase">{item.type}</p>
+                    <p className="font-bold text-xs line-clamp-1">{item.name}</p>
+                    <p className="text-[9px] text-muted-foreground uppercase font-semibold">{item.type}</p>
                     {item.shopLink && (
-                      <Link href={item.shopLink} target="_blank" className="text-[8px] text-secondary hover:underline mt-1 block font-medium">
-                        Ver en tienda →
+                      <Link href={item.shopLink} target="_blank" className="text-[9px] text-secondary hover:underline mt-2 flex items-center gap-1 font-bold">
+                        VER OPCIÓN TIENDA <ArrowLeft className="w-2 h-2 rotate-180" />
                       </Link>
                     )}
                   </CardContent>

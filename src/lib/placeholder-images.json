@@ -2,38 +2,38 @@
   "placeholderImages": [
     {
       "id": "fashion-top",
-      "description": "Prenda superior elegante",
-      "imageUrl": "https://picsum.photos/seed/11/600/800",
+      "description": "Prenda superior de moda",
+      "imageUrl": "https://picsum.photos/seed/fashion1/600/800",
       "imageHint": "fashion top"
     },
     {
       "id": "fashion-bottom",
       "description": "Pantalón o falda de tendencia",
-      "imageUrl": "https://picsum.photos/seed/22/600/800",
+      "imageUrl": "https://picsum.photos/seed/fashion2/600/800",
       "imageHint": "fashion pants"
     },
     {
       "id": "fashion-dress",
       "description": "Vestido sofisticado",
-      "imageUrl": "https://picsum.photos/seed/33/600/800",
+      "imageUrl": "https://picsum.photos/seed/fashion3/600/800",
       "imageHint": "fashion dress"
     },
     {
       "id": "fashion-outerwear",
       "description": "Abrigo o chaqueta con estilo",
-      "imageUrl": "https://picsum.photos/seed/44/600/800",
+      "imageUrl": "https://picsum.photos/seed/fashion4/600/800",
       "imageHint": "fashion jacket"
     },
     {
       "id": "fashion-shoe",
       "description": "Calzado complementario",
-      "imageUrl": "https://picsum.photos/seed/55/600/800",
+      "imageUrl": "https://picsum.photos/seed/fashion5/600/800",
       "imageHint": "fashion shoes"
     },
     {
       "id": "fashion-accessory",
       "description": "Accesorio de moda",
-      "imageUrl": "https://picsum.photos/seed/66/600/800",
+      "imageUrl": "https://picsum.photos/seed/fashion6/600/800",
       "imageHint": "fashion accessory"
     }
   ]
