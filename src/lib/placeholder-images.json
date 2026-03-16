@@ -2,39 +2,39 @@
   "placeholderImages": [
     {
       "id": "fashion-top",
-      "description": "Prenda superior (camisa, camiseta, blusa)",
-      "imageUrl": "https://picsum.photos/seed/app-fashion-top-v5/600/800",
-      "imageHint": "fashion top clothing"
+      "description": "Prenda superior de moda",
+      "imageUrl": "https://picsum.photos/seed/fashion-top-88/600/800",
+      "imageHint": "fashion shirt"
     },
     {
       "id": "fashion-bottom",
-      "description": "Prenda inferior (pantalones, vaqueros, falda)",
-      "imageUrl": "https://picsum.photos/seed/app-fashion-bottom-v5/600/800",
-      "imageHint": "fashion trousers pants"
+      "description": "Pantalón o falda de moda",
+      "imageUrl": "https://picsum.photos/seed/fashion-pants-88/600/800",
+      "imageHint": "fashion trousers"
     },
     {
       "id": "fashion-dress",
-      "description": "Vestido o prenda de una pieza",
-      "imageUrl": "https://picsum.photos/seed/app-fashion-dress-v5/600/800",
-      "imageHint": "fashion dress outfit"
+      "description": "Vestido elegante",
+      "imageUrl": "https://picsum.photos/seed/fashion-dress-88/600/800",
+      "imageHint": "fashion dress"
     },
     {
       "id": "fashion-outerwear",
-      "description": "Abrigo, chaqueta o prenda exterior",
-      "imageUrl": "https://picsum.photos/seed/app-fashion-outer-v5/600/800",
-      "imageHint": "fashion jacket coat"
+      "description": "Chaqueta o abrigo",
+      "imageUrl": "https://picsum.photos/seed/fashion-jacket-88/600/800",
+      "imageHint": "fashion coat"
     },
     {
       "id": "fashion-shoe",
-      "description": "Calzado (zapatillas, zapatos, botas)",
-      "imageUrl": "https://picsum.photos/seed/app-fashion-shoe-v5/600/800",
-      "imageHint": "fashion sneakers shoes"
+      "description": "Calzado de moda",
+      "imageUrl": "https://picsum.photos/seed/fashion-shoes-88/600/800",
+      "imageHint": "fashion sneakers"
     },
     {
       "id": "fashion-accessory",
-      "description": "Accesorios (bolsos, cinturones, gafas)",
-      "imageUrl": "https://picsum.photos/seed/app-fashion-acc-v5/600/800",
-      "imageHint": "fashion accessory bag"
+      "description": "Accesorio de moda",
+      "imageUrl": "https://picsum.photos/seed/fashion-acc-88/600/800",
+      "imageHint": "fashion accessory"
     }
   ]
 }

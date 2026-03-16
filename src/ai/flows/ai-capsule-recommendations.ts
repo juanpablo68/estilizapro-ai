@@ -40,10 +40,11 @@ export type AICapsuleRecommendationsInput = z.infer<typeof AICapsuleRecommendati
 
 const CapsuleItemSchema = z.object({
   name: z.string().describe('The name of the clothing item.'),
-  type: z.enum(['top', 'bottom', 'dress', 'outerwear', 'shoe', 'accessory']).describe('The category of the item. Use SHOE for any footwear and ACCESSORY for belts, bags, jewelry.'),
+  type: z.enum(['top', 'bottom', 'dress', 'outerwear', 'shoe', 'accessory']).describe('The category of the item.'),
   source: z.enum(['wardrobe', 'shop']).describe('Whether it is from wardrobe or suggested.'),
   wardrobeItemId: z.string().optional().describe('If from wardrobe, the EXACT ID of the selected item from the list.'),
   shopLink: z.string().optional().describe('URL to purchase if shop item.'),
+  styleHint: z.string().describe('A 2-word specific descriptor for image search, e.g., "zara coat", "leather belt", "white sneakers". MUST be in English.'),
 });
 export type CapsuleItem = z.infer<typeof CapsuleItemSchema>;
 
@@ -72,11 +73,10 @@ const aiCapsuleRecommendationsPrompt = ai.definePrompt({
 For each capsule:
 1. Prioritize items from the user's wardrobe.
 2. If using a wardrobe item, return the EXACT 'wardrobeItemId' from the list provided.
-3. If recommending a NEW item (shop), suggest realistic links for retailers like Zara, Primark, or Mango (Spain context).
+3. If recommending a NEW item (shop), suggest realistic links for retailers like Zara, Mango, or Primark. Use search URLs or category URLs (e.g., https://www.zara.com/es/es/search?searchTerm=vaqueros+hombre).
 4. Strictly use these types: "top", "bottom", "dress", "outerwear", "shoe", "accessory".
-5. IMPORTANT: Do not combine different items in a single item entry (e.g., don't put "Jeans and glasses" together). Each item must be its own entry.
-6. Footwear must ALWAYS be type "shoe". Belts, Bags, Scarves, Glasses must ALWAYS be type "accessory".
-7. Ensure the recommendation matches the user's figure ({{figureAnalysis}}) and color palette ({{colorimetryAnalysis}}).
+5. For shop items, provide a 2-word 'styleHint' in ENGLISH that describes the item perfectly for an image search (e.g. "navy blazer", "leather belt").
+6. Ensure the recommendation matches the user's figure ({{figureAnalysis}}) and color palette ({{colorimetryAnalysis}}).
 
 User Style Preferences:
 - Preferred: {{stylePreferences.preferredStyles}}

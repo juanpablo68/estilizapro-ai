@@ -48,13 +48,13 @@ export default function CapsulesPage() {
   };
 
   const getItemImage = (item: CapsuleItem) => {
-    // 1. Prioritize Wardrobe photo if source is wardrobe and ID matches
+    // 1. Prioritize Wardrobe photo if source is wardrobe
     if (item.source === 'wardrobe' && item.wardrobeItemId) {
       const localItem = wardrobe.find(wi => wi.id === item.wardrobeItemId);
       if (localItem && localItem.imageDataUri) return localItem.imageDataUri;
     }
     
-    // 2. Fallback to high-quality placeholder based on standardized type
+    // 2. Fallback to high-quality placeholder based on normalized type for Shop items
     const normalizedType = item.type.toLowerCase();
     const typeMapping: Record<string, string> = {
       'top': 'fashion-top',
@@ -69,19 +69,6 @@ export default function CapsulesPage() {
     const placeholder = PlaceHolderImages.find(p => p.id === targetId);
     
     return placeholder?.imageUrl || PlaceHolderImages[0].imageUrl;
-  };
-
-  const getItemHint = (item: CapsuleItem) => {
-    const normalizedType = item.type.toLowerCase();
-    const typeMapping: Record<string, string> = {
-      'top': 'fashion top clothing',
-      'bottom': 'fashion trousers pants',
-      'dress': 'fashion dress outfit',
-      'outerwear': 'fashion jacket coat',
-      'shoe': 'fashion sneakers shoes',
-      'accessory': 'fashion accessory bag'
-    };
-    return typeMapping[normalizedType] || 'fashion clothing';
   };
 
   return (
@@ -177,7 +164,7 @@ export default function CapsulesPage() {
                       alt={item.name} 
                       fill 
                       className="object-cover transition-transform group-hover:scale-105 duration-500" 
-                      data-ai-hint={getItemHint(item)}
+                      data-ai-hint={item.source === 'shop' ? item.styleHint : undefined}
                     />
                   </div>
                   <CardContent className="p-3">
