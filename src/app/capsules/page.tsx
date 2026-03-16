@@ -49,11 +49,13 @@ export default function CapsulesPage() {
   };
 
   const getItemImage = (item: CapsuleItem) => {
+    // 1. If it's a wardrobe item, use the user's stored image
     if (item.source === 'wardrobe' && item.wardrobeItemId) {
       const localItem = wardrobe.find(wi => wi.id === item.wardrobeItemId);
       if (localItem) return localItem.imageDataUri;
     }
     
+    // 2. If it's a shop item or wardrobe item not found, use a fashion placeholder
     const normalizedType = item.type.toLowerCase();
     const typeMapping: Record<string, string> = {
       'top': 'fashion-top',
@@ -73,12 +75,12 @@ export default function CapsulesPage() {
   const getItemHint = (item: CapsuleItem) => {
     const normalizedType = item.type.toLowerCase();
     const typeMapping: Record<string, string> = {
-      'top': 'fashion shirt blouse',
-      'bottom': 'fashion trousers jeans',
-      'dress': 'fashion dress clothing',
-      'outerwear': 'fashion jacket coat',
-      'shoe': 'fashion sneakers shoes',
-      'accessory': 'fashion accessory style'
+      'top': 'shirt clothing',
+      'bottom': 'trousers fashion',
+      'dress': 'dress clothing',
+      'outerwear': 'jacket outerwear',
+      'shoe': 'shoes footwear',
+      'accessory': 'accessory style'
     };
     return typeMapping[normalizedType] || 'fashion clothing';
   };

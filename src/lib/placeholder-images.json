@@ -2,39 +2,39 @@
   "placeholderImages": [
     {
       "id": "fashion-top",
-      "description": "Prenda superior de moda",
-      "imageUrl": "https://picsum.photos/seed/clothing-top-123/600/800",
-      "imageHint": "shirt blouse"
+      "description": "Prenda superior (camisa, camiseta, blusa)",
+      "imageUrl": "https://picsum.photos/seed/fashion-top-88/600/800",
+      "imageHint": "shirt clothing"
     },
     {
       "id": "fashion-bottom",
-      "description": "Pantalón o falda de tendencia",
-      "imageUrl": "https://picsum.photos/seed/pants-bottom-456/600/800",
-      "imageHint": "trousers jeans"
+      "description": "Prenda inferior (pantalones, vaqueros, falda)",
+      "imageUrl": "https://picsum.photos/seed/fashion-pants-99/600/800",
+      "imageHint": "trousers fashion"
     },
     {
       "id": "fashion-dress",
-      "description": "Vestido sofisticado",
-      "imageUrl": "https://picsum.photos/seed/dress-789/600/800",
-      "imageHint": "fashion dress"
+      "description": "Vestido o prenda de una pieza",
+      "imageUrl": "https://picsum.photos/seed/fashion-dress-22/600/800",
+      "imageHint": "dress clothing"
     },
     {
       "id": "fashion-outerwear",
-      "description": "Abrigo o chaqueta con estilo",
-      "imageUrl": "https://picsum.photos/seed/jacket-012/600/800",
-      "imageHint": "jacket coat"
+      "description": "Abrigo, chaqueta o prenda exterior",
+      "imageUrl": "https://picsum.photos/seed/fashion-jacket-33/600/800",
+      "imageHint": "jacket outerwear"
     },
     {
       "id": "fashion-shoe",
-      "description": "Calzado complementario",
-      "imageUrl": "https://picsum.photos/seed/shoes-345/600/800",
-      "imageHint": "sneakers shoes"
+      "description": "Calzado (zapatillas, zapatos, botas)",
+      "imageUrl": "https://picsum.photos/seed/fashion-shoes-44/600/800",
+      "imageHint": "shoes footwear"
     },
     {
       "id": "fashion-accessory",
-      "description": "Accesorio de moda",
-      "imageUrl": "https://picsum.photos/seed/acc-678/600/800",
-      "imageHint": "sunglasses bag"
+      "description": "Accesorios (bolsos, cinturones, gafas)",
+      "imageUrl": "https://picsum.photos/seed/fashion-acc-55/600/800",
+      "imageHint": "accessory style"
     }
   ]
 }

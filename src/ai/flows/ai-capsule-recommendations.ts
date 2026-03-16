@@ -41,7 +41,7 @@ export type AICapsuleRecommendationsInput = z.infer<typeof AICapsuleRecommendati
 
 const CapsuleItemSchema = z.object({
   name: z.string().describe('The name of the clothing item.'),
-  type: z.enum(['top', 'bottom', 'dress', 'outerwear', 'shoe', 'accessory']).describe('The category of the item.'),
+  type: z.enum(['top', 'bottom', 'dress', 'outerwear', 'shoe', 'accessory']).describe('The category of the item. Use SHOE for any footwear and ACCESSORY for belts, bags, etc.'),
   source: z.enum(['wardrobe', 'shop']).describe('Whether it is from wardrobe or suggested.'),
   wardrobeItemId: z.string().optional().describe('If from wardrobe, the ID of the selected item.'),
   shopLink: z.string().optional().describe('URL to purchase if shop item.'),
@@ -74,17 +74,18 @@ For each capsule:
 1. Prioritize items from the user's wardrobe.
 2. If using a wardrobe item, return the correct 'wardrobeItemId'.
 3. If recommending a NEW item (shop), suggest realistic links for retailers like Zara, Primark, or Mango (Spain context).
-4. Example shopLink format: https://www.zara.com/es/es/search?searchTerm=vaqueros+rectos
-5. Strictly use these types: "top", "bottom", "dress", "outerwear", "shoe", "accessory".
+4. Strictly use these types: "top", "bottom", "dress", "outerwear", "shoe", "accessory".
+5. IMPORTANT: Do not combine different items in a single item entry (e.g., don't put "Jeans and glasses" together). Each item must be its own entry.
+6. Footwear must ALWAYS be type "shoe". Belts/Bags must ALWAYS be type "accessory".
 
 User Details:
 - Style: {{stylePreferences.preferredStyles}}
 - Body: {{figureAnalysis}}, Color: {{colorimetryAnalysis}}
 - Request: {{eventType}} in {{weatherConditions}}
 
-Wardrobe Items Available (USE THESE IDs if you select them):
+Wardrobe Items Available (USE THESE IDs ONLY for wardrobe source):
 {{#each wardrobeItems}}
-- ID: {{id}}, Name: {{name}} ({{type}})
+- ID: {{id}}, Name: {{name}}, Type: {{type}}
 {{/each}}`
 });
 
