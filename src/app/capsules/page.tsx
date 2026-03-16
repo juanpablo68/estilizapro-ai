@@ -2,7 +2,7 @@
 "use client"
 
 import { useState } from 'react';
-import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE, WardrobeItem } from '@/lib/storage-hooks';
+import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE, WardrobeItem as LocalWardrobeItem } from '@/lib/storage-hooks';
 import { receiveAICapsuleRecommendations, Capsule, CapsuleItem } from '@/ai/flows/ai-capsule-recommendations';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,7 +15,7 @@ import Image from 'next/image';
 
 export default function CapsulesPage() {
   const [profile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
-  const [wardrobe] = useLocalStorage<WardrobeItem[]>('estiliza_wardrobe', []);
+  const [wardrobe] = useLocalStorage<LocalWardrobeItem[]>('estiliza_wardrobe', []);
   const [loading, setLoading] = useState(false);
   const [capsules, setCapsules] = useState<Capsule[]>([]);
   
@@ -44,23 +44,57 @@ export default function CapsulesPage() {
   };
 
   const getItemImage = (item: CapsuleItem) => {
-    // Si es del armario y tiene un data URI válido, lo usamos
+    // 1. Prioritize real wardrobe data if available
     if (item.source === 'wardrobe' && item.imageDataUri?.startsWith('data:')) {
       return item.imageDataUri;
     }
     
-    // Si la IA devolvió una URL directa (poco común pero posible)
+    // 2. If it's already a valid URL
     if (item.imageDataUri?.startsWith('http')) {
       return item.imageDataUri;
     }
 
-    // Intentamos buscar un placeholder por tipo de prenda
-    const typeKey = item.type.toLowerCase();
-    const placeholder = PlaceHolderImages.find(p => p.id.toLowerCase().includes(typeKey)) || 
-                        PlaceHolderImages.find(p => p.imageHint.toLowerCase().includes(typeKey)) ||
-                        PlaceHolderImages[0];
+    // 3. Fallback to placeholder based on category
+    const normalizedType = item.type.toLowerCase();
+    
+    // Mapping various potential type strings to our placeholder IDs
+    const typeMapping: Record<string, string> = {
+      'top': 'fashion-top',
+      'superior': 'fashion-top',
+      'camisa': 'fashion-top',
+      'bottom': 'fashion-bottom',
+      'inferior': 'fashion-bottom',
+      'pantalón': 'fashion-bottom',
+      'falda': 'fashion-bottom',
+      'dress': 'fashion-dress',
+      'vestido': 'fashion-dress',
+      'outerwear': 'fashion-outerwear',
+      'exterior': 'fashion-outerwear',
+      'chaqueta': 'fashion-outerwear',
+      'shoe': 'fashion-shoe',
+      'zapatos': 'fashion-shoe',
+      'calzado': 'fashion-shoe',
+      'accessory': 'fashion-accessory',
+      'accesorio': 'fashion-accessory'
+    };
+
+    const targetId = typeMapping[normalizedType] || 'fashion-top';
+    const placeholder = PlaceHolderImages.find(p => p.id === targetId) || PlaceHolderImages[0];
     
     return placeholder.imageUrl;
+  };
+
+  const getItemHint = (item: CapsuleItem) => {
+    const normalizedType = item.type.toLowerCase();
+    const typeMapping: Record<string, string> = {
+      'top': 'fashion top',
+      'bottom': 'fashion pants',
+      'dress': 'fashion dress',
+      'outerwear': 'fashion jacket',
+      'shoe': 'fashion shoes',
+      'accessory': 'fashion accessory'
+    };
+    return typeMapping[normalizedType] || 'fashion item';
   };
 
   return (
@@ -146,12 +180,8 @@ export default function CapsulesPage() {
                       alt={item.name} 
                       fill 
                       className="object-cover transition-transform group-hover:scale-105 duration-500" 
+                      data-ai-hint={getItemHint(item)}
                     />
-                    {item.source === 'shop' && (
-                      <div className="absolute inset-0 bg-black/5 flex items-end p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <p className="text-[8px] text-white bg-black/40 p-1 rounded backdrop-blur-sm w-full text-center">Referencia de Estilo</p>
-                      </div>
-                    )}
                   </div>
                   <CardContent className="p-3 bg-white">
                     <p className="font-bold text-[10px] truncate">{item.name}</p>
