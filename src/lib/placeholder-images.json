@@ -3,38 +3,38 @@
     {
       "id": "fashion-top",
       "description": "Prenda superior (camisa, camiseta, blusa)",
-      "imageUrl": "https://picsum.photos/seed/fashion-top-88/600/800",
-      "imageHint": "shirt clothing"
+      "imageUrl": "https://picsum.photos/seed/app-fashion-top-v5/600/800",
+      "imageHint": "fashion top clothing"
     },
     {
       "id": "fashion-bottom",
       "description": "Prenda inferior (pantalones, vaqueros, falda)",
-      "imageUrl": "https://picsum.photos/seed/fashion-pants-99/600/800",
-      "imageHint": "trousers fashion"
+      "imageUrl": "https://picsum.photos/seed/app-fashion-bottom-v5/600/800",
+      "imageHint": "fashion trousers pants"
     },
     {
       "id": "fashion-dress",
       "description": "Vestido o prenda de una pieza",
-      "imageUrl": "https://picsum.photos/seed/fashion-dress-22/600/800",
-      "imageHint": "dress clothing"
+      "imageUrl": "https://picsum.photos/seed/app-fashion-dress-v5/600/800",
+      "imageHint": "fashion dress outfit"
     },
     {
       "id": "fashion-outerwear",
       "description": "Abrigo, chaqueta o prenda exterior",
-      "imageUrl": "https://picsum.photos/seed/fashion-jacket-33/600/800",
-      "imageHint": "jacket outerwear"
+      "imageUrl": "https://picsum.photos/seed/app-fashion-outer-v5/600/800",
+      "imageHint": "fashion jacket coat"
     },
     {
       "id": "fashion-shoe",
       "description": "Calzado (zapatillas, zapatos, botas)",
-      "imageUrl": "https://picsum.photos/seed/fashion-shoes-44/600/800",
-      "imageHint": "shoes footwear"
+      "imageUrl": "https://picsum.photos/seed/app-fashion-shoe-v5/600/800",
+      "imageHint": "fashion sneakers shoes"
     },
     {
       "id": "fashion-accessory",
       "description": "Accesorios (bolsos, cinturones, gafas)",
-      "imageUrl": "https://picsum.photos/seed/fashion-acc-55/600/800",
-      "imageHint": "accessory style"
+      "imageUrl": "https://picsum.photos/seed/app-fashion-acc-v5/600/800",
+      "imageHint": "fashion accessory bag"
     }
   ]
 }

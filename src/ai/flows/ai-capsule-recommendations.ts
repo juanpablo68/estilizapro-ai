@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview A Genkit flow for generating personalized outfit 'capsule' recommendations.
@@ -14,7 +13,7 @@ import {z} from 'genkit';
 const WardrobeItemSchema = z.object({
   id: z.string().describe('Unique ID of the wardrobe item.'),
   name: z.string().describe('The name of the clothing item (e.g., "Blue Jeans").'),
-  type: z.string().describe('The type of clothing item (e.g., "top", "bottom", "dress", "outerwear", "accessory").'),
+  type: z.string().describe('The type of clothing item (e.g., "top", "bottom", "dress", "outerwear", "shoe", "accessory").'),
   imageDataUri: z.string().describe('A photo of the clothing item, as a data URI.'),
 });
 export type WardrobeItem = z.infer<typeof WardrobeItemSchema>;
@@ -41,9 +40,9 @@ export type AICapsuleRecommendationsInput = z.infer<typeof AICapsuleRecommendati
 
 const CapsuleItemSchema = z.object({
   name: z.string().describe('The name of the clothing item.'),
-  type: z.enum(['top', 'bottom', 'dress', 'outerwear', 'shoe', 'accessory']).describe('The category of the item. Use SHOE for any footwear and ACCESSORY for belts, bags, etc.'),
+  type: z.enum(['top', 'bottom', 'dress', 'outerwear', 'shoe', 'accessory']).describe('The category of the item. Use SHOE for any footwear and ACCESSORY for belts, bags, jewelry.'),
   source: z.enum(['wardrobe', 'shop']).describe('Whether it is from wardrobe or suggested.'),
-  wardrobeItemId: z.string().optional().describe('If from wardrobe, the ID of the selected item.'),
+  wardrobeItemId: z.string().optional().describe('If from wardrobe, the EXACT ID of the selected item from the list.'),
   shopLink: z.string().optional().describe('URL to purchase if shop item.'),
 });
 export type CapsuleItem = z.infer<typeof CapsuleItemSchema>;
@@ -72,16 +71,19 @@ const aiCapsuleRecommendationsPrompt = ai.definePrompt({
   prompt: `You are an expert image consultant for Pilar Cifuentes Catalán. Generate 3 personalized outfit 'capsules'.
 For each capsule:
 1. Prioritize items from the user's wardrobe.
-2. If using a wardrobe item, return the correct 'wardrobeItemId'.
+2. If using a wardrobe item, return the EXACT 'wardrobeItemId' from the list provided.
 3. If recommending a NEW item (shop), suggest realistic links for retailers like Zara, Primark, or Mango (Spain context).
 4. Strictly use these types: "top", "bottom", "dress", "outerwear", "shoe", "accessory".
 5. IMPORTANT: Do not combine different items in a single item entry (e.g., don't put "Jeans and glasses" together). Each item must be its own entry.
-6. Footwear must ALWAYS be type "shoe". Belts/Bags must ALWAYS be type "accessory".
+6. Footwear must ALWAYS be type "shoe". Belts, Bags, Scarves, Glasses must ALWAYS be type "accessory".
+7. Ensure the recommendation matches the user's figure ({{figureAnalysis}}) and color palette ({{colorimetryAnalysis}}).
 
-User Details:
-- Style: {{stylePreferences.preferredStyles}}
-- Body: {{figureAnalysis}}, Color: {{colorimetryAnalysis}}
-- Request: {{eventType}} in {{weatherConditions}}
+User Style Preferences:
+- Preferred: {{stylePreferences.preferredStyles}}
+- Colors: {{stylePreferences.favoriteColors}}
+- Body Focus: {{stylePreferences.bodyPartsToAccentuate}}
+- Request Event: {{eventType}}
+- Weather: {{weatherConditions}}
 
 Wardrobe Items Available (USE THESE IDs ONLY for wardrobe source):
 {{#each wardrobeItems}}

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from 'react';
@@ -49,13 +48,13 @@ export default function CapsulesPage() {
   };
 
   const getItemImage = (item: CapsuleItem) => {
-    // 1. If it's a wardrobe item, use the user's stored image
+    // 1. Prioritize Wardrobe photo if source is wardrobe and ID matches
     if (item.source === 'wardrobe' && item.wardrobeItemId) {
       const localItem = wardrobe.find(wi => wi.id === item.wardrobeItemId);
-      if (localItem) return localItem.imageDataUri;
+      if (localItem && localItem.imageDataUri) return localItem.imageDataUri;
     }
     
-    // 2. If it's a shop item or wardrobe item not found, use a fashion placeholder
+    // 2. Fallback to high-quality placeholder based on standardized type
     const normalizedType = item.type.toLowerCase();
     const typeMapping: Record<string, string> = {
       'top': 'fashion-top',
@@ -75,12 +74,12 @@ export default function CapsulesPage() {
   const getItemHint = (item: CapsuleItem) => {
     const normalizedType = item.type.toLowerCase();
     const typeMapping: Record<string, string> = {
-      'top': 'shirt clothing',
-      'bottom': 'trousers fashion',
-      'dress': 'dress clothing',
-      'outerwear': 'jacket outerwear',
-      'shoe': 'shoes footwear',
-      'accessory': 'accessory style'
+      'top': 'fashion top clothing',
+      'bottom': 'fashion trousers pants',
+      'dress': 'fashion dress outfit',
+      'outerwear': 'fashion jacket coat',
+      'shoe': 'fashion sneakers shoes',
+      'accessory': 'fashion accessory bag'
     };
     return typeMapping[normalizedType] || 'fashion clothing';
   };
