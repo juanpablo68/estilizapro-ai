@@ -1,14 +1,15 @@
+
 "use client"
 
 import { useState } from 'react';
 import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE, WardrobeItem } from '@/lib/storage-hooks';
-import { receiveAICapsuleRecommendations, Capsule } from '@/ai/flows/ai-capsule-recommendations';
+import { receiveAICapsuleRecommendations, Capsule, CapsuleItem } from '@/ai/flows/ai-capsule-recommendations';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, ArrowLeft, Sparkles, MapPin, CloudSun, ShoppingBag, FolderHeart, Layers } from "lucide-react";
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -40,6 +41,26 @@ export default function CapsulesPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const getItemImage = (item: CapsuleItem) => {
+    // Si es del armario y tiene un data URI válido, lo usamos
+    if (item.source === 'wardrobe' && item.imageDataUri?.startsWith('data:')) {
+      return item.imageDataUri;
+    }
+    
+    // Si la IA devolvió una URL directa (poco común pero posible)
+    if (item.imageDataUri?.startsWith('http')) {
+      return item.imageDataUri;
+    }
+
+    // Intentamos buscar un placeholder por tipo de prenda
+    const typeKey = item.type.toLowerCase();
+    const placeholder = PlaceHolderImages.find(p => p.id.toLowerCase().includes(typeKey)) || 
+                        PlaceHolderImages.find(p => p.imageHint.toLowerCase().includes(typeKey)) ||
+                        PlaceHolderImages[0];
+    
+    return placeholder.imageUrl;
   };
 
   return (
@@ -98,41 +119,48 @@ export default function CapsulesPage() {
         )}
 
         {capsules.map((capsule, idx) => (
-          <div key={idx} className="space-y-4">
+          <div key={idx} className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center gap-2">
               <div className="h-8 w-1 bg-primary rounded-full" />
               <h2 className="text-xl font-headline font-bold">{capsule.name}</h2>
             </div>
-            <p className="text-sm text-muted-foreground bg-muted/30 p-4 rounded-xl">{capsule.description}</p>
+            <p className="text-sm text-muted-foreground bg-white/50 border p-4 rounded-xl shadow-sm">{capsule.description}</p>
             
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {capsule.items.map((item, itemIdx) => (
-                <Card key={itemIdx} className="overflow-hidden border-none shadow-sm relative">
+                <Card key={itemIdx} className="overflow-hidden border-none shadow-sm relative group hover:shadow-md transition-shadow">
                   <div className="absolute top-2 left-2 z-10">
                     {item.source === 'wardrobe' ? (
-                      <div className="bg-primary/90 text-[10px] text-white px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <div className="bg-primary/90 backdrop-blur-sm text-[10px] text-white px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
                         <FolderHeart className="w-3 h-3" /> Armario
                       </div>
                     ) : (
-                      <div className="bg-secondary/90 text-[10px] text-white px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <div className="bg-secondary/90 backdrop-blur-sm text-[10px] text-white px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
                         <ShoppingBag className="w-3 h-3" /> Tienda
                       </div>
                     )}
                   </div>
-                  <div className="relative aspect-square bg-muted">
-                    {item.source === 'wardrobe' ? (
-                      <Image src={item.imageDataUri} alt={item.name} fill className="object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center">
-                        <div className="bg-white/50 p-2 rounded-lg text-[10px] font-medium leading-tight">
-                          {item.imageDataUri || item.name}
-                        </div>
+                  <div className="relative aspect-[3/4] bg-muted overflow-hidden">
+                    <Image 
+                      src={getItemImage(item)} 
+                      alt={item.name} 
+                      fill 
+                      className="object-cover transition-transform group-hover:scale-105 duration-500" 
+                    />
+                    {item.source === 'shop' && (
+                      <div className="absolute inset-0 bg-black/5 flex items-end p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <p className="text-[8px] text-white bg-black/40 p-1 rounded backdrop-blur-sm w-full text-center">Referencia de Estilo</p>
                       </div>
                     )}
                   </div>
-                  <CardContent className="p-3">
+                  <CardContent className="p-3 bg-white">
                     <p className="font-bold text-[10px] truncate">{item.name}</p>
                     <p className="text-[9px] text-muted-foreground uppercase">{item.type}</p>
+                    {item.shopLink && (
+                      <Link href={item.shopLink} target="_blank" className="text-[8px] text-secondary hover:underline mt-1 block font-medium">
+                        Ver en tienda →
+                      </Link>
+                    )}
                   </CardContent>
                 </Card>
               ))}
