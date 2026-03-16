@@ -1,6 +1,10 @@
 'use server';
 /**
  * @fileOverview A Genkit flow for generating a Pixar-like animated avatar from user photos.
+ * 
+ * This flow now uses a two-step process to avoid quota issues with experimental models:
+ * 1. Analyzes the input photos using the standard Gemini Flash model to create a detailed description.
+ * 2. Uses the Imagen model to generate the final stylized avatar from that description.
  *
  * - generateStylizedAvatar - A function that handles the avatar generation process.
  * - GenerateStylizedAvatarInput - The input type for the generateStylizedAvatar function.
@@ -37,21 +41,15 @@ export type GenerateStylizedAvatarOutput = z.infer<
   typeof GenerateStylizedAvatarOutputSchema
 >;
 
+/**
+ * Generates a stylized Pixar-like avatar.
+ * Uses a robust 2-step process to ensure high availability and quality.
+ */
 export async function generateStylizedAvatar(
   input: GenerateStylizedAvatarInput
 ): Promise<GenerateStylizedAvatarOutput> {
   return generateStylizedAvatarFlow(input);
 }
-
-const generateStylizedAvatarPrompt = ai.definePrompt({
-  name: 'generateStylizedAvatarPrompt',
-  input: {schema: GenerateStylizedAvatarInputSchema},
-  output: {schema: GenerateStylizedAvatarOutputSchema},
-  prompt: `Based on the provided face and full figure images, generate a unique, Pixar-like animated avatar. The avatar should capture the likeness of the person in the photos but in a distinct animated style. Ensure the output is a single image representing the full avatar.
-
-Face Photo: {{media url=facePhotoDataUri}}
-Figure Photo: {{media url=figurePhotoDataUri}}`,
-});
 
 const generateStylizedAvatarFlow = ai.defineFlow(
   {
@@ -60,24 +58,29 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     outputSchema: GenerateStylizedAvatarOutputSchema,
   },
   async input => {
-    const {output} = await ai.generate({
-      model: 'googleai/gemini-2.5-flash-image',
+    // Step 1: Analyze the photos to get a detailed character description
+    // We use the default gemini-2.5-flash model for this multimodal task
+    const analysisResponse = await ai.generate({
       prompt: [
-        {media: {url: input.facePhotoDataUri}},
-        {media: {url: input.figurePhotoDataUri}},
-        {text: `Based on these photos, create a unique, Pixar-like animated avatar. The avatar should capture the likeness of the person in the photos but in a distinct animated style. Focus on generating a full-body avatar.`},
-      ],
-      config: {
-        responseModalities: ['TEXT', 'IMAGE'],
-      },
+        { media: { url: input.facePhotoDataUri } },
+        { media: { url: input.figurePhotoDataUri } },
+        { text: "Analyze these photos and provide a detailed physical description for a 3D animated character avatar. Focus on: hair color/style, eye color, facial structure, skin tone, body type, and current clothing. Describe them in a way that captures their essence for a Pixar-style character. Keep the description concise but vivid." }
+      ]
     });
 
-    if (!output || !output.media || output.media.length === 0) {
-      throw new Error('Failed to generate avatar image.');
+    const characterDescription = analysisResponse.text;
+
+    // Step 2: Generate the image using Imagen
+    // This model is specifically optimized for high-quality image generation from text
+    const generationResponse = await ai.generate({
+      model: 'googleai/imagen-4.0-fast-generate-001',
+      prompt: `A high-quality, professional 3D Pixar-style animated character avatar. The character should have: ${characterDescription}. Cinematic lighting, soft 3D render, vibrant colors, expressive features, Disney-inspired aesthetic, white background.`,
+    });
+
+    if (!generationResponse.media || !generationResponse.media.url) {
+      throw new Error('El servicio de generación de imágenes no devolvió ningún resultado. Por favor, inténtalo de nuevo.');
     }
 
-    const avatarDataUri = output.media[0].url;
-
-    return {avatarDataUri};
+    return { avatarDataUri: generationResponse.media.url };
   }
 );

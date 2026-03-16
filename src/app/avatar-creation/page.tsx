@@ -7,6 +7,7 @@ import { generateStylizedAvatar } from '@/ai/flows/generate-stylized-avatar';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Camera, User, Loader2, Image as ImageIcon, Sparkles } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 
 export default function AvatarCreationPage() {
@@ -16,6 +17,7 @@ export default function AvatarCreationPage() {
   const [generating, setGenerating] = useState(false);
   const [generatedAvatar, setGeneratedAvatar] = useState<string | null>(profile.avatarDataUri || null);
   const router = useRouter();
+  const { toast } = useToast();
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'face' | 'figure') => {
     const file = e.target.files?.[0];
@@ -40,8 +42,17 @@ export default function AvatarCreationPage() {
       });
       setGeneratedAvatar(result.avatarDataUri);
       setProfile({ ...profile, avatarDataUri: result.avatarDataUri });
-    } catch (error) {
+      toast({
+        title: "¡Avatar Creado!",
+        description: "Tu avatar Pixar ha sido generado con éxito.",
+      });
+    } catch (error: any) {
       console.error("Error generating avatar", error);
+      toast({
+        variant: "destructive",
+        title: "Error de Cuota o Servicio",
+        description: "El servicio de IA está experimentando alta demanda. Por favor, espera unos segundos e inténtalo de nuevo.",
+      });
     } finally {
       setGenerating(false);
     }
