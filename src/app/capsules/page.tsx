@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from 'react';
@@ -7,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, ArrowLeft, Sparkles, MapPin, CloudSun, ShoppingBag, FolderHeart, Layers } from "lucide-react";
+import { Loader2, ArrowLeft, Sparkles, MapPin, CloudSun, ShoppingBag, FolderHeart, Layers, ExternalLink } from "lucide-react";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -48,13 +49,11 @@ export default function CapsulesPage() {
   };
 
   const getItemImage = (item: CapsuleItem) => {
-    // 1. If it's from wardrobe, find the actual local image URI using the ID returned by AI
     if (item.source === 'wardrobe' && item.wardrobeItemId) {
       const localItem = wardrobe.find(wi => wi.id === item.wardrobeItemId);
       if (localItem) return localItem.imageDataUri;
     }
     
-    // 2. Fallback to placeholder based on category for 'shop' items or missing wardrobe images
     const normalizedType = item.type.toLowerCase();
     const typeMapping: Record<string, string> = {
       'top': 'fashion-top',
@@ -66,26 +65,26 @@ export default function CapsulesPage() {
     };
 
     const targetId = typeMapping[normalizedType] || 'fashion-top';
-    const placeholder = PlaceHolderImages.find(p => p.id === targetId) || PlaceHolderImages[0];
+    const placeholder = PlaceHolderImages.find(p => p.id === targetId);
     
-    return placeholder.imageUrl;
+    return placeholder?.imageUrl || PlaceHolderImages[0].imageUrl;
   };
 
   const getItemHint = (item: CapsuleItem) => {
     const normalizedType = item.type.toLowerCase();
     const typeMapping: Record<string, string> = {
-      'top': 'fashion top clothing',
-      'bottom': 'fashion pants trousers',
+      'top': 'fashion shirt blouse',
+      'bottom': 'fashion trousers jeans',
       'dress': 'fashion dress clothing',
       'outerwear': 'fashion jacket coat',
-      'shoe': 'fashion shoes footwear',
+      'shoe': 'fashion sneakers shoes',
       'accessory': 'fashion accessory style'
     };
     return typeMapping[normalizedType] || 'fashion clothing';
   };
 
   return (
-    <div className="flex-1 max-w-3xl mx-auto w-full p-6 space-y-6 pb-20">
+    <div className="flex-1 max-w-4xl mx-auto w-full p-6 space-y-6 pb-20">
       <header className="flex items-center gap-4 pt-4">
         <Link href="/dashboard">
           <Button variant="ghost" size="icon"><ArrowLeft /></Button>
@@ -95,7 +94,7 @@ export default function CapsulesPage() {
 
       <Card className="border-none shadow-lg bg-white/80 backdrop-blur-sm">
         <CardContent className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="flex items-center gap-2 text-xs uppercase tracking-wider font-bold opacity-70">
                 <MapPin className="w-3 h-3" /> Evento
@@ -130,16 +129,16 @@ export default function CapsulesPage() {
             disabled={loading} 
             className="w-full bg-secondary h-12 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98]"
           >
-            {loading ? <><Loader2 className="mr-2 animate-spin" /> Creando Looks...</> : <><Sparkles className="mr-2" /> Generar Cápsulas</>}
+            {loading ? <><Loader2 className="mr-2 animate-spin" /> Estilizando...</> : <><Sparkles className="mr-2" /> Generar Look de Hoy</>}
           </Button>
         </CardContent>
       </Card>
 
-      <div className="space-y-12">
+      <div className="space-y-16">
         {capsules.length === 0 && !loading && (
-          <div className="text-center py-20 text-muted-foreground opacity-40">
+          <div className="text-center py-20 text-muted-foreground opacity-30">
             <Layers className="w-16 h-16 mx-auto mb-4" />
-            <p className="text-sm font-medium">Configura el evento y pulsa Generar</p>
+            <p className="text-sm font-medium">Define el plan y pulsa Generar</p>
           </div>
         )}
 
@@ -153,21 +152,21 @@ export default function CapsulesPage() {
               </div>
             </div>
             
-            <div className="bg-white/40 backdrop-blur-sm border rounded-2xl p-5 shadow-sm">
+            <div className="bg-white/60 backdrop-blur-md border border-white rounded-2xl p-5 shadow-sm">
                 <p className="text-sm leading-relaxed text-muted-foreground italic">"{capsule.description}"</p>
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {capsule.items.map((item, itemIdx) => (
-                <Card key={itemIdx} className="overflow-hidden border-none shadow-sm relative group hover:shadow-xl transition-all duration-300 rounded-2xl">
-                  <div className="absolute top-3 left-3 z-10">
+                <Card key={itemIdx} className="overflow-hidden border-none shadow-sm relative group hover:shadow-xl transition-all duration-300 rounded-2xl bg-white">
+                  <div className="absolute top-2 left-2 z-10">
                     {item.source === 'wardrobe' ? (
-                      <div className="bg-primary/95 backdrop-blur-md text-[9px] font-bold text-white px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-lg border border-white/20">
-                        <FolderHeart className="w-3 h-3" /> TU ARMARIO
+                      <div className="bg-primary/90 backdrop-blur-md text-[8px] font-bold text-white px-2 py-1 rounded-full flex items-center gap-1 shadow-lg">
+                        <FolderHeart className="w-2.5 h-2.5" /> TU ARMARIO
                       </div>
                     ) : (
-                      <div className="bg-secondary/95 backdrop-blur-md text-[9px] font-bold text-white px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-lg border border-white/20">
-                        <ShoppingBag className="w-3 h-3" /> SUGERENCIA
+                      <div className="bg-secondary/90 backdrop-blur-md text-[8px] font-bold text-white px-2 py-1 rounded-full flex items-center gap-1 shadow-lg">
+                        <ShoppingBag className="w-2.5 h-2.5" /> TIENDA
                       </div>
                     )}
                   </div>
@@ -176,16 +175,16 @@ export default function CapsulesPage() {
                       src={getItemImage(item)} 
                       alt={item.name} 
                       fill 
-                      className="object-cover transition-transform group-hover:scale-110 duration-700" 
+                      className="object-cover transition-transform group-hover:scale-105 duration-500" 
                       data-ai-hint={getItemHint(item)}
                     />
                   </div>
-                  <CardContent className="p-3 bg-white">
-                    <p className="font-bold text-xs line-clamp-1">{item.name}</p>
-                    <p className="text-[9px] text-muted-foreground uppercase font-semibold">{item.type}</p>
+                  <CardContent className="p-3">
+                    <p className="font-bold text-xs line-clamp-1 h-4">{item.name}</p>
+                    <p className="text-[8px] text-muted-foreground uppercase font-bold mt-1">{item.type}</p>
                     {item.shopLink && (
-                      <Link href={item.shopLink} target="_blank" className="text-[9px] text-secondary hover:underline mt-2 flex items-center gap-1 font-bold">
-                        VER OPCIÓN TIENDA <ArrowLeft className="w-2 h-2 rotate-180" />
+                      <Link href={item.shopLink} target="_blank" className="text-[9px] text-primary hover:underline mt-2 flex items-center gap-1 font-bold">
+                        COMPRAR EN TIENDA <ExternalLink className="w-2.5 h-2.5" />
                       </Link>
                     )}
                   </CardContent>

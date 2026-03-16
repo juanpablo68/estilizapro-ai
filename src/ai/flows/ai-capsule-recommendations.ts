@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A Genkit flow for generating personalized outfit 'capsule' recommendations.
@@ -68,22 +69,22 @@ const aiCapsuleRecommendationsPrompt = ai.definePrompt({
   name: 'aiCapsuleRecommendationsPrompt',
   input: { schema: AICapsuleRecommendationsInputSchema },
   output: { schema: AICapsuleRecommendationsOutputSchema },
-  prompt: `You are an expert image consultant. Generate a list of personalized outfit 'capsules' (complete looks).
+  prompt: `You are an expert image consultant for Pilar Cifuentes Catalán. Generate 3 personalized outfit 'capsules'.
 For each capsule:
-1. Use as many items from the user's wardrobe as possible.
-2. If the wardrobe is used, return the correct 'wardrobeItemId' from the list below.
-3. If suggesting a new item to buy, set 'source' to 'shop' and leave 'wardrobeItemId' empty.
-4. Strictly use these categories for 'type': "top", "bottom", "dress", "outerwear", "shoe", "accessory".
+1. Prioritize items from the user's wardrobe.
+2. If using a wardrobe item, return the correct 'wardrobeItemId'.
+3. If recommending a NEW item (shop), suggest realistic links for retailers like Zara, Primark, or Mango (Spain context).
+4. Example shopLink format: https://www.zara.com/es/es/search?searchTerm=vaqueros+rectos
+5. Strictly use these types: "top", "bottom", "dress", "outerwear", "shoe", "accessory".
 
 User Details:
 - Style: {{stylePreferences.preferredStyles}}
 - Body: {{figureAnalysis}}, Color: {{colorimetryAnalysis}}
 - Request: {{eventType}} in {{weatherConditions}}
 
-Wardrobe Items Available (USE THESE IDs):
+Wardrobe Items Available (USE THESE IDs if you select them):
 {{#each wardrobeItems}}
 - ID: {{id}}, Name: {{name}} ({{type}})
-{{media url=imageDataUri}}
 {{/each}}`
 });
 
