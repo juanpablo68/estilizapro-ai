@@ -35,7 +35,7 @@ export default function SettingsPage() {
     localStorage.setItem('google_genai_key', localKeys.google);
     localStorage.setItem('openai_api_key', localKeys.openai);
     
-    // Explicitly update profile
+    // Explicitly update profile in local storage via our hook
     setProfile({ ...profile });
     
     toast({
@@ -92,7 +92,7 @@ export default function SettingsPage() {
           <div className="space-y-2">
             <Label>Análisis de Figura (Somatotipo)</Label>
             <Input 
-              value={profile.figureAnalysis} 
+              value={profile.figureAnalysis || ''} 
               onChange={e => setProfile({...profile, figureAnalysis: e.target.value})}
               placeholder="Ej: Reloj de Arena, Triángulo, Rectángulo..."
             />
@@ -101,7 +101,7 @@ export default function SettingsPage() {
           <div className="space-y-2">
             <Label>Análisis de Colorimetría (Paleta)</Label>
             <Input 
-              value={profile.colorimetryAnalysis} 
+              value={profile.colorimetryAnalysis || ''} 
               onChange={e => setProfile({...profile, colorimetryAnalysis: e.target.value})}
               placeholder="Ej: Otoño Cálido, Invierno Frío, Verano..."
             />
