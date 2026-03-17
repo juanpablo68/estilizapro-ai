@@ -45,13 +45,20 @@ export default function AvatarCreationPage() {
   };
 
   const handleGenerate = async () => {
-    if (!facePhoto || !figurePhoto) return;
+    if (!facePhoto || !figurePhoto) {
+      toast({
+        variant: "destructive",
+        title: "Fotos Requeridas",
+        description: "Por favor sube tanto la foto de tu rostro como la de tu cuerpo.",
+      });
+      return;
+    }
     setGenerating(true);
     try {
       const result = await generateStylizedAvatar({
         facePhotoDataUri: facePhoto,
         figurePhotoDataUri: figurePhoto,
-        preferOpenAI: preferOpenAI
+        preferOpenAI: true // Forzamos OpenAI ya que tienes cuenta de pago
       });
       
       setGeneratedAvatar(result.avatarDataUri);
@@ -59,7 +66,7 @@ export default function AvatarCreationPage() {
       
       toast({
         title: "¡Avatar Creado!",
-        description: "Tu modelo 3D ha sido generado con éxito.",
+        description: "Tu modelo 3D ha sido generado con éxito con OpenAI.",
       });
     } catch (error: any) {
       console.error(error);
@@ -83,17 +90,17 @@ export default function AvatarCreationPage() {
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">
       <div className="space-y-2 text-center pt-8">
         <h1 className="text-3xl font-headline font-bold text-primary">Tu Yo Digital</h1>
-        <p className="text-muted-foreground text-sm">Transformamos tus fotos reales en un avatar Pixar 3D.</p>
+        <p className="text-muted-foreground text-sm">Convertimos tus fotos reales en un avatar Pixar 3D profesional.</p>
       </div>
 
       {!generatedAvatar ? (
         <div className="space-y-6">
           <Alert variant="default" className="bg-pink-50 border-pink-200">
             <Sparkles className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-primary font-bold">Generación con IA</AlertTitle>
+            <AlertTitle className="text-primary font-bold">Modo Premium OpenAI</AlertTitle>
             <AlertDescription className="text-xs">
-              {preferOpenAI ? "Utilizando OpenAI DALL-E 3 para máxima fidelidad." : "Utilizando Google Gemini Multimodal."} 
-              <Link href="/settings" className="underline font-bold ml-1">Configurar llaves</Link>
+              Utilizando tu clave de OpenAI para máxima fidelidad visual. 
+              <Link href="/settings" className="underline font-bold ml-1">Gestionar claves</Link>
             </AlertDescription>
           </Alert>
 
@@ -127,7 +134,7 @@ export default function AvatarCreationPage() {
                 <ImageIcon className="w-6 h-6 text-secondary" />
               </div>
               <CardTitle className="text-lg">Foto de Cuerpo</CardTitle>
-              <CardDescription className="text-xs">Para capturar tu complexión y estilo.</CardDescription>
+              <CardDescription className="text-xs">Para capturar tu complexión y build.</CardDescription>
             </CardHeader>
             <CardContent>
               {figurePhoto ? (
@@ -151,7 +158,7 @@ export default function AvatarCreationPage() {
             className="w-full h-16 bg-primary text-xl font-bold shadow-xl hover:scale-[1.02] transition-transform"
           >
             {generating ? (
-              <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> Creando Avatar...</>
+              <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> Creando con GPT-4o...</>
             ) : (
               <><Sparkles className="mr-3 h-6 w-6" /> Generar Avatar Pixar</>
             )}
@@ -171,7 +178,7 @@ export default function AvatarCreationPage() {
             </div>
             <CardContent className="p-8 text-center space-y-3">
               <CardTitle className="text-3xl text-primary font-headline font-bold">¡Estás increíble!</CardTitle>
-              <p className="text-muted-foreground italic">"Tu modelo 3D personalizado está listo para el probador virtual"</p>
+              <p className="text-muted-foreground italic">"Tu modelo 3D premium está listo para el probador virtual"</p>
             </CardContent>
           </Card>
           
