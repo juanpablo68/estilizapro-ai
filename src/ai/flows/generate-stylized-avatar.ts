@@ -51,13 +51,14 @@ const generateStylizedAvatarFlow = ai.defineFlow(
   },
   async input => {
     try {
-      // Use the multimodal capabilities to generate a stylized avatar based on user photos
+      // Step 1: Analyze and Generate using the specialized image model
+      // We pass both photos to ensure the model captures the full essence of the user
       const response = await ai.generate({
         model: 'googleai/gemini-2.5-flash-image',
         prompt: [
           { media: { url: input.facePhotoDataUri } },
           { media: { url: input.figurePhotoDataUri } },
-          { text: 'Analyze these photos and generate a 3D Pixar-style animated character avatar. The character MUST resemble the person in the photos, maintaining their hair style, facial structure, and body proportions. The style should be smooth 3D animation, like a character from a modern animated movie. Return only the resulting image.' },
+          { text: 'Act as a professional 3D character designer. Analyze these two photos: one of the face and one of the body. Create a high-quality 3D Pixar-style character that is an exact stylized version of the person in the photos. CRITICAL: Preserve the person\'s specific hair style, hair color, facial structure, and body proportions. The character should have vibrant colors, expressive features, and be rendered in high-definition 3D animation style (like modern Disney/Pixar movies). Place the character against a clean, neutral studio background. Return ONLY the resulting image.' },
         ],
         config: {
           responseModalities: ['TEXT', 'IMAGE'],
@@ -73,11 +74,10 @@ const generateStylizedAvatarFlow = ai.defineFlow(
       
       throw new Error("Model did not return media.");
     } catch (e) {
-      console.error("Image-to-Image generation failed, using stylized character fallback:", e);
-      // Fallback to a seed that is known to produce a human-like 3D character 
-      // instead of a generic building or landscape.
+      console.error("Image-to-Image generation failed, using optimized character fallback:", e);
+      // Fallback to a high-quality character seed that is neutral and fits the fashion theme
       return { 
-        avatarDataUri: `https://picsum.photos/seed/3d-character-mannequin-v2/600/800`,
+        avatarDataUri: `https://picsum.photos/seed/pixar-avatar-stylized-mannequin-v3/600/800`,
         isPlaceholder: true
       };
     }

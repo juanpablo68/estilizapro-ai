@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview A Genkit flow for generating personalized outfit 'capsule' recommendations.
- * Migrated to AI Hints system to ensure visual accuracy without billing restrictions.
+ * Uses strict AI Hints for visual consistency.
  */
 
 import {ai} from '@/ai/genkit';
@@ -41,7 +41,7 @@ const CapsuleItemSchema = z.object({
   source: z.enum(['wardrobe', 'shop']).describe('Whether it is from wardrobe or suggested.'),
   wardrobeItemId: z.string().optional().describe('If from wardrobe, the EXACT ID of the selected item from the list.'),
   shopLink: z.string().optional().describe('URL to purchase if shop item.'),
-  styleHint: z.string().describe('EXACTLY 2 WORDS in English to search for a visual representation (e.g., "leather boots", "white sneakers").'),
+  styleHint: z.string().describe('EXACTLY 2 WORDS in English to search for a visual representation (e.g., "denim jeans", "leather belt").'),
 });
 export type CapsuleItem = z.infer<typeof CapsuleItemSchema>;
 
@@ -68,14 +68,13 @@ const aiCapsuleRecommendationsPrompt = ai.definePrompt({
   output: { schema: AICapsuleRecommendationsOutputSchema },
   prompt: `You are an expert image consultant. Generate 2 personalized outfit 'capsules'.
 
-For each item:
-1. If from wardrobe, provide the EXACT 'wardrobeItemId'.
-2. If NEW (shop), provide EXACTLY 2 WORDS in ENGLISH for 'styleHint' (e.g., "beige chinos", "denim jacket"). This is critical for visual representation.
-3. Shop links should be direct searches for popular stores in Spain like Zara, Mango, or Primark.
+For each NEW (shop) item, provide EXACTLY 2 WORDS in ENGLISH for 'styleHint' that describe the clothing item accurately (e.g., "black sneakers", "silk blouse", "cargo pants"). Avoid generic words like "item" or "thing".
 
-User: {{stylePreferences.preferredStyles}}, Event: {{eventType}}, Weather: {{weatherConditions}}.
+For shop links, use Google Shopping search URLs for popular Spanish stores like Zara, Mango or Primark.
 
-Wardrobe:
+User Preferences: {{stylePreferences.preferredStyles}}. Event: {{eventType}}. Weather: {{weatherConditions}}.
+
+Wardrobe Items Available (Use their IDs):
 {{#each wardrobeItems}}
 - ID: {{id}}, Name: {{name}}, Type: {{type}}
 {{/each}}`
