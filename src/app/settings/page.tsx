@@ -35,7 +35,7 @@ export default function SettingsPage() {
     localStorage.setItem('google_genai_key', localKeys.google);
     localStorage.setItem('openai_api_key', localKeys.openai);
     
-    // Explicitly update profile in local storage via our hook
+    // Update profile to trigger local storage sync
     setProfile({ ...profile });
     
     toast({
@@ -77,7 +77,7 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Contexto de Análisis para la IA */}
+      {/* Contexto de Análisis para la IA (Área de Conocimiento) */}
       <Card className="border-none shadow-md overflow-hidden">
         <CardHeader className="bg-secondary/5">
           <div className="flex items-center gap-2 text-secondary">
@@ -131,9 +131,9 @@ export default function SettingsPage() {
         <CardHeader className="bg-muted">
           <div className="flex items-center gap-2 text-foreground">
             <Key className="w-5 h-5" />
-            <CardTitle className="text-lg">Gestión de Motores IA</CardTitle>
+            <CardTitle className="text-lg">Motores de IA (Pago)</CardTitle>
           </div>
-          <CardDescription>Configura tus llaves de pago para análisis y fotos de máxima calidad.</CardDescription>
+          <CardDescription>Configura tus llaves de OpenAI/Google para máxima calidad Pixar.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 pt-6">
           <div className="space-y-2">
@@ -161,7 +161,7 @@ export default function SettingsPage() {
               <Label className="text-sm font-bold flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-primary" /> Priorizar OpenAI (DALL-E 3)
               </Label>
-              <p className="text-[10px] text-muted-foreground">Usa OpenAI para el Avatar Pixar y análisis premium.</p>
+              <p className="text-[10px] text-muted-foreground">Recomendado para Avatares Pixar si tienes saldo.</p>
             </div>
             <Switch checked={preferOpenAI} onCheckedChange={setPreferOpenAI} />
           </div>
