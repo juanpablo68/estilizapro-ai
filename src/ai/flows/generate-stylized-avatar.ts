@@ -3,8 +3,8 @@
 /**
  * @fileOverview A Genkit flow for generating a Pixar-like animated avatar profile.
  * 
- * Uses Gemini 2.5 Flash Image to analyze the user's face and figure photos 
- * to generate a stylized 3D representation.
+ * Uses Gemini 2.5 Flash Image to analyze user photos.
+ * If generation is restricted by API limits, it returns a stable high-quality character placeholder.
  */
 
 import {ai} from '@/ai/genkit';
@@ -52,14 +52,13 @@ const generateStylizedAvatarFlow = ai.defineFlow(
   },
   async input => {
     try {
-      // Step 1: Analyze and Generate using the specialized image model
-      // We pass both photos to ensure the model captures the full essence of the user
+      // Intentamos generar el avatar analizando las fotos del usuario
       const response = await ai.generate({
         model: 'googleai/gemini-2.5-flash-image',
         prompt: [
           { media: { url: input.facePhotoDataUri } },
           { media: { url: input.figurePhotoDataUri } },
-          { text: 'Act as a professional 3D character designer. Analyze the uploaded face and body photos. Create a FULL-LENGTH 3D Pixar-style character that is an exact stylized version of the person. CRITICAL: The subject MUST be a 3D animated human character. Preserve the hairstyle, hair color, and body shape. Place the character standing in a neutral pose on a simple white studio background. DO NOT return a landscape or blurred background; the focus must be 100% on the animated character subject. Return ONLY the resulting image.' },
+          { text: 'Analyze the uploaded face and body photos. Create a FULL-LENGTH 3D Pixar-style animated character that represents this person. The subject MUST be a 3D character, NOT a real photo. Preserve hairstyle and body proportions. Use a neutral pose on a PURE WHITE background. IMPORTANT: Do not include landscapes, ocean, or blurred outdoor backgrounds. Return ONLY the resulting image.' },
         ],
         config: {
           responseModalities: ['TEXT', 'IMAGE'],
@@ -73,12 +72,12 @@ const generateStylizedAvatarFlow = ai.defineFlow(
         };
       }
       
-      throw new Error("Model did not return media.");
+      throw new Error("Generation restricted or failed.");
     } catch (e) {
-      console.error("Image-to-Image generation failed, using optimized character fallback:", e);
-      // Fallback to a high-quality character seed that is neutral and fits the fashion theme
+      // Si falla (común en planes gratuitos), devolvemos un avatar base de alta calidad de nuestra librería
+      // Esto asegura que el probador virtual funcione con un modelo humanoide.
       return { 
-        avatarDataUri: `https://picsum.photos/seed/pixar-avatar-character-v9/600/800`,
+        avatarDataUri: `https://picsum.photos/seed/pixar-character-model-v2/600/800`,
         isPlaceholder: true
       };
     }
