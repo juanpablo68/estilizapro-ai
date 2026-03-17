@@ -54,7 +54,7 @@ export default function CapsulesPage() {
       if (localItem && localItem.imageDataUri) return localItem.imageDataUri;
     }
     
-    // 2. Fallback to high-quality placeholder based on normalized type for Shop items
+    // 2. Fallback to placeholder based on category for Shop items
     const normalizedType = item.type.toLowerCase();
     const typeMapping: Record<string, string> = {
       'top': 'fashion-top',

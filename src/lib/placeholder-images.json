@@ -3,37 +3,37 @@
     {
       "id": "fashion-top",
       "description": "Prenda superior de moda",
-      "imageUrl": "https://picsum.photos/seed/fashion-v-101/600/800",
-      "imageHint": "fashion top"
+      "imageUrl": "https://picsum.photos/seed/fashion-item-991/600/800",
+      "imageHint": "fashion shirt"
     },
     {
       "id": "fashion-bottom",
       "description": "Pantalón o falda de moda",
-      "imageUrl": "https://picsum.photos/seed/fashion-v-102/600/800",
-      "imageHint": "fashion pants"
+      "imageUrl": "https://picsum.photos/seed/fashion-item-992/600/800",
+      "imageHint": "denim jeans"
     },
     {
       "id": "fashion-dress",
       "description": "Vestido elegante",
-      "imageUrl": "https://picsum.photos/seed/fashion-v-103/600/800",
-      "imageHint": "fashion dress"
+      "imageUrl": "https://picsum.photos/seed/fashion-item-993/600/800",
+      "imageHint": "elegant dress"
     },
     {
       "id": "fashion-outerwear",
       "description": "Chaqueta o abrigo",
-      "imageUrl": "https://picsum.photos/seed/fashion-v-104/600/800",
-      "imageHint": "fashion jacket"
+      "imageUrl": "https://picsum.photos/seed/fashion-item-994/600/800",
+      "imageHint": "winter jacket"
     },
     {
       "id": "fashion-shoe",
       "description": "Calzado de moda",
-      "imageUrl": "https://picsum.photos/seed/fashion-v-105/600/800",
-      "imageHint": "fashion shoes"
+      "imageUrl": "https://picsum.photos/seed/fashion-item-995/600/800",
+      "imageHint": "leather shoes"
     },
     {
       "id": "fashion-accessory",
       "description": "Accesorio de moda",
-      "imageUrl": "https://picsum.photos/seed/fashion-v-106/600/800",
+      "imageUrl": "https://picsum.photos/seed/fashion-item-996/600/800",
       "imageHint": "fashion accessory"
     }
   ]

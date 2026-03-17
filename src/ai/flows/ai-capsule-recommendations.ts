@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview A Genkit flow for generating personalized outfit 'capsule' recommendations.
@@ -45,7 +44,7 @@ const CapsuleItemSchema = z.object({
   source: z.enum(['wardrobe', 'shop']).describe('Whether it is from wardrobe or suggested.'),
   wardrobeItemId: z.string().optional().describe('If from wardrobe, the EXACT ID of the selected item from the list.'),
   shopLink: z.string().optional().describe('URL to purchase if shop item.'),
-  styleHint: z.string().describe('EXACTLY 2 WORDS in English for image search, e.g., "beige chinos", "black blazer", "leather belt". NO MORE THAN 2 WORDS.'),
+  styleHint: z.string().describe('EXACTLY 2 WORDS in English for image search. MANDATORY for shop items. (e.g., "leather belt", "white sneakers", "blue denim").'),
 });
 export type CapsuleItem = z.infer<typeof CapsuleItemSchema>;
 
@@ -71,13 +70,14 @@ const aiCapsuleRecommendationsPrompt = ai.definePrompt({
   input: { schema: AICapsuleRecommendationsInputSchema },
   output: { schema: AICapsuleRecommendationsOutputSchema },
   prompt: `You are an expert image consultant for Pilar Cifuentes Catalán. Generate 3 personalized outfit 'capsules'.
+
 For each capsule:
 1. Prioritize items from the user's wardrobe.
 2. If using a wardrobe item, return the EXACT 'wardrobeItemId' from the list provided.
 3. If recommending a NEW item (shop), suggest retailers like Zara, Mango, or Primark.
-4. CRITICAL: For shop links, use Google Shopping search URLs to avoid regional redirects. Format: https://www.google.com/search?q=zara+[item+description]&tbm=shop (e.g., https://www.google.com/search?q=zara+vaqueros+rectos+hombre&tbm=shop).
-5. Strictly use these types: "top", "bottom", "dress", "outerwear", "shoe", "accessory".
-6. CRITICAL: For shop items, provide EXACTLY 2 WORDS for 'styleHint' in English. This is used to find the image. (e.g., "leather loafers", "blue jeans", "navy polo"). Do not use more than two words.
+4. CRITICAL: For shop items, provide EXACTLY 2 WORDS for 'styleHint' in ENGLISH ONLY. This is used by our system to find the correct image. (e.g., "leather belt", "white sneakers", "black blazer", "silk scarf"). NEVER use more than two words. NEVER use Spanish for this field.
+5. Do NOT mix multiple items in one single entry (e.g., do not suggest "jeans and glasses", create two separate items).
+6. Shop links should be Google Shopping search URLs for Spain. Format: https://www.google.com/search?q=zara+[item+description]+site:es&tbm=shop
 
 User Style Preferences:
 - Preferred: {{stylePreferences.preferredStyles}}
