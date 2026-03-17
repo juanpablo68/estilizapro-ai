@@ -29,7 +29,7 @@ export default function SettingsPage() {
   const handleSaveAll = () => {
     try {
       localStorage.setItem('openai_api_key', localKeys.openai);
-      // Forzamos el guardado de los campos de perfil que se hayan modificado en los inputs
+      // Forzamos el guardado de los campos de perfil
       setProfile({ ...profile });
       
       toast({
@@ -147,7 +147,7 @@ export default function SettingsPage() {
           <div className="bg-blue-50 p-4 rounded-lg flex gap-3">
             <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
             <p className="text-[10px] text-blue-700">
-              Tus llaves se guardan localmente en tu navegador. Sin llave de OpenAI, las funciones de IA premium no estarán disponibles.
+              Tus llaves se guardan localmente en tu navegador.
             </p>
           </div>
         </CardContent>
