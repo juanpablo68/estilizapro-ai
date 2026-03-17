@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview A Genkit flow for generating personalized outfit 'capsule' recommendations.
- * Now generates custom fashion images for shop items using AI to ensure visual accuracy.
+ * Migrated to AI Hints system to ensure visual accuracy without billing restrictions.
  */
 
 import {ai} from '@/ai/genkit';
@@ -41,8 +41,7 @@ const CapsuleItemSchema = z.object({
   source: z.enum(['wardrobe', 'shop']).describe('Whether it is from wardrobe or suggested.'),
   wardrobeItemId: z.string().optional().describe('If from wardrobe, the EXACT ID of the selected item from the list.'),
   shopLink: z.string().optional().describe('URL to purchase if shop item.'),
-  styleHint: z.string().describe('EXACTLY 2 WORDS in English for image generation. (e.g., "white sneakers").'),
-  imageDataUri: z.string().optional().describe('The AI-generated image for shop items.'),
+  styleHint: z.string().describe('EXACTLY 2 WORDS in English to search for a visual representation (e.g., "leather boots", "white sneakers").'),
 });
 export type CapsuleItem = z.infer<typeof CapsuleItemSchema>;
 
@@ -67,16 +66,14 @@ const aiCapsuleRecommendationsPrompt = ai.definePrompt({
   name: 'aiCapsuleRecommendationsPrompt',
   input: { schema: AICapsuleRecommendationsInputSchema },
   output: { schema: AICapsuleRecommendationsOutputSchema },
-  prompt: `You are an expert image consultant for Pilar Cifuentes Catalán. Generate 2 personalized outfit 'capsules' (total 2 capsules for performance).
+  prompt: `You are an expert image consultant. Generate 2 personalized outfit 'capsules'.
 
-For each capsule:
-1. Prioritize items from the user's wardrobe.
-2. If using a wardrobe item, return the EXACT 'wardrobeItemId' from the list provided.
-3. If recommending a NEW item (shop), provide EXACTLY 2 WORDS for 'styleHint' in ENGLISH ONLY (e.g., "leather belt", "white sneakers").
-4. Shop links should be Google Shopping search URLs for Spain.
+For each item:
+1. If from wardrobe, provide the EXACT 'wardrobeItemId'.
+2. If NEW (shop), provide EXACTLY 2 WORDS in ENGLISH for 'styleHint' (e.g., "beige chinos", "denim jacket"). This is critical for visual representation.
+3. Shop links should be direct searches for popular stores in Spain like Zara, Mango, or Primark.
 
-User Style: {{stylePreferences.preferredStyles}}, Colors: {{stylePreferences.favoriteColors}}.
-Event: {{eventType}}, Weather: {{weatherConditions}}.
+User: {{stylePreferences.preferredStyles}}, Event: {{eventType}}, Weather: {{weatherConditions}}.
 
 Wardrobe:
 {{#each wardrobeItems}}
@@ -92,27 +89,6 @@ const aiCapsuleRecommendationsFlow = ai.defineFlow(
   },
   async (input) => {
     const {output} = await aiCapsuleRecommendationsPrompt(input);
-    const result = output!;
-
-    // Generate high-quality fashion images for shop items using Imagen
-    for (const capsule of result.capsules) {
-      for (const item of capsule.items) {
-        if (item.source === 'shop' && item.styleHint) {
-          try {
-            const imageResponse = await ai.generate({
-              model: 'googleai/imagen-4.0-fast-generate-001',
-              prompt: `A high-quality, professional studio catalog photo of a single ${item.styleHint}. Clean white background, high-end fashion aesthetic, centered, realistic lighting.`,
-            });
-            if (imageResponse.media?.url) {
-              item.imageDataUri = imageResponse.media.url;
-            }
-          } catch (e) {
-            console.error('Error generating fashion image:', e);
-          }
-        }
-      }
-    }
-
-    return result;
+    return output!;
   }
 );

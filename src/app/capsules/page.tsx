@@ -48,18 +48,12 @@ export default function CapsulesPage() {
   };
 
   const getItemImage = (item: CapsuleItem) => {
-    // 1. Prioritize AI-generated image for Shop items
-    if (item.source === 'shop' && item.imageDataUri) {
-      return item.imageDataUri;
-    }
-
-    // 2. Prioritize Wardrobe photo if source is wardrobe
     if (item.source === 'wardrobe' && item.wardrobeItemId) {
       const localItem = wardrobe.find(wi => wi.id === item.wardrobeItemId);
       if (localItem && localItem.imageDataUri) return localItem.imageDataUri;
     }
     
-    // 3. Fallback to placeholder based on category
+    // Fallback based on category
     const normalizedType = item.type.toLowerCase();
     const typeMapping: Record<string, string> = {
       'top': 'fashion-top',
@@ -72,7 +66,6 @@ export default function CapsulesPage() {
 
     const targetId = typeMapping[normalizedType] || 'fashion-top';
     const placeholder = PlaceHolderImages.find(p => p.id === targetId);
-    
     return placeholder?.imageUrl || PlaceHolderImages[0].imageUrl;
   };
 
@@ -122,13 +115,8 @@ export default function CapsulesPage() {
             disabled={loading} 
             className="w-full bg-secondary h-12 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98]"
           >
-            {loading ? <><Loader2 className="mr-2 animate-spin" /> Creando Look con IA...</> : <><Sparkles className="mr-2" /> Generar Cápsula con Fotos Reales</>}
+            {loading ? <><Loader2 className="mr-2 animate-spin" /> Creando Look con IA...</> : <><Sparkles className="mr-2" /> Generar Cápsula Estilizada</>}
           </Button>
-          {loading && (
-            <p className="text-[10px] text-center text-muted-foreground animate-pulse">
-              Esto puede tardar hasta 40 segundos mientras la IA genera las imágenes de las prendas...
-            </p>
-          )}
         </CardContent>
       </Card>
 
@@ -164,7 +152,7 @@ export default function CapsulesPage() {
                       </div>
                     ) : (
                       <div className="bg-secondary/90 backdrop-blur-md text-[8px] font-bold text-white px-2 py-1 rounded-full flex items-center gap-1 shadow-lg">
-                        <ShoppingBag className="w-2.5 h-2.5" /> IA GENERADA
+                        <ShoppingBag className="w-2.5 h-2.5" /> SUGERENCIA
                       </div>
                     )}
                   </div>
@@ -174,7 +162,8 @@ export default function CapsulesPage() {
                       alt={item.name} 
                       fill 
                       className="object-cover transition-transform group-hover:scale-105 duration-500" 
-                      unoptimized={item.source === 'shop'} // Generated images are already data uris
+                      unoptimized={item.source === 'shop'}
+                      data-ai-hint={item.source === 'shop' ? item.styleHint : undefined}
                     />
                   </div>
                   <CardContent className="p-3">

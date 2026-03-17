@@ -6,7 +6,7 @@ import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storag
 import { generateStylizedAvatar } from '@/ai/flows/generate-stylized-avatar';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Camera, User, Loader2, Image as ImageIcon, Sparkles } from "lucide-react";
+import { Camera, User, Loader2, Image as ImageIcon, Sparkles, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 
@@ -44,14 +44,14 @@ export default function AvatarCreationPage() {
       setProfile({ ...profile, avatarDataUri: result.avatarDataUri });
       toast({
         title: "¡Avatar Creado!",
-        description: "Tu avatar Pixar ha sido generado con éxito.",
+        description: "Tu avatar estilizado está listo para el probador.",
       });
     } catch (error: any) {
       console.error("Error generating avatar", error);
       toast({
         variant: "destructive",
-        title: "Error de Cuota o Servicio",
-        description: "El servicio de IA está experimentando alta demanda. Por favor, espera unos segundos e inténtalo de nuevo.",
+        title: "Error de Servicio",
+        description: "No se pudo generar el avatar en este momento.",
       });
     } finally {
       setGenerating(false);
@@ -66,7 +66,7 @@ export default function AvatarCreationPage() {
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">
       <div className="space-y-2 text-center pt-8">
         <h1 className="text-3xl font-headline font-bold text-primary">Tu Avatar Estilizado</h1>
-        <p className="text-muted-foreground text-sm">Creamos una versión Pixar de ti para visualizar tus looks.</p>
+        <p className="text-muted-foreground text-sm">Creamos una versión virtual de ti para visualizar tus looks.</p>
       </div>
 
       {!generatedAvatar ? (
@@ -125,17 +125,23 @@ export default function AvatarCreationPage() {
             className="w-full h-14 bg-primary text-lg"
           >
             {generating ? (
-              <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Generando Avatar...</>
+              <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Procesando Avatar...</>
             ) : (
-              <><Sparkles className="mr-2 h-5 w-5" /> Crear mi Avatar Pixar</>
+              <><Sparkles className="mr-2 h-5 w-5" /> Crear mi Avatar Estilizado</>
             )}
           </Button>
         </div>
       ) : (
         <div className="space-y-6">
           <Card className="overflow-hidden shadow-2xl bg-white ring-4 ring-primary/20">
-            <div className="relative aspect-[3/4] w-full">
-              <Image src={generatedAvatar} alt="Generated Avatar" fill className="object-cover" />
+            <div className="relative aspect-[3/4] w-full bg-muted">
+              <Image 
+                src={generatedAvatar} 
+                alt="Generated Avatar" 
+                fill 
+                className="object-cover" 
+                data-ai-hint="3d character"
+              />
             </div>
             <CardContent className="p-6 text-center space-y-2">
               <CardTitle className="text-2xl text-primary">¡Este es tu Avatar!</CardTitle>
