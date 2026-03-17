@@ -14,7 +14,6 @@ import Link from 'next/link';
 
 export default function AvatarCreationPage() {
   const [profile, setProfile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
-  const [preferOpenAI] = useLocalStorage('prefer_openai', false);
   const [facePhoto, setFacePhoto] = useState<string | null>(null);
   const [figurePhoto, setFigurePhoto] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
@@ -60,8 +59,7 @@ export default function AvatarCreationPage() {
       const result = await generateStylizedAvatar({
         facePhotoDataUri: facePhoto,
         figurePhotoDataUri: figurePhoto,
-        openaiApiKey: openaiKey,
-        preferOpenAI: preferOpenAI
+        openaiApiKey: openaiKey
       });
       
       setGeneratedAvatar(result.avatarDataUri);
@@ -76,7 +74,7 @@ export default function AvatarCreationPage() {
       toast({
         variant: "destructive",
         title: "Error de Generación",
-        description: error.message || "No se pudo generar el avatar. Revisa tus claves en Ajustes.",
+        description: error.message || "No se pudo generar el avatar. Revisa tus créditos en Ajustes.",
       });
     } finally {
       setGenerating(false);
@@ -93,16 +91,16 @@ export default function AvatarCreationPage() {
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">
       <div className="space-y-2 text-center pt-8">
         <h1 className="text-3xl font-headline font-bold text-primary">Tu Yo Digital</h1>
-        <p className="text-muted-foreground text-sm">Convertimos tus fotos en un avatar Pixar 3D para el probador virtual.</p>
+        <p className="text-muted-foreground text-sm">Convertimos tus fotos en un avatar Pixar 3D.</p>
       </div>
 
       {!generatedAvatar ? (
         <div className="space-y-6 animate-in fade-in duration-500">
           <Alert className="bg-primary/5 border-primary/20">
             <Sparkles className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-primary font-bold">Motor AI</AlertTitle>
+            <AlertTitle className="text-primary font-bold">Motor OpenAI Activo</AlertTitle>
             <AlertDescription className="text-xs flex items-center justify-between">
-              <span>{preferOpenAI ? 'Priorizando OpenAI (DALL-E 3)' : 'Usando Google (Gemini)'}</span>
+              <span>Usando GPT-4o y DALL-E 3 para máxima calidad.</span>
               <Link href="/settings" className="flex items-center gap-1 font-bold underline">
                 <Settings className="w-3 h-3" /> Ajustes
               </Link>
@@ -115,7 +113,7 @@ export default function AvatarCreationPage() {
                 <User className="w-6 h-6 text-primary" />
               </div>
               <CardTitle className="text-lg">Foto de Rostro</CardTitle>
-              <CardDescription className="text-xs">Para capturar tus rasgos faciales y cabello.</CardDescription>
+              <CardDescription className="text-xs">Para capturar tus rasgos faciales.</CardDescription>
             </CardHeader>
             <CardContent>
               {facePhoto ? (
@@ -163,9 +161,9 @@ export default function AvatarCreationPage() {
             className="w-full h-16 bg-primary text-xl font-bold shadow-xl hover:scale-[1.02] transition-transform"
           >
             {generating ? (
-              <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> Analizando y Creando...</>
+              <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> Creando Avatar Pixar...</>
             ) : (
-              <><Sparkles className="mr-3 h-6 w-6" /> Generar Avatar Pixar</>
+              <><Sparkles className="mr-3 h-6 w-6" /> Generar con OpenAI</>
             )}
           </Button>
         </div>
@@ -183,7 +181,7 @@ export default function AvatarCreationPage() {
             </div>
             <CardContent className="p-8 text-center space-y-3">
               <CardTitle className="text-3xl text-primary font-headline font-bold">¡Estás increíble!</CardTitle>
-              <p className="text-muted-foreground italic">"Tu modelo 3D personalizado está listo para probarse ropa"</p>
+              <p className="text-muted-foreground italic">"Tu modelo 3D personalizado está listo"</p>
             </CardContent>
           </Card>
           

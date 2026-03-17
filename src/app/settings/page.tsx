@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Save, Key, Info, Sparkles, User, BrainCircuit } from "lucide-react";
 import Link from 'next/link';
@@ -14,41 +13,34 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function SettingsPage() {
   const [profile, setProfile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
-  const [preferOpenAI, setPreferOpenAI] = useLocalStorage('prefer_openai', false);
   const [mounted, setMounted] = useState(false);
   const { toast } = useToast();
 
   const [localKeys, setLocalKeys] = useState({
-    google: '',
     openai: ''
   });
 
   useEffect(() => {
     setMounted(true);
-    const gKey = localStorage.getItem('google_genai_key') || '';
     const oKey = localStorage.getItem('openai_api_key') || '';
-    setLocalKeys({ google: gKey, openai: oKey });
+    setLocalKeys({ openai: oKey });
   }, []);
 
   const handleSaveAll = () => {
     try {
-      // Guardar claves en localStorage
-      localStorage.setItem('google_genai_key', localKeys.google);
       localStorage.setItem('openai_api_key', localKeys.openai);
-      
-      // Persistir el perfil actualizado al almacenamiento local (Área de Conocimiento de la IA)
       setProfile({ ...profile });
       
       toast({
         title: "Configuración Guardada",
-        description: "Toda tu información y contexto de análisis de IA han sido actualizados.",
+        description: "Todo el conocimiento de la IA ha sido actualizado correctamente.",
       });
     } catch (error) {
       console.error(error);
       toast({
         variant: "destructive",
         title: "Error al guardar",
-        description: "No se pudieron guardar los cambios. Inténtalo de nuevo.",
+        description: "No se pudieron persistir los cambios localmente.",
       });
     }
   };
@@ -61,7 +53,7 @@ export default function SettingsPage() {
         <Link href="/dashboard">
           <Button variant="ghost" size="icon"><ArrowLeft /></Button>
         </Link>
-        <h1 className="text-2xl font-headline font-bold">Configuración EstilizaPro</h1>
+        <h1 className="text-2xl font-headline font-bold">Configuración AI</h1>
       </header>
 
       {/* Perfil Básico */}
@@ -69,24 +61,23 @@ export default function SettingsPage() {
         <CardHeader className="bg-primary/5">
           <div className="flex items-center gap-2 text-primary">
             <User className="w-5 h-5" />
-            <CardTitle className="text-lg">Tu Perfil</CardTitle>
+            <CardTitle className="text-lg">Perfil de Usuario</CardTitle>
           </div>
-          <CardDescription>Información básica para personalizar tu experiencia.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
           <div className="space-y-2">
-            <Label htmlFor="name">Tu Nombre</Label>
+            <Label htmlFor="name">Nombre</Label>
             <Input 
               id="name"
               value={profile.name} 
               onChange={e => setProfile({...profile, name: e.target.value})}
-              placeholder="¿Cómo quieres que te llamemos?"
+              placeholder="Tu nombre para la IA"
             />
           </div>
         </CardContent>
       </Card>
 
-      {/* Área de Conocimiento: Contexto de Análisis para la IA */}
+      {/* Área de Conocimiento Maestro */}
       <Card className="border-none shadow-md overflow-hidden">
         <CardHeader className="bg-secondary/5">
           <div className="flex items-center gap-2 text-secondary">
@@ -94,7 +85,7 @@ export default function SettingsPage() {
             <CardTitle className="text-lg font-bold">Contexto de Análisis para la IA</CardTitle>
           </div>
           <CardDescription>
-            Datos maestros que utiliza la IA para colorimetría, figura, cápsulas y chat.
+            Datos maestros que alimentan el motor de colorimetría, figura y cápsulas.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
@@ -103,7 +94,7 @@ export default function SettingsPage() {
             <Input 
               value={profile.figureAnalysis || ''} 
               onChange={e => setProfile({...profile, figureAnalysis: e.target.value})}
-              placeholder="Ej: Reloj de Arena, Triángulo, Rectángulo..."
+              placeholder="Ej: Reloj de Arena, Triángulo..."
             />
           </div>
           <div className="space-y-2">
@@ -111,13 +102,13 @@ export default function SettingsPage() {
             <Input 
               value={profile.colorimetryAnalysis || ''} 
               onChange={e => setProfile({...profile, colorimetryAnalysis: e.target.value})}
-              placeholder="Ej: Otoño Cálido, Invierno Frío, Verano..."
+              placeholder="Ej: Otoño Cálido, Invierno..."
             />
           </div>
           <div className="space-y-2">
-            <Label className="font-bold">Instrucciones de Estilo y Preferencias</Label>
+            <Label className="font-bold">Instrucciones de Estilo</Label>
             <Textarea 
-              placeholder="Describe detalles que la IA debe recordar (Ej: prefiero cortes rectos, colores pasteles...)"
+              placeholder="Instrucciones maestras para la IA..."
               value={profile.stylePreferences.preferredStyles.join(', ')}
               onChange={e => setProfile({
                 ...profile, 
@@ -137,23 +128,13 @@ export default function SettingsPage() {
         <CardHeader className="bg-muted">
           <div className="flex items-center gap-2 text-foreground">
             <Key className="w-5 h-5" />
-            <CardTitle className="text-lg">Motores de IA (Pago)</CardTitle>
+            <CardTitle className="text-lg">Llave Maestra OpenAI</CardTitle>
           </div>
-          <CardDescription>Configura tus llaves de OpenAI/Google para el procesamiento de imágenes.</CardDescription>
+          <CardDescription>Requerido para el procesamiento de imágenes y chat.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6 pt-6">
+        <CardContent className="space-y-4 pt-6">
           <div className="space-y-2">
-            <Label>Google Gemini API Key</Label>
-            <Input 
-              type="password" 
-              placeholder="Google API Key" 
-              value={localKeys.google} 
-              onChange={e => setLocalKeys({...localKeys, google: e.target.value})}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>OpenAI API Key (DALL-E 3)</Label>
+            <Label>OpenAI API Key</Label>
             <Input 
               type="password" 
               placeholder="sk-..." 
@@ -162,20 +143,10 @@ export default function SettingsPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/10">
-            <div className="space-y-0.5">
-              <Label className="text-sm font-bold flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-primary" /> Priorizar OpenAI (DALL-E 3)
-              </Label>
-              <p className="text-[10px] text-muted-foreground">Recomendado para Avatares Pixar con cuenta de pago.</p>
-            </div>
-            <Switch checked={preferOpenAI} onCheckedChange={setPreferOpenAI} />
-          </div>
-
           <div className="bg-blue-50 p-4 rounded-lg flex gap-3">
             <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
-            <p className="text-[10px] text-blue-700 leading-normal">
-              Tus llaves se guardan localmente en tu dispositivo para máxima privacidad.
+            <p className="text-[10px] text-blue-700">
+              Tus llaves se guardan localmente. Sin llave de OpenAI, las funciones de IA no estarán disponibles.
             </p>
           </div>
         </CardContent>
