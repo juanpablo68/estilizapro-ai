@@ -1,8 +1,7 @@
-
 'use server';
 /**
- * @fileOverview Generación de Avatar Pixar utilizando IA (OpenAI o Gemini).
- * Ahora soporta OpenAI para mayor calidad visual y fidelidad Pixar.
+ * @fileOverview Generación de Avatar Pixar utilizando IA.
+ * Soporta OpenAI (DALL-E 3) para máxima calidad si se proporciona una clave.
  */
 
 import {ai} from '@/ai/genkit';
@@ -15,6 +14,7 @@ const GenerateStylizedAvatarInputSchema = z.object({
   figurePhotoDataUri: z
     .string()
     .describe("Foto del cuerpo completo del usuario en formato data URI."),
+  openaiApiKey: z.string().optional().describe("Clave de API de OpenAI proporcionada por el usuario."),
   preferOpenAI: z.boolean().optional().default(false),
 });
 export type GenerateStylizedAvatarInput = z.infer<
@@ -41,48 +41,57 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     outputSchema: GenerateStylizedAvatarOutputSchema,
   },
   async input => {
-    // Si el usuario prefiere OpenAI y tenemos soporte (vía DALL-E 3)
-    if (input.preferOpenAI) {
-      // Paso 1: Usar GPT-4o para analizar los rasgos reales del usuario
-      const analysisResponse = await ai.generate({
-        model: 'openai/gpt-4o',
-        prompt: [
-          { media: { url: input.facePhotoDataUri } },
-          { media: { url: input.figurePhotoDataUri } },
-          { text: 'Describe exactly the person in these photos for a 3D artist. Mention hair color, hair style, facial shape, eye color, and body type. Be very specific so an artist can recreate this person as a 3D character.' },
-        ],
-      });
+    // Si se prefiere OpenAI y tenemos los medios para usarlo
+    if (input.preferOpenAI || input.openaiApiKey) {
+      try {
+        // Configuramos la clave temporalmente para este proceso si se pasó desde el cliente
+        if (input.openaiApiKey) {
+          process.env.OPENAI_API_KEY = input.openaiApiKey;
+        }
 
-      const description = analysisResponse.text;
+        // Paso 1: Analizar rasgos con GPT-4o
+        const analysisResponse = await ai.generate({
+          model: 'openai/gpt-4o',
+          prompt: [
+            { media: { url: input.facePhotoDataUri, contentType: 'image/jpeg' } },
+            { media: { url: input.figurePhotoDataUri, contentType: 'image/jpeg' } },
+            { text: 'Analyze these photos. Describe the person for a 3D Pixar artist: hair style/color, face shape, eye color, clothing style, and body build. Be extremely concise.' },
+          ],
+        });
 
-      // Paso 2: Usar DALL-E 3 para generar la imagen Pixar definitiva
-      const generationResponse = await ai.generate({
-        model: 'openai/dall-e-3',
-        prompt: `A professional 3D animated character in the style of Disney/Pixar movie (like Toy Story or Frozen). The character must have: ${description}. Clear 3D render, subsurface scattering, expressive face, stylish clothing. BACKGROUND MUST BE PURE WHITE. Cinematic lighting, 4k resolution.`,
-      });
+        const description = analysisResponse.text;
 
-      if (generationResponse.media && generationResponse.media.url) {
-        return { avatarDataUri: generationResponse.media.url };
+        // Paso 2: Generar con DALL-E 3
+        const generationResponse = await ai.generate({
+          model: 'openai/dall-e-3',
+          prompt: `A professional 3D animated character in Disney/Pixar style. Character features: ${description}. PURE WHITE BACKGROUND. Full body shot, cinematic lighting, 4k render, masterpiece.`,
+        });
+
+        if (generationResponse.media?.url) {
+          return { avatarDataUri: generationResponse.media.url };
+        }
+      } catch (error) {
+        console.error("Error con OpenAI, intentando Gemini como respaldo:", error);
       }
     }
 
-    // Fallback o opción por defecto: Gemini 2.0 Flash (Multimodal Output)
+    // Respaldo con Gemini 2.0 Flash
     const response = await ai.generate({
       model: 'googleai/gemini-2.0-flash',
       prompt: [
-        { media: { url: input.facePhotoDataUri } },
-        { media: { url: input.figurePhotoDataUri } },
-        { text: 'Analyze these two photos and generate a NEW high-quality 3D animated character in Pixar style that looks EXACTLY like the person in the photos (same hair, face, build). Requirements: 1) Pixar 3D aesthetic. 2) PURE WHITE BACKGROUND. 3) Output ONLY the resulting image.' },
+        { media: { url: input.facePhotoDataUri, contentType: 'image/jpeg' } },
+        { media: { url: input.figurePhotoDataUri, contentType: 'image/jpeg' } },
+        { text: 'Generate a 3D Pixar-style animated character that looks exactly like the person in these photos. Requirements: 1) Match face, hair, and build. 2) PURE WHITE BACKGROUND. 3) Output only the resulting image.' },
       ],
       config: {
         responseModalities: ['IMAGE'],
       },
     });
 
-    if (response.media && response.media.url) {
+    if (response.media?.url) {
       return { avatarDataUri: response.media.url };
     }
     
-    throw new Error("No se pudo generar la imagen. Asegúrate de que tu API Key sea válida y de pago.");
+    throw new Error("No se pudo generar el avatar. Verifica tus claves de API en Ajustes.");
   }
 );
