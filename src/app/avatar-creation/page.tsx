@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -98,7 +97,7 @@ export default function AvatarCreationPage() {
       </div>
 
       {!generatedAvatar ? (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-in fade-in duration-500">
           <Alert className="bg-primary/5 border-primary/20">
             <Sparkles className="h-4 w-4 text-primary" />
             <AlertTitle className="text-primary font-bold">Motor: {preferOpenAI ? 'OpenAI (DALL-E 3)' : 'Google (Gemini)'}</AlertTitle>
