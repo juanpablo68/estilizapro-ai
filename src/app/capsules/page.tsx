@@ -48,13 +48,18 @@ export default function CapsulesPage() {
   };
 
   const getItemImage = (item: CapsuleItem) => {
-    // 1. Prioritize Wardrobe photo if source is wardrobe
+    // 1. Prioritize AI-generated image for Shop items
+    if (item.source === 'shop' && item.imageDataUri) {
+      return item.imageDataUri;
+    }
+
+    // 2. Prioritize Wardrobe photo if source is wardrobe
     if (item.source === 'wardrobe' && item.wardrobeItemId) {
       const localItem = wardrobe.find(wi => wi.id === item.wardrobeItemId);
       if (localItem && localItem.imageDataUri) return localItem.imageDataUri;
     }
     
-    // 2. Fallback to placeholder based on category for Shop items
+    // 3. Fallback to placeholder based on category
     const normalizedType = item.type.toLowerCase();
     const typeMapping: Record<string, string> = {
       'top': 'fashion-top',
@@ -77,7 +82,7 @@ export default function CapsulesPage() {
         <Link href="/dashboard">
           <Button variant="ghost" size="icon"><ArrowLeft /></Button>
         </Link>
-        <h1 className="text-2xl font-headline font-bold">Cápsulas AI</h1>
+        <h1 className="text-2xl font-headline font-bold">Cápsulas Personalizadas</h1>
       </header>
 
       <Card className="border-none shadow-lg bg-white/80 backdrop-blur-sm">
@@ -85,7 +90,7 @@ export default function CapsulesPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="flex items-center gap-2 text-xs uppercase tracking-wider font-bold opacity-70">
-                <MapPin className="w-3 h-3" /> Evento
+                <MapPin className="w-3 h-3" /> Plan / Evento
               </Label>
               <Select value={params.eventType} onValueChange={v => setParams({...params, eventType: v})}>
                 <SelectTrigger className="rounded-xl border-muted bg-white/50"><SelectValue /></SelectTrigger>
@@ -99,7 +104,7 @@ export default function CapsulesPage() {
             </div>
             <div className="space-y-2">
               <Label className="flex items-center gap-2 text-xs uppercase tracking-wider font-bold opacity-70">
-                <CloudSun className="w-3 h-3" /> Clima
+                <CloudSun className="w-3 h-3" /> Clima Actual
               </Label>
               <Select value={params.weather} onValueChange={v => setParams({...params, weather: v})}>
                 <SelectTrigger className="rounded-xl border-muted bg-white/50"><SelectValue /></SelectTrigger>
@@ -117,8 +122,13 @@ export default function CapsulesPage() {
             disabled={loading} 
             className="w-full bg-secondary h-12 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98]"
           >
-            {loading ? <><Loader2 className="mr-2 animate-spin" /> Estilizando...</> : <><Sparkles className="mr-2" /> Generar Look de Hoy</>}
+            {loading ? <><Loader2 className="mr-2 animate-spin" /> Creando Look con IA...</> : <><Sparkles className="mr-2" /> Generar Cápsula con Fotos Reales</>}
           </Button>
+          {loading && (
+            <p className="text-[10px] text-center text-muted-foreground animate-pulse">
+              Esto puede tardar hasta 40 segundos mientras la IA genera las imágenes de las prendas...
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -126,7 +136,7 @@ export default function CapsulesPage() {
         {capsules.length === 0 && !loading && (
           <div className="text-center py-20 text-muted-foreground opacity-30">
             <Layers className="w-16 h-16 mx-auto mb-4" />
-            <p className="text-sm font-medium">Define el plan y pulsa Generar</p>
+            <p className="text-sm font-medium">Define tu evento y la IA vestirá tu avatar</p>
           </div>
         )}
 
@@ -154,7 +164,7 @@ export default function CapsulesPage() {
                       </div>
                     ) : (
                       <div className="bg-secondary/90 backdrop-blur-md text-[8px] font-bold text-white px-2 py-1 rounded-full flex items-center gap-1 shadow-lg">
-                        <ShoppingBag className="w-2.5 h-2.5" /> TIENDA
+                        <ShoppingBag className="w-2.5 h-2.5" /> IA GENERADA
                       </div>
                     )}
                   </div>
@@ -164,7 +174,7 @@ export default function CapsulesPage() {
                       alt={item.name} 
                       fill 
                       className="object-cover transition-transform group-hover:scale-105 duration-500" 
-                      data-ai-hint={item.source === 'shop' ? item.styleHint : undefined}
+                      unoptimized={item.source === 'shop'} // Generated images are already data uris
                     />
                   </div>
                   <CardContent className="p-3">
@@ -172,7 +182,7 @@ export default function CapsulesPage() {
                     <p className="text-[8px] text-muted-foreground uppercase font-bold mt-1">{item.type}</p>
                     {item.shopLink && (
                       <Link href={item.shopLink} target="_blank" className="text-[9px] text-primary hover:underline mt-2 flex items-center gap-1 font-bold">
-                        COMPRAR EN TIENDA <ExternalLink className="w-2.5 h-2.5" />
+                        BUSCAR EN TIENDA <ExternalLink className="w-2.5 h-2.5" />
                       </Link>
                     )}
                   </CardContent>

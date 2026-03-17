@@ -1,10 +1,7 @@
 'use server';
 /**
  * @fileOverview A Genkit flow for generating personalized outfit 'capsule' recommendations.
- *
- * - receiveAICapsuleRecommendations - A function that handles the generation of outfit capsules.
- * - AICapsuleRecommendationsInput - The input type for the receiveAICapsuleRecommendations function.
- * - AICapsuleRecommendationsOutput - The return type for the receiveAICapsuleRecommendations function.
+ * Now generates custom fashion images for shop items using AI to ensure visual accuracy.
  */
 
 import {ai} from '@/ai/genkit';
@@ -44,7 +41,8 @@ const CapsuleItemSchema = z.object({
   source: z.enum(['wardrobe', 'shop']).describe('Whether it is from wardrobe or suggested.'),
   wardrobeItemId: z.string().optional().describe('If from wardrobe, the EXACT ID of the selected item from the list.'),
   shopLink: z.string().optional().describe('URL to purchase if shop item.'),
-  styleHint: z.string().describe('EXACTLY 2 WORDS in English for image search. MANDATORY for shop items. (e.g., "leather belt", "white sneakers", "blue denim").'),
+  styleHint: z.string().describe('EXACTLY 2 WORDS in English for image generation. (e.g., "white sneakers").'),
+  imageDataUri: z.string().optional().describe('The AI-generated image for shop items.'),
 });
 export type CapsuleItem = z.infer<typeof CapsuleItemSchema>;
 
@@ -69,24 +67,18 @@ const aiCapsuleRecommendationsPrompt = ai.definePrompt({
   name: 'aiCapsuleRecommendationsPrompt',
   input: { schema: AICapsuleRecommendationsInputSchema },
   output: { schema: AICapsuleRecommendationsOutputSchema },
-  prompt: `You are an expert image consultant for Pilar Cifuentes Catalán. Generate 3 personalized outfit 'capsules'.
+  prompt: `You are an expert image consultant for Pilar Cifuentes Catalán. Generate 2 personalized outfit 'capsules' (total 2 capsules for performance).
 
 For each capsule:
 1. Prioritize items from the user's wardrobe.
 2. If using a wardrobe item, return the EXACT 'wardrobeItemId' from the list provided.
-3. If recommending a NEW item (shop), suggest retailers like Zara, Mango, or Primark.
-4. CRITICAL: For shop items, provide EXACTLY 2 WORDS for 'styleHint' in ENGLISH ONLY. This is used by our system to find the correct image. (e.g., "leather belt", "white sneakers", "black blazer", "silk scarf"). NEVER use more than two words. NEVER use Spanish for this field.
-5. Do NOT mix multiple items in one single entry (e.g., do not suggest "jeans and glasses", create two separate items).
-6. Shop links should be Google Shopping search URLs for Spain. Format: https://www.google.com/search?q=zara+[item+description]+site:es&tbm=shop
+3. If recommending a NEW item (shop), provide EXACTLY 2 WORDS for 'styleHint' in ENGLISH ONLY (e.g., "leather belt", "white sneakers").
+4. Shop links should be Google Shopping search URLs for Spain.
 
-User Style Preferences:
-- Preferred: {{stylePreferences.preferredStyles}}
-- Colors: {{stylePreferences.favoriteColors}}
-- Body Focus: {{stylePreferences.bodyPartsToAccentuate}}
-- Request Event: {{eventType}}
-- Weather: {{weatherConditions}}
+User Style: {{stylePreferences.preferredStyles}}, Colors: {{stylePreferences.favoriteColors}}.
+Event: {{eventType}}, Weather: {{weatherConditions}}.
 
-Wardrobe Items Available (USE THESE IDs ONLY for wardrobe source):
+Wardrobe:
 {{#each wardrobeItems}}
 - ID: {{id}}, Name: {{name}}, Type: {{type}}
 {{/each}}`
@@ -100,6 +92,27 @@ const aiCapsuleRecommendationsFlow = ai.defineFlow(
   },
   async (input) => {
     const {output} = await aiCapsuleRecommendationsPrompt(input);
-    return output!;
+    const result = output!;
+
+    // Generate high-quality fashion images for shop items using Imagen
+    for (const capsule of result.capsules) {
+      for (const item of capsule.items) {
+        if (item.source === 'shop' && item.styleHint) {
+          try {
+            const imageResponse = await ai.generate({
+              model: 'googleai/imagen-4.0-fast-generate-001',
+              prompt: `A high-quality, professional studio catalog photo of a single ${item.styleHint}. Clean white background, high-end fashion aesthetic, centered, realistic lighting.`,
+            });
+            if (imageResponse.media?.url) {
+              item.imageDataUri = imageResponse.media.url;
+            }
+          } catch (e) {
+            console.error('Error generating fashion image:', e);
+          }
+        }
+      }
+    }
+
+    return result;
   }
 );
