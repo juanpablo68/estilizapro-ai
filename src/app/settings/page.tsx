@@ -36,7 +36,7 @@ export default function SettingsPage() {
       localStorage.setItem('google_genai_key', localKeys.google);
       localStorage.setItem('openai_api_key', localKeys.openai);
       
-      // Persistir el perfil actualizado al almacenamiento local
+      // Persistir el perfil actualizado al almacenamiento local (Área de Conocimiento de la IA)
       setProfile({ ...profile });
       
       toast({
@@ -86,12 +86,12 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Contexto de Análisis para la IA */}
+      {/* Área de Conocimiento: Contexto de Análisis para la IA */}
       <Card className="border-none shadow-md overflow-hidden">
         <CardHeader className="bg-secondary/5">
           <div className="flex items-center gap-2 text-secondary">
             <BrainCircuit className="w-5 h-5" />
-            <CardTitle className="text-lg">Contexto de Análisis para la IA</CardTitle>
+            <CardTitle className="text-lg font-bold">Contexto de Análisis para la IA</CardTitle>
           </div>
           <CardDescription>
             Datos maestros que utiliza la IA para colorimetría, figura, cápsulas y chat.
@@ -99,7 +99,7 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
           <div className="space-y-2">
-            <Label>Análisis de Figura (Somatotipo)</Label>
+            <Label className="font-bold">Análisis de Figura (Somatotipo)</Label>
             <Input 
               value={profile.figureAnalysis || ''} 
               onChange={e => setProfile({...profile, figureAnalysis: e.target.value})}
@@ -107,7 +107,7 @@ export default function SettingsPage() {
             />
           </div>
           <div className="space-y-2">
-            <Label>Análisis de Colorimetría (Paleta)</Label>
+            <Label className="font-bold">Análisis de Colorimetría (Paleta)</Label>
             <Input 
               value={profile.colorimetryAnalysis || ''} 
               onChange={e => setProfile({...profile, colorimetryAnalysis: e.target.value})}
@@ -115,7 +115,7 @@ export default function SettingsPage() {
             />
           </div>
           <div className="space-y-2">
-            <Label>Instrucciones de Estilo y Preferencias</Label>
+            <Label className="font-bold">Instrucciones de Estilo y Preferencias</Label>
             <Textarea 
               placeholder="Describe detalles que la IA debe recordar (Ej: prefiero cortes rectos, colores pasteles...)"
               value={profile.stylePreferences.preferredStyles.join(', ')}
