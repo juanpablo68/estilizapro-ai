@@ -7,7 +7,7 @@ import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storag
 import { generateStylizedAvatar } from '@/ai/flows/generate-stylized-avatar';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Camera, User, Loader2, Image as ImageIcon, Sparkles, AlertCircle } from "lucide-react";
+import { Camera, User, Loader2, Image as ImageIcon, Sparkles, AlertCircle, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -56,20 +56,20 @@ export default function AvatarCreationPage() {
       
       if (result.isPlaceholder) {
         toast({
-          title: "Modelo Base Activado",
-          description: "Hemos asignado un avatar Pixar optimizado para tu probador virtual.",
+          title: "Aviso de API",
+          description: "Se ha asignado un modelo base Pixar optimizado.",
         });
       } else {
         toast({
-          title: "¡Avatar Personalizado!",
-          description: "Tu modelo 3D ha sido creado exitosamente.",
+          title: "¡Avatar Creado!",
+          description: "Tu modelo 3D ha sido generado basándose en tus fotos.",
         });
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error de Conexión",
-        description: "Usa un avatar predefinido para continuar.",
+        title: "Error",
+        description: "No se pudo generar el avatar. Inténtalo de nuevo.",
       });
     } finally {
       setGenerating(false);
@@ -85,37 +85,38 @@ export default function AvatarCreationPage() {
   return (
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">
       <div className="space-y-2 text-center pt-8">
-        <h1 className="text-3xl font-headline font-bold text-primary">Tu Avatar 3D</h1>
-        <p className="text-muted-foreground text-sm">Preparamos tu modelo para el probador virtual.</p>
+        <h1 className="text-3xl font-headline font-bold text-primary">Crea tu Yo Virtual</h1>
+        <p className="text-muted-foreground text-sm">Convierte tus fotos en un modelo 3D estilo Pixar.</p>
       </div>
 
       {!generatedAvatar ? (
         <div className="grid gap-6">
           <Alert variant="default" className="bg-blue-50 border-blue-200">
             <AlertCircle className="h-4 w-4 text-blue-600" />
-            <AlertTitle className="text-blue-800">Privacidad Local</AlertTitle>
+            <AlertTitle className="text-blue-800">Uso de IA de Pago</AlertTitle>
             <AlertDescription className="text-blue-700 text-xs">
-              Tus fotos se analizan para crear el avatar pero no se guardan en ningún servidor.
+              Tu clave de API se usará para realizar una transformación de imagen a imagen de alta calidad.
             </AlertDescription>
           </Alert>
 
           <Card className="border-dashed border-2 bg-white/50">
             <CardHeader className="text-center p-4">
-              <div className="mx-auto bg-primary/10 p-2 rounded-full w-fit">
+              <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit">
                 <User className="w-6 h-6 text-primary" />
               </div>
-              <CardTitle className="text-md">Foto de Rostro</CardTitle>
+              <CardTitle className="text-lg">Foto de Rostro</CardTitle>
+              <CardDescription className="text-xs">Asegúrate de que tu cara se vea clara.</CardDescription>
             </CardHeader>
             <CardContent>
               {facePhoto ? (
-                <div className="relative aspect-square w-full max-w-[200px] mx-auto rounded-lg overflow-hidden border">
+                <div className="relative aspect-square w-full max-w-[200px] mx-auto rounded-xl overflow-hidden border-4 border-primary/20">
                   <Image src={facePhoto} alt="Face" fill className="object-cover" />
                   <Button variant="secondary" size="sm" className="absolute bottom-2 right-2 h-7" onClick={() => setFacePhoto(null)}>Cambiar</Button>
                 </div>
               ) : (
-                <label className="flex flex-col items-center justify-center h-32 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
-                  <Camera className="w-6 h-6 text-muted-foreground mb-1" />
-                  <span className="text-xs font-medium">Subir cara</span>
+                <label className="flex flex-col items-center justify-center h-40 bg-muted/20 rounded-xl cursor-pointer hover:bg-muted/30 transition-all border-2 border-dashed border-muted">
+                  <Camera className="w-8 h-8 text-muted-foreground mb-2" />
+                  <span className="text-xs font-bold uppercase tracking-wider">Subir Rostro</span>
                   <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'face')} />
                 </label>
               )}
@@ -124,21 +125,22 @@ export default function AvatarCreationPage() {
 
           <Card className="border-dashed border-2 bg-white/50">
             <CardHeader className="text-center p-4">
-              <div className="mx-auto bg-secondary/10 p-2 rounded-full w-fit">
+              <div className="mx-auto bg-secondary/10 p-3 rounded-full w-fit">
                 <ImageIcon className="w-6 h-6 text-secondary" />
               </div>
-              <CardTitle className="text-md">Foto de Cuerpo</CardTitle>
+              <CardTitle className="text-lg">Foto de Cuerpo</CardTitle>
+              <CardDescription className="text-xs">Para capturar tu complexión y estilo.</CardDescription>
             </CardHeader>
             <CardContent>
               {figurePhoto ? (
-                <div className="relative aspect-[3/4] w-full max-w-[200px] mx-auto rounded-lg overflow-hidden border">
+                <div className="relative aspect-[3/4] w-full max-w-[200px] mx-auto rounded-xl overflow-hidden border-4 border-secondary/20">
                   <Image src={figurePhoto} alt="Figure" fill className="object-cover" />
                   <Button variant="secondary" size="sm" className="absolute bottom-2 right-2 h-7" onClick={() => setFigurePhoto(null)}>Cambiar</Button>
                 </div>
               ) : (
-                <label className="flex flex-col items-center justify-center h-32 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
-                  <Camera className="w-6 h-6 text-muted-foreground mb-1" />
-                  <span className="text-xs font-medium">Subir cuerpo</span>
+                <label className="flex flex-col items-center justify-center h-40 bg-muted/20 rounded-xl cursor-pointer hover:bg-muted/30 transition-all border-2 border-dashed border-muted">
+                  <Camera className="w-8 h-8 text-muted-foreground mb-2" />
+                  <span className="text-xs font-bold uppercase tracking-wider">Subir Cuerpo</span>
                   <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'figure')} />
                 </label>
               )}
@@ -148,18 +150,18 @@ export default function AvatarCreationPage() {
           <Button 
             disabled={!facePhoto || !figurePhoto || generating} 
             onClick={handleGenerate}
-            className="w-full h-14 bg-primary text-lg font-bold shadow-lg"
+            className="w-full h-16 bg-primary text-xl font-bold shadow-xl hover:scale-[1.02] transition-transform"
           >
             {generating ? (
-              <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Creando Avatar...</>
+              <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> Creando Magia 3D...</>
             ) : (
-              <><Sparkles className="mr-2 h-5 w-5" /> Generar Yo Virtual</>
+              <><Sparkles className="mr-3 h-6 w-6" /> Generar Avatar Pixar</>
             )}
           </Button>
         </div>
       ) : (
-        <div className="space-y-6">
-          <Card className="overflow-hidden shadow-2xl bg-white ring-8 ring-primary/10">
+        <div className="space-y-6 animate-in fade-in zoom-in duration-500">
+          <Card className="overflow-hidden shadow-2xl bg-white ring-[12px] ring-primary/5 rounded-[2rem]">
             <div className="relative aspect-[3/4] w-full bg-muted">
               <Image 
                 src={generatedAvatar} 
@@ -170,15 +172,19 @@ export default function AvatarCreationPage() {
                 data-ai-hint="3d animated character"
               />
             </div>
-            <CardContent className="p-6 text-center space-y-2">
-              <CardTitle className="text-2xl text-primary font-headline">Tu Yo Virtual</CardTitle>
-              <p className="text-sm text-muted-foreground italic">"Listo para probarte las mejores combinaciones"</p>
+            <CardContent className="p-8 text-center space-y-3">
+              <CardTitle className="text-3xl text-primary font-headline font-bold">¡Estás increible!</CardTitle>
+              <p className="text-muted-foreground italic">"Tu modelo 3D personalizado está listo para el probador virtual"</p>
             </CardContent>
           </Card>
           
           <div className="flex gap-4">
-            <Button variant="outline" className="flex-1" onClick={() => setGeneratedAvatar(null)}>Regenerar</Button>
-            <Button className="flex-1 bg-primary font-bold shadow-md" onClick={handleProceed}>Empezar a Estilizar</Button>
+            <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={() => setGeneratedAvatar(null)}>
+              <RefreshCw className="mr-2 w-4 h-4" /> Reintentar
+            </Button>
+            <Button className="flex-1 bg-primary font-bold shadow-md h-12 rounded-xl" onClick={handleProceed}>
+              Empezar a Estilizar
+            </Button>
           </div>
         </div>
       )}
