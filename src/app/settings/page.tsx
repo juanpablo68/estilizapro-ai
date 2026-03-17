@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -31,17 +32,26 @@ export default function SettingsPage() {
   }, []);
 
   const handleSaveAll = () => {
-    // Save keys to localStorage
-    localStorage.setItem('google_genai_key', localKeys.google);
-    localStorage.setItem('openai_api_key', localKeys.openai);
-    
-    // Update profile to trigger local storage sync
-    setProfile({ ...profile });
-    
-    toast({
-      title: "Configuración Guardada",
-      description: "Toda tu información, claves y contexto de IA han sido actualizados con éxito.",
-    });
+    try {
+      // Guardar claves en localStorage
+      localStorage.setItem('google_genai_key', localKeys.google);
+      localStorage.setItem('openai_api_key', localKeys.openai);
+      
+      // El perfil se actualiza mediante useLocalStorage automáticamente al usar setProfile
+      setProfile({ ...profile });
+      
+      toast({
+        title: "Configuración Guardada",
+        description: "Toda tu información, claves y contexto de IA han sido actualizados con éxito.",
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Error al guardar",
+        description: "No se pudieron guardar los cambios. Inténtalo de nuevo.",
+      });
+    }
   };
 
   if (!mounted) return null;
@@ -77,7 +87,7 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Contexto de Análisis para la IA (Área de Conocimiento) */}
+      {/* Contexto de Análisis para la IA */}
       <Card className="border-none shadow-md overflow-hidden">
         <CardHeader className="bg-secondary/5">
           <div className="flex items-center gap-2 text-secondary">
