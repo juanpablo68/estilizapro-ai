@@ -29,7 +29,7 @@ export default function SettingsPage() {
   const handleSaveAll = () => {
     try {
       localStorage.setItem('openai_api_key', localKeys.openai);
-      // Forzamos el guardado del perfil
+      // Persist the profile state
       setProfile({ ...profile });
       
       toast({

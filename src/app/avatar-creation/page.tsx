@@ -67,7 +67,7 @@ export default function AvatarCreationPage() {
       
       toast({
         title: "¡Avatar Creado!",
-        description: "Tu modelo Pixar 3D ha sido generado con éxito con OpenAI.",
+        description: "Tu modelo Pixar 3D ha sido generado con éxito.",
       });
     } catch (error: any) {
       console.error(error);
