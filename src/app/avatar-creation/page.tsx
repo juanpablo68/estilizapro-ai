@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -6,13 +7,15 @@ import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storag
 import { generateStylizedAvatar } from '@/ai/flows/generate-stylized-avatar';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Camera, User, Loader2, Image as ImageIcon, Sparkles, RefreshCw, AlertCircle } from "lucide-react";
+import { Camera, User, Loader2, Image as ImageIcon, Sparkles, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import Link from 'next/link';
 
 export default function AvatarCreationPage() {
   const [profile, setProfile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
+  const [preferOpenAI] = useLocalStorage('prefer_openai', false);
   const [facePhoto, setFacePhoto] = useState<string | null>(null);
   const [figurePhoto, setFigurePhoto] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
@@ -47,7 +50,8 @@ export default function AvatarCreationPage() {
     try {
       const result = await generateStylizedAvatar({
         facePhotoDataUri: facePhoto,
-        figurePhotoDataUri: figurePhoto
+        figurePhotoDataUri: figurePhoto,
+        preferOpenAI: preferOpenAI
       });
       
       setGeneratedAvatar(result.avatarDataUri);
@@ -62,7 +66,7 @@ export default function AvatarCreationPage() {
       toast({
         variant: "destructive",
         title: "Error de Generación",
-        description: error.message || "No se pudo generar el avatar. Inténtalo de nuevo.",
+        description: error.message || "No se pudo generar el avatar. Verifica tus llaves de API en Ajustes.",
       });
     } finally {
       setGenerating(false);
@@ -79,16 +83,17 @@ export default function AvatarCreationPage() {
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">
       <div className="space-y-2 text-center pt-8">
         <h1 className="text-3xl font-headline font-bold text-primary">Tu Yo Digital</h1>
-        <p className="text-muted-foreground text-sm">Transformamos tus fotos en un modelo 3D estilo Pixar.</p>
+        <p className="text-muted-foreground text-sm">Transformamos tus fotos reales en un avatar Pixar 3D.</p>
       </div>
 
       {!generatedAvatar ? (
-        <div className="grid gap-6">
-          <Alert variant="default" className="bg-blue-50 border-blue-200">
-            <AlertCircle className="h-4 w-4 text-blue-600" />
-            <AlertTitle className="text-blue-800">Procesamiento Multimodal</AlertTitle>
-            <AlertDescription className="text-blue-700 text-xs">
-              Usaremos Gemini 2.0 Flash para capturar tu esencia y rasgos reales.
+        <div className="space-y-6">
+          <Alert variant="default" className="bg-pink-50 border-pink-200">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <AlertTitle className="text-primary font-bold">Generación con IA</AlertTitle>
+            <AlertDescription className="text-xs">
+              {preferOpenAI ? "Utilizando OpenAI DALL-E 3 para máxima fidelidad." : "Utilizando Google Gemini Multimodal."} 
+              <Link href="/settings" className="underline font-bold ml-1">Configurar llaves</Link>
             </AlertDescription>
           </Alert>
 
@@ -162,11 +167,10 @@ export default function AvatarCreationPage() {
                 fill 
                 className="object-cover" 
                 unoptimized={generatedAvatar.startsWith('data:')}
-                data-ai-hint="3d animated character"
               />
             </div>
             <CardContent className="p-8 text-center space-y-3">
-              <CardTitle className="text-3xl text-primary font-headline font-bold">¡Estás increible!</CardTitle>
+              <CardTitle className="text-3xl text-primary font-headline font-bold">¡Estás increíble!</CardTitle>
               <p className="text-muted-foreground italic">"Tu modelo 3D personalizado está listo para el probador virtual"</p>
             </CardContent>
           </Card>
