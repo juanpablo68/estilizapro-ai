@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -37,7 +36,7 @@ export default function SettingsPage() {
       localStorage.setItem('google_genai_key', localKeys.google);
       localStorage.setItem('openai_api_key', localKeys.openai);
       
-      // El perfil se actualiza mediante useLocalStorage automáticamente al usar setProfile
+      // Actualizar perfil
       setProfile({ ...profile });
       
       toast({
