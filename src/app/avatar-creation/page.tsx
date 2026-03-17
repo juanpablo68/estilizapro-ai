@@ -15,7 +15,6 @@ import Link from 'next/link';
 
 export default function AvatarCreationPage() {
   const [profile, setProfile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
-  const [preferOpenAI] = useLocalStorage('prefer_openai', false);
   const [facePhoto, setFacePhoto] = useState<string | null>(null);
   const [figurePhoto, setFigurePhoto] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
@@ -58,7 +57,7 @@ export default function AvatarCreationPage() {
       const result = await generateStylizedAvatar({
         facePhotoDataUri: facePhoto,
         figurePhotoDataUri: figurePhoto,
-        preferOpenAI: true // Forzamos OpenAI ya que tienes cuenta de pago
+        preferOpenAI: true 
       });
       
       setGeneratedAvatar(result.avatarDataUri);
@@ -73,7 +72,7 @@ export default function AvatarCreationPage() {
       toast({
         variant: "destructive",
         title: "Error de Generación",
-        description: error.message || "No se pudo generar el avatar. Verifica tus llaves de API en Ajustes.",
+        description: error.message || "No se pudo generar el avatar. Verifica tu clave de OpenAI en Ajustes.",
       });
     } finally {
       setGenerating(false);
@@ -110,7 +109,7 @@ export default function AvatarCreationPage() {
                 <User className="w-6 h-6 text-primary" />
               </div>
               <CardTitle className="text-lg">Foto de Rostro</CardTitle>
-              <CardDescription className="text-xs">Para capturar tus facciones y peinado.</CardDescription>
+              <CardDescription className="text-xs">Para capturar tus rasgos y cabello.</CardDescription>
             </CardHeader>
             <CardContent>
               {facePhoto ? (
@@ -134,7 +133,7 @@ export default function AvatarCreationPage() {
                 <ImageIcon className="w-6 h-6 text-secondary" />
               </div>
               <CardTitle className="text-lg">Foto de Cuerpo</CardTitle>
-              <CardDescription className="text-xs">Para capturar tu complexión y build.</CardDescription>
+              <CardDescription className="text-xs">Para capturar tu complexión física.</CardDescription>
             </CardHeader>
             <CardContent>
               {figurePhoto ? (
