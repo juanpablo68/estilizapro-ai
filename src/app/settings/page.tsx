@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Save, Key, Info, Sparkles, User, BrainCircuit } from "lucide-react";
+import { ArrowLeft, Save, Key, Info, BrainCircuit, User } from "lucide-react";
 import Link from 'next/link';
 import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
 import { useToast } from "@/hooks/use-toast";
