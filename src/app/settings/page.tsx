@@ -33,7 +33,7 @@ export default function SettingsPage() {
       
       toast({
         title: "Configuración Guardada",
-        description: "Todo el conocimiento de la IA ha sido actualizado correctamente.",
+        description: "El contexto de análisis de la IA ha sido actualizado.",
       });
     } catch (error) {
       console.error(error);
@@ -85,7 +85,7 @@ export default function SettingsPage() {
             <CardTitle className="text-lg font-bold">Contexto de Análisis para la IA</CardTitle>
           </div>
           <CardDescription>
-            Datos maestros que alimentan el motor de colorimetría, figura y cápsulas.
+            Estos datos maestros alimentan el motor de colorimetría, figura y chat.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
