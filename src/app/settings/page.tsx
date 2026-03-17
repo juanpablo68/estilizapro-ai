@@ -29,12 +29,12 @@ export default function SettingsPage() {
   const handleSaveAll = () => {
     try {
       localStorage.setItem('openai_api_key', localKeys.openai);
-      // Forzamos el guardado de los campos de perfil
+      // Forzamos el guardado de los campos de perfil y conocimiento
       setProfile({ ...profile });
       
       toast({
         title: "Configuración Guardada",
-        description: "El contexto de análisis de la IA ha sido actualizado correctamente.",
+        description: "El contexto de análisis de la IA y tus claves han sido actualizados.",
       });
     } catch (error) {
       console.error(error);
@@ -78,7 +78,7 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Área de Conocimiento Maestro (Contexto de Análisis) */}
+      {/* Área de Conocimiento Maestro (Contexto de Análisis para la IA) */}
       <Card className="border-none shadow-md overflow-hidden">
         <CardHeader className="bg-secondary/5">
           <div className="flex items-center gap-2 text-secondary">
@@ -109,7 +109,7 @@ export default function SettingsPage() {
           <div className="space-y-2">
             <Label className="font-bold">Instrucciones de Estilo</Label>
             <Textarea 
-              placeholder="Instrucciones maestras para la IA sobre tus gustos..."
+              placeholder="Instrucciones maestras para la IA sobre tus gustos personales..."
               value={profile.stylePreferences.preferredStyles.join(', ')}
               onChange={e => setProfile({
                 ...profile, 
@@ -131,7 +131,7 @@ export default function SettingsPage() {
             <Key className="w-5 h-5" />
             <CardTitle className="text-lg">Llave Maestra OpenAI</CardTitle>
           </div>
-          <CardDescription>Requerido para el procesamiento de imágenes, avatar y chat premium.</CardDescription>
+          <CardDescription>Requerido para el procesamiento de imágenes, avatar Pixar y chat experto.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
           <div className="space-y-2">
@@ -147,7 +147,7 @@ export default function SettingsPage() {
           <div className="bg-blue-50 p-4 rounded-lg flex gap-3">
             <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
             <p className="text-[10px] text-blue-700">
-              Tus llaves se guardan localmente en tu navegador.
+              Tus llaves se guardan localmente en tu navegador. El sistema está configurado para usar exclusivamente OpenAI.
             </p>
           </div>
         </CardContent>
