@@ -29,6 +29,7 @@ export default function SettingsPage() {
   const handleSaveAll = () => {
     try {
       localStorage.setItem('openai_api_key', localKeys.openai);
+      // Forzamos el guardado de los campos de perfil que se hayan modificado en los inputs
       setProfile({ ...profile });
       
       toast({
@@ -77,7 +78,7 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Área de Conocimiento Maestro */}
+      {/* Área de Conocimiento Maestro (Contexto de Análisis) */}
       <Card className="border-none shadow-md overflow-hidden">
         <CardHeader className="bg-secondary/5">
           <div className="flex items-center gap-2 text-secondary">

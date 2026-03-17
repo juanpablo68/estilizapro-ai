@@ -1,9 +1,9 @@
-import {genkit} from 'genkit';
-import {openAI} from 'genkitx-openai';
+import { genkit } from 'genkit';
+import { openAI } from 'genkitx-openai';
 
 /**
  * Configuración central de Genkit para EstilizaPro AI.
- * Utiliza exclusivamente OpenAI para garantizar estabilidad y coherencia en el análisis de imagen.
+ * Unificada exclusivamente en OpenAI para máxima estabilidad.
  */
 export const ai = genkit({
   plugins: [
