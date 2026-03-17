@@ -1,5 +1,7 @@
+
 "use client"
 
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +20,11 @@ import Image from 'next/image';
 export default function DashboardPage() {
   const router = useRouter();
   const [profile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const actions = [
     { name: 'Armario', icon: Shirt, color: 'text-primary', bg: 'bg-primary/10', href: '/wardrobe' },
@@ -27,6 +34,8 @@ export default function DashboardPage() {
     { name: 'Más Cápsulas', icon: PlusCircle, color: 'text-orange-600', bg: 'bg-orange-50', href: '/purchase' },
     { name: 'Ajustes API', icon: Settings, color: 'text-slate-600', bg: 'bg-slate-50', href: '/settings' },
   ];
+
+  if (!mounted) return null;
 
   return (
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-10">

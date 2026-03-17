@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A Genkit flow for generating a Pixar-like animated avatar profile.
@@ -58,7 +59,7 @@ const generateStylizedAvatarFlow = ai.defineFlow(
         prompt: [
           { media: { url: input.facePhotoDataUri } },
           { media: { url: input.figurePhotoDataUri } },
-          { text: 'Act as a professional 3D character designer. Analyze these two photos: one of the face and one of the body. Create a high-quality 3D Pixar-style character that is an exact stylized version of the person in the photos. CRITICAL: Preserve the person\'s specific hair style, hair color, facial structure, and body proportions. The character should have vibrant colors, expressive features, and be rendered in high-definition 3D animation style (like modern Disney/Pixar movies). Place the character against a clean, neutral studio background. Return ONLY the resulting image.' },
+          { text: 'Act as a professional 3D character designer. Analyze the uploaded face and body photos. Create a FULL-LENGTH 3D Pixar-style character that is an exact stylized version of the person. CRITICAL: The subject MUST be a 3D animated human character. Preserve the hairstyle, hair color, and body shape. Place the character standing in a neutral pose on a simple white studio background. DO NOT return a landscape or blurred background; the focus must be 100% on the animated character subject. Return ONLY the resulting image.' },
         ],
         config: {
           responseModalities: ['TEXT', 'IMAGE'],
@@ -77,7 +78,7 @@ const generateStylizedAvatarFlow = ai.defineFlow(
       console.error("Image-to-Image generation failed, using optimized character fallback:", e);
       // Fallback to a high-quality character seed that is neutral and fits the fashion theme
       return { 
-        avatarDataUri: `https://picsum.photos/seed/pixar-avatar-stylized-mannequin-v3/600/800`,
+        avatarDataUri: `https://picsum.photos/seed/pixar-avatar-character-v9/600/800`,
         isPlaceholder: true
       };
     }

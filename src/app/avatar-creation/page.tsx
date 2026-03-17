@@ -1,6 +1,7 @@
+
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
 import { generateStylizedAvatar } from '@/ai/flows/generate-stylized-avatar';
@@ -15,9 +16,17 @@ export default function AvatarCreationPage() {
   const [facePhoto, setFacePhoto] = useState<string | null>(null);
   const [figurePhoto, setFigurePhoto] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
-  const [generatedAvatar, setGeneratedAvatar] = useState<string | null>(profile.avatarDataUri || null);
+  const [generatedAvatar, setGeneratedAvatar] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
+
+  useEffect(() => {
+    setMounted(true);
+    if (profile.avatarDataUri) {
+      setGeneratedAvatar(profile.avatarDataUri);
+    }
+  }, [profile.avatarDataUri]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'face' | 'figure') => {
     const file = e.target.files?.[0];
@@ -70,6 +79,8 @@ export default function AvatarCreationPage() {
     router.push('/dashboard');
   };
 
+  if (!mounted) return null;
+
   return (
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">
       <div className="space-y-2 text-center pt-8">
@@ -86,7 +97,7 @@ export default function AvatarCreationPage() {
               </div>
               <CardTitle className="text-lg">Foto de Rostro</CardTitle>
               <CardDescription>Para capturar tus rasgos y cabello.</CardDescription>
-            </CardHeader>
+            </Header>
             <CardContent>
               {facePhoto ? (
                 <div className="relative aspect-square w-full rounded-lg overflow-hidden border">
