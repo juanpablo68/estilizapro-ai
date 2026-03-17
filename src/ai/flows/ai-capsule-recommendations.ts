@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A Genkit flow for generating personalized outfit 'capsule' recommendations.
@@ -44,7 +45,7 @@ const CapsuleItemSchema = z.object({
   source: z.enum(['wardrobe', 'shop']).describe('Whether it is from wardrobe or suggested.'),
   wardrobeItemId: z.string().optional().describe('If from wardrobe, the EXACT ID of the selected item from the list.'),
   shopLink: z.string().optional().describe('URL to purchase if shop item.'),
-  styleHint: z.string().describe('A 2-word specific descriptor for image search, e.g., "zara coat", "leather belt", "white sneakers". MUST be in English.'),
+  styleHint: z.string().describe('EXACTLY 2 WORDS in English for image search, e.g., "beige chinos", "black blazer", "leather belt". NO MORE THAN 2 WORDS.'),
 });
 export type CapsuleItem = z.infer<typeof CapsuleItemSchema>;
 
@@ -73,10 +74,10 @@ const aiCapsuleRecommendationsPrompt = ai.definePrompt({
 For each capsule:
 1. Prioritize items from the user's wardrobe.
 2. If using a wardrobe item, return the EXACT 'wardrobeItemId' from the list provided.
-3. If recommending a NEW item (shop), suggest realistic links for retailers like Zara, Mango, or Primark. Use search URLs or category URLs (e.g., https://www.zara.com/es/es/search?searchTerm=vaqueros+hombre).
-4. Strictly use these types: "top", "bottom", "dress", "outerwear", "shoe", "accessory".
-5. For shop items, provide a 2-word 'styleHint' in ENGLISH that describes the item perfectly for an image search (e.g. "navy blazer", "leather belt").
-6. Ensure the recommendation matches the user's figure ({{figureAnalysis}}) and color palette ({{colorimetryAnalysis}}).
+3. If recommending a NEW item (shop), suggest retailers like Zara, Mango, or Primark.
+4. CRITICAL: For shop links, use Google Shopping search URLs to avoid regional redirects. Format: https://www.google.com/search?q=zara+[item+description]&tbm=shop (e.g., https://www.google.com/search?q=zara+vaqueros+rectos+hombre&tbm=shop).
+5. Strictly use these types: "top", "bottom", "dress", "outerwear", "shoe", "accessory".
+6. CRITICAL: For shop items, provide EXACTLY 2 WORDS for 'styleHint' in English. This is used to find the image. (e.g., "leather loafers", "blue jeans", "navy polo"). Do not use more than two words.
 
 User Style Preferences:
 - Preferred: {{stylePreferences.preferredStyles}}
