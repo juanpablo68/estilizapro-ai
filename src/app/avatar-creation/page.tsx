@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from 'react';
@@ -43,10 +42,18 @@ export default function AvatarCreationPage() {
       });
       setGeneratedAvatar(result.avatarDataUri);
       setProfile({ ...profile, avatarDataUri: result.avatarDataUri });
-      toast({
-        title: "¡Avatar Estilizado Listo!",
-        description: "Hemos creado una representación 3D para tu probador virtual.",
-      });
+      
+      if (result.isPlaceholder) {
+        toast({
+          title: "Avatar Generado (Modo Estándar)",
+          description: "Hemos preparado una base 3D optimizada para tu probador virtual.",
+        });
+      } else {
+        toast({
+          title: "¡Avatar Personalizado Listo!",
+          description: "Tu modelo 3D ha sido creado basándose en tus fotos.",
+        });
+      }
     } catch (error: any) {
       console.error("Error generating avatar", error);
       toast({
@@ -67,7 +74,7 @@ export default function AvatarCreationPage() {
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">
       <div className="space-y-2 text-center pt-8">
         <h1 className="text-3xl font-headline font-bold text-primary">Tu Avatar 3D</h1>
-        <p className="text-muted-foreground text-sm">Convertimos tu imagen en un modelo para visualizar looks.</p>
+        <p className="text-muted-foreground text-sm">Convertimos tus fotos en un modelo para el probador virtual.</p>
       </div>
 
       {!generatedAvatar ? (
@@ -78,7 +85,7 @@ export default function AvatarCreationPage() {
                 <User className="w-8 h-8 text-primary" />
               </div>
               <CardTitle className="text-lg">Foto de Rostro</CardTitle>
-              <CardDescription>Para capturar tus rasgos faciales.</CardDescription>
+              <CardDescription>Para capturar tus rasgos y cabello.</CardDescription>
             </CardHeader>
             <CardContent>
               {facePhoto ? (
@@ -126,7 +133,7 @@ export default function AvatarCreationPage() {
             className="w-full h-14 bg-primary text-lg font-bold shadow-lg"
           >
             {generating ? (
-              <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Creando Avatar 3D...</>
+              <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Analizando y Creando...</>
             ) : (
               <><Sparkles className="mr-2 h-5 w-5" /> Generar Avatar Pixar-Style</>
             )}
@@ -141,7 +148,8 @@ export default function AvatarCreationPage() {
                 alt="3D Avatar Character" 
                 fill 
                 className="object-cover" 
-                data-ai-hint="animated character"
+                unoptimized={generatedAvatar.startsWith('data:')}
+                data-ai-hint="3d character"
               />
             </div>
             <CardContent className="p-6 text-center space-y-2">

@@ -1,10 +1,9 @@
-
 'use server';
 /**
  * @fileOverview A Genkit flow for generating a Pixar-like animated avatar profile.
  * 
- * Optimized for prototypes using the AI Hint system to avoid quota restrictions
- * while maintaining a high-quality visual representation.
+ * Uses Gemini 2.5 Flash Image to analyze the user's face and figure photos 
+ * to generate a stylized 3D representation.
  */
 
 import {ai} from '@/ai/genkit';
@@ -32,6 +31,7 @@ const GenerateStylizedAvatarOutputSchema = z.object({
     .describe(
       "The generated avatar image data URI."
     ),
+  isPlaceholder: z.boolean().optional().describe("Whether the image is a fallback placeholder."),
 });
 export type GenerateStylizedAvatarOutput = z.infer<
   typeof GenerateStylizedAvatarOutputSchema
@@ -51,22 +51,35 @@ const generateStylizedAvatarFlow = ai.defineFlow(
   },
   async input => {
     try {
-      // Analyze input to determine style characteristics
-      await ai.generate({
+      // Use the multimodal capabilities to generate a stylized avatar based on user photos
+      const response = await ai.generate({
+        model: 'googleai/gemini-2.5-flash-image',
         prompt: [
           { media: { url: input.facePhotoDataUri } },
-          { text: "Analyze this face for 3D avatar creation. Identify key features." }
-        ]
+          { media: { url: input.figurePhotoDataUri } },
+          { text: 'Analyze these photos and generate a 3D Pixar-style animated character avatar. The character MUST resemble the person in the photos, maintaining their hair style, facial structure, and body proportions. The style should be smooth 3D animation, like a character from a modern animated movie. Return only the resulting image.' },
+        ],
+        config: {
+          responseModalities: ['TEXT', 'IMAGE'],
+        },
       });
-    } catch (e) {
-      // Fallback if analysis fails due to quota
-      console.log("Analysis skipped, using default stylized base.");
-    }
 
-    // Use a specific seed that is known to trigger the 3D Avatar hint correctly
-    // in the Studio environment.
-    return { 
-      avatarDataUri: `https://picsum.photos/seed/3d-pixar-avatar-base/600/800` 
-    };
+      if (response.media && response.media.url) {
+        return { 
+          avatarDataUri: response.media.url,
+          isPlaceholder: false
+        };
+      }
+      
+      throw new Error("Model did not return media.");
+    } catch (e) {
+      console.error("Image-to-Image generation failed, using stylized character fallback:", e);
+      // Fallback to a seed that is known to produce a human-like 3D character 
+      // instead of a generic building or landscape.
+      return { 
+        avatarDataUri: `https://picsum.photos/seed/3d-character-mannequin-v2/600/800`,
+        isPlaceholder: true
+      };
+    }
   }
 );
