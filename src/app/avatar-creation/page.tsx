@@ -97,7 +97,7 @@ export default function AvatarCreationPage() {
               </div>
               <CardTitle className="text-lg">Foto de Rostro</CardTitle>
               <CardDescription>Para capturar tus rasgos y cabello.</CardDescription>
-            </Header>
+            </CardHeader>
             <CardContent>
               {facePhoto ? (
                 <div className="relative aspect-square w-full rounded-lg overflow-hidden border">
