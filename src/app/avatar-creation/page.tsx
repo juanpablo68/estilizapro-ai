@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from 'react';
@@ -6,7 +7,7 @@ import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storag
 import { generateStylizedAvatar } from '@/ai/flows/generate-stylized-avatar';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Camera, User, Loader2, Image as ImageIcon, Sparkles, AlertCircle } from "lucide-react";
+import { Camera, User, Loader2, Image as ImageIcon, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 
@@ -43,15 +44,15 @@ export default function AvatarCreationPage() {
       setGeneratedAvatar(result.avatarDataUri);
       setProfile({ ...profile, avatarDataUri: result.avatarDataUri });
       toast({
-        title: "¡Avatar Creado!",
-        description: "Tu avatar estilizado está listo para el probador.",
+        title: "¡Avatar Estilizado Listo!",
+        description: "Hemos creado una representación 3D para tu probador virtual.",
       });
     } catch (error: any) {
       console.error("Error generating avatar", error);
       toast({
         variant: "destructive",
-        title: "Error de Servicio",
-        description: "No se pudo generar el avatar en este momento.",
+        title: "Error de Generación",
+        description: "No se pudo crear el avatar. Inténtalo de nuevo.",
       });
     } finally {
       setGenerating(false);
@@ -65,19 +66,19 @@ export default function AvatarCreationPage() {
   return (
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">
       <div className="space-y-2 text-center pt-8">
-        <h1 className="text-3xl font-headline font-bold text-primary">Tu Avatar Estilizado</h1>
-        <p className="text-muted-foreground text-sm">Creamos una versión virtual de ti para visualizar tus looks.</p>
+        <h1 className="text-3xl font-headline font-bold text-primary">Tu Avatar 3D</h1>
+        <p className="text-muted-foreground text-sm">Convertimos tu imagen en un modelo para visualizar looks.</p>
       </div>
 
       {!generatedAvatar ? (
         <div className="grid gap-6">
-          <Card className="border-dashed border-2">
+          <Card className="border-dashed border-2 bg-white/50">
             <CardHeader className="text-center">
-              <div className="mx-auto bg-muted p-3 rounded-full w-fit">
+              <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit">
                 <User className="w-8 h-8 text-primary" />
               </div>
               <CardTitle className="text-lg">Foto de Rostro</CardTitle>
-              <CardDescription>Una foto clara de tu cara mirando al frente.</CardDescription>
+              <CardDescription>Para capturar tus rasgos faciales.</CardDescription>
             </CardHeader>
             <CardContent>
               {facePhoto ? (
@@ -88,20 +89,20 @@ export default function AvatarCreationPage() {
               ) : (
                 <label className="flex flex-col items-center justify-center h-40 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
                   <Camera className="w-8 h-8 text-muted-foreground mb-2" />
-                  <span className="text-sm font-medium">Subir o tomar foto</span>
+                  <span className="text-sm font-medium">Subir foto de cara</span>
                   <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'face')} />
                 </label>
               )}
             </CardContent>
           </Card>
 
-          <Card className="border-dashed border-2">
+          <Card className="border-dashed border-2 bg-white/50">
             <CardHeader className="text-center">
-              <div className="mx-auto bg-muted p-3 rounded-full w-fit">
+              <div className="mx-auto bg-secondary/10 p-3 rounded-full w-fit">
                 <ImageIcon className="w-8 h-8 text-secondary" />
               </div>
-              <CardTitle className="text-lg">Foto de Figura</CardTitle>
-              <CardDescription>Una foto de cuerpo completo para analizar tu figura.</CardDescription>
+              <CardTitle className="text-lg">Foto de Cuerpo</CardTitle>
+              <CardDescription>Para analizar tu silueta y proporciones.</CardDescription>
             </CardHeader>
             <CardContent>
               {figurePhoto ? (
@@ -112,7 +113,7 @@ export default function AvatarCreationPage() {
               ) : (
                 <label className="flex flex-col items-center justify-center h-40 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
                   <Camera className="w-8 h-8 text-muted-foreground mb-2" />
-                  <span className="text-sm font-medium">Subir o tomar foto</span>
+                  <span className="text-sm font-medium">Subir foto de cuerpo</span>
                   <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'figure')} />
                 </label>
               )}
@@ -122,36 +123,36 @@ export default function AvatarCreationPage() {
           <Button 
             disabled={!facePhoto || !figurePhoto || generating} 
             onClick={handleGenerate}
-            className="w-full h-14 bg-primary text-lg"
+            className="w-full h-14 bg-primary text-lg font-bold shadow-lg"
           >
             {generating ? (
-              <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Procesando Avatar...</>
+              <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Creando Avatar 3D...</>
             ) : (
-              <><Sparkles className="mr-2 h-5 w-5" /> Crear mi Avatar Estilizado</>
+              <><Sparkles className="mr-2 h-5 w-5" /> Generar Avatar Pixar-Style</>
             )}
           </Button>
         </div>
       ) : (
         <div className="space-y-6">
-          <Card className="overflow-hidden shadow-2xl bg-white ring-4 ring-primary/20">
+          <Card className="overflow-hidden shadow-2xl bg-white ring-8 ring-primary/10">
             <div className="relative aspect-[3/4] w-full bg-muted">
               <Image 
                 src={generatedAvatar} 
-                alt="Generated Avatar" 
+                alt="3D Avatar Character" 
                 fill 
                 className="object-cover" 
-                data-ai-hint="3d character"
+                data-ai-hint="animated character"
               />
             </div>
             <CardContent className="p-6 text-center space-y-2">
-              <CardTitle className="text-2xl text-primary">¡Este es tu Avatar!</CardTitle>
-              <p className="text-sm text-muted-foreground">Lo usaremos para mostrarte cómo te quedan tus prendas.</p>
+              <CardTitle className="text-2xl text-primary font-headline">Tu Yo Virtual</CardTitle>
+              <p className="text-sm text-muted-foreground italic">"Listo para probarte las mejores combinaciones"</p>
             </CardContent>
           </Card>
           
           <div className="flex gap-4">
             <Button variant="outline" className="flex-1" onClick={() => setGeneratedAvatar(null)}>Regenerar</Button>
-            <Button className="flex-1 bg-primary" onClick={handleProceed}>Empezar a Estilizar</Button>
+            <Button className="flex-1 bg-primary font-bold shadow-md" onClick={handleProceed}>Empezar a Estilizar</Button>
           </div>
         </div>
       )}
