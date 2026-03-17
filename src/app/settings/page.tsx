@@ -33,7 +33,7 @@ export default function SettingsPage() {
       
       toast({
         title: "Configuración Guardada",
-        description: "El contexto de análisis de la IA ha sido actualizado.",
+        description: "El contexto de análisis de la IA ha sido actualizado correctamente.",
       });
     } catch (error) {
       console.error(error);
@@ -85,7 +85,7 @@ export default function SettingsPage() {
             <CardTitle className="text-lg font-bold">Contexto de Análisis para la IA</CardTitle>
           </div>
           <CardDescription>
-            Estos datos maestros alimentan el motor de colorimetría, figura y chat.
+            Estos datos maestros alimentan el motor de colorimetría, figura, cápsulas y el chat de asesoría.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
@@ -108,7 +108,7 @@ export default function SettingsPage() {
           <div className="space-y-2">
             <Label className="font-bold">Instrucciones de Estilo</Label>
             <Textarea 
-              placeholder="Instrucciones maestras para la IA..."
+              placeholder="Instrucciones maestras para la IA sobre tus gustos..."
               value={profile.stylePreferences.preferredStyles.join(', ')}
               onChange={e => setProfile({
                 ...profile, 
@@ -130,7 +130,7 @@ export default function SettingsPage() {
             <Key className="w-5 h-5" />
             <CardTitle className="text-lg">Llave Maestra OpenAI</CardTitle>
           </div>
-          <CardDescription>Requerido para el procesamiento de imágenes y chat.</CardDescription>
+          <CardDescription>Requerido para el procesamiento de imágenes, avatar y chat premium.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
           <div className="space-y-2">
@@ -146,7 +146,7 @@ export default function SettingsPage() {
           <div className="bg-blue-50 p-4 rounded-lg flex gap-3">
             <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
             <p className="text-[10px] text-blue-700">
-              Tus llaves se guardan localmente. Sin llave de OpenAI, las funciones de IA no estarán disponibles.
+              Tus llaves se guardan localmente en tu navegador. Sin llave de OpenAI, las funciones de IA premium no estarán disponibles.
             </p>
           </div>
         </CardContent>
