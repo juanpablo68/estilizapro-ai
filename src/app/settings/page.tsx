@@ -35,7 +35,7 @@ export default function SettingsPage() {
     localStorage.setItem('google_genai_key', localKeys.google);
     localStorage.setItem('openai_api_key', localKeys.openai);
     
-    // Explicitly update profile in case some changes weren't captured
+    // Explicitly update profile
     setProfile({ ...profile });
     
     toast({
@@ -110,7 +110,7 @@ export default function SettingsPage() {
           <div className="space-y-2">
             <Label>Instrucciones de Estilo y Preferencias</Label>
             <Textarea 
-              placeholder="Describe detalles que la IA debe recordar (estilos, complejos, favoritos)..."
+              placeholder="Describe detalles que la IA debe recordar..."
               value={profile.stylePreferences.preferredStyles.join(', ')}
               onChange={e => setProfile({
                 ...profile, 
@@ -147,7 +147,7 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-2">
-            <Label>OpenAI API Key (Recomendado para Pixar)</Label>
+            <Label>OpenAI API Key (DALL-E 3)</Label>
             <Input 
               type="password" 
               placeholder="sk-..." 
@@ -169,7 +169,7 @@ export default function SettingsPage() {
           <div className="bg-blue-50 p-4 rounded-lg flex gap-3">
             <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
             <p className="text-[10px] text-blue-700 leading-normal">
-              <b>Nota de Privacidad:</b> Tus llaves se guardan localmente en tu navegador. EstilizaPro no las envía a servidores externos excepto para realizar la consulta de IA.
+              <b>Privacidad:</b> Tus llaves se guardan localmente en tu navegador.
             </p>
           </div>
         </CardContent>
