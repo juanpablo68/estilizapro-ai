@@ -36,7 +36,7 @@ export default function SettingsPage() {
       localStorage.setItem('google_genai_key', localKeys.google);
       localStorage.setItem('openai_api_key', localKeys.openai);
       
-      // Actualizar perfil
+      // Forzar guardado de perfil
       setProfile({ ...profile });
       
       toast({
