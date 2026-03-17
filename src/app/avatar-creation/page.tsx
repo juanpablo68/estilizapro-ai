@@ -69,14 +69,14 @@ export default function AvatarCreationPage() {
       
       toast({
         title: "¡Avatar Creado!",
-        description: "Tu modelo 3D ha sido generado con éxito.",
+        description: "Tu modelo Pixar 3D ha sido generado con éxito.",
       });
     } catch (error: any) {
       console.error(error);
       toast({
         variant: "destructive",
         title: "Error de Generación",
-        description: error.message || "No se pudo generar el avatar. Revisa tus claves en Ajustes.",
+        description: error.message || "No se pudo generar el avatar. Revisa tus claves de pago en Ajustes.",
       });
     } finally {
       setGenerating(false);
@@ -93,7 +93,7 @@ export default function AvatarCreationPage() {
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">
       <div className="space-y-2 text-center pt-8">
         <h1 className="text-3xl font-headline font-bold text-primary">Tu Yo Digital</h1>
-        <p className="text-muted-foreground text-sm">Convertimos tus fotos reales en un avatar Pixar 3D profesional.</p>
+        <p className="text-muted-foreground text-sm">Convertimos tus fotos en un avatar Pixar 3D para el probador virtual.</p>
       </div>
 
       {!generatedAvatar ? (
@@ -102,7 +102,7 @@ export default function AvatarCreationPage() {
             <Sparkles className="h-4 w-4 text-primary" />
             <AlertTitle className="text-primary font-bold">Motor: {preferOpenAI ? 'OpenAI (DALL-E 3)' : 'Google (Gemini)'}</AlertTitle>
             <AlertDescription className="text-xs flex items-center justify-between">
-              <span>Configura tus claves de API para mejores resultados.</span>
+              <span>Usa OpenAI con saldo para mejores resultados Pixar.</span>
               <Link href="/settings" className="flex items-center gap-1 font-bold underline">
                 <Settings className="w-3 h-3" /> Ajustes
               </Link>
@@ -115,7 +115,7 @@ export default function AvatarCreationPage() {
                 <User className="w-6 h-6 text-primary" />
               </div>
               <CardTitle className="text-lg">Foto de Rostro</CardTitle>
-              <CardDescription className="text-xs">Para capturar tus rasgos y cabello.</CardDescription>
+              <CardDescription className="text-xs">Para capturar tus rasgos faciales y cabello.</CardDescription>
             </CardHeader>
             <CardContent>
               {facePhoto ? (
@@ -163,7 +163,7 @@ export default function AvatarCreationPage() {
             className="w-full h-16 bg-primary text-xl font-bold shadow-xl hover:scale-[1.02] transition-transform"
           >
             {generating ? (
-              <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> Creando Avatar...</>
+              <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> Analizando y Creando...</>
             ) : (
               <><Sparkles className="mr-3 h-6 w-6" /> Generar Avatar Pixar</>
             )}
@@ -183,7 +183,7 @@ export default function AvatarCreationPage() {
             </div>
             <CardContent className="p-8 text-center space-y-3">
               <CardTitle className="text-3xl text-primary font-headline font-bold">¡Estás increíble!</CardTitle>
-              <p className="text-muted-foreground italic">"Tu modelo 3D personalizado está listo"</p>
+              <p className="text-muted-foreground italic">"Tu modelo 3D personalizado está listo para probarse ropa"</p>
             </CardContent>
           </Card>
           
@@ -192,7 +192,7 @@ export default function AvatarCreationPage() {
               <RefreshCw className="mr-2 w-4 h-4" /> Reintentar
             </Button>
             <Button className="flex-1 bg-primary font-bold shadow-md h-12 rounded-xl" onClick={handleProceed}>
-              Empezar a Estilizar
+              Ir al Armario
             </Button>
           </div>
         </div>

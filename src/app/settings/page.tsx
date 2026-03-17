@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Save, Database, Key, Info, Sparkles, User, BrainCircuit } from "lucide-react";
+import { ArrowLeft, Save, Key, Info, Sparkles, User, BrainCircuit } from "lucide-react";
 import Link from 'next/link';
 import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
 import { useToast } from "@/hooks/use-toast";
@@ -35,10 +35,12 @@ export default function SettingsPage() {
     localStorage.setItem('google_genai_key', localKeys.google);
     localStorage.setItem('openai_api_key', localKeys.openai);
     
-    // The profile is already synced via useLocalStorage, but we can trigger a manual save if needed
+    // Explicitly update profile in case some changes weren't captured
+    setProfile({ ...profile });
+    
     toast({
       title: "Configuración Guardada",
-      description: "Toda tu información y claves han sido actualizadas.",
+      description: "Toda tu información, claves y contexto de IA han sido actualizados con éxito.",
     });
   };
 
@@ -50,17 +52,17 @@ export default function SettingsPage() {
         <Link href="/dashboard">
           <Button variant="ghost" size="icon"><ArrowLeft /></Button>
         </Link>
-        <h1 className="text-2xl font-headline font-bold">Configuración de EstilizaPro</h1>
+        <h1 className="text-2xl font-headline font-bold">Configuración EstilizaPro</h1>
       </header>
 
-      {/* Perfil y Conocimiento */}
+      {/* Perfil Básico */}
       <Card className="border-none shadow-md overflow-hidden">
         <CardHeader className="bg-primary/5">
           <div className="flex items-center gap-2 text-primary">
             <User className="w-5 h-5" />
             <CardTitle className="text-lg">Tu Perfil</CardTitle>
           </div>
-          <CardDescription>Información básica y nombre de usuario.</CardDescription>
+          <CardDescription>Información básica para personalizar tu experiencia.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
           <div className="space-y-2">
@@ -69,20 +71,22 @@ export default function SettingsPage() {
               id="name"
               value={profile.name} 
               onChange={e => setProfile({...profile, name: e.target.value})}
-              placeholder="¿Cómo quieres que te llame Pilar?"
+              placeholder="¿Cómo quieres que te llamemos?"
             />
           </div>
         </CardContent>
       </Card>
 
-      {/* Área de Conocimiento AI */}
+      {/* Contexto de Análisis para la IA */}
       <Card className="border-none shadow-md overflow-hidden">
         <CardHeader className="bg-secondary/5">
           <div className="flex items-center gap-2 text-secondary">
             <BrainCircuit className="w-5 h-5" />
-            <CardTitle className="text-lg">Área de Conocimiento de Pilar</CardTitle>
+            <CardTitle className="text-lg">Contexto de Análisis para la IA</CardTitle>
           </div>
-          <CardDescription>Lo que la IA sabe sobre tu estilo y figura.</CardDescription>
+          <CardDescription>
+            Datos maestros que utiliza la IA para colorimetría, figura, cápsulas y chat.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
           <div className="space-y-2">
@@ -90,21 +94,23 @@ export default function SettingsPage() {
             <Input 
               value={profile.figureAnalysis} 
               onChange={e => setProfile({...profile, figureAnalysis: e.target.value})}
-              placeholder="Ej: Reloj de Arena, Triángulo..."
+              placeholder="Ej: Reloj de Arena, Triángulo, Rectángulo..."
             />
+            <p className="text-[10px] text-muted-foreground italic">Influye en cómo la IA recomienda cortes de prendas.</p>
           </div>
           <div className="space-y-2">
             <Label>Análisis de Colorimetría (Paleta)</Label>
             <Input 
               value={profile.colorimetryAnalysis} 
               onChange={e => setProfile({...profile, colorimetryAnalysis: e.target.value})}
-              placeholder="Ej: Otoño Cálido, Invierno Frío..."
+              placeholder="Ej: Otoño Cálido, Invierno Frío, Verano..."
             />
+            <p className="text-[10px] text-muted-foreground italic">Influye en los colores sugeridos para tus cápsulas.</p>
           </div>
           <div className="space-y-2">
-            <Label>Notas Adicionales de Estilo</Label>
+            <Label>Instrucciones de Estilo y Preferencias</Label>
             <Textarea 
-              placeholder="Describe detalles que Pilar debe recordar..."
+              placeholder="Describe detalles que la IA debe recordar (estilos, complejos, favoritos)..."
               value={profile.stylePreferences.preferredStyles.join(', ')}
               onChange={e => setProfile({
                 ...profile, 
@@ -115,6 +121,7 @@ export default function SettingsPage() {
               })}
               className="min-h-[100px]"
             />
+            <p className="text-[10px] text-muted-foreground italic">Base de conocimiento para el asistente de chat y cápsulas.</p>
           </div>
         </CardContent>
       </Card>
@@ -124,9 +131,9 @@ export default function SettingsPage() {
         <CardHeader className="bg-muted">
           <div className="flex items-center gap-2 text-foreground">
             <Key className="w-5 h-5" />
-            <CardTitle className="text-lg">Gestión de APIs (IA)</CardTitle>
+            <CardTitle className="text-lg">Gestión de Motores IA</CardTitle>
           </div>
-          <CardDescription>Configura tus llaves de pago para máxima calidad de imagen.</CardDescription>
+          <CardDescription>Configura tus llaves de pago para análisis y fotos de máxima calidad.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 pt-6">
           <div className="space-y-2">
@@ -140,7 +147,7 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-2">
-            <Label>OpenAI API Key (Para DALL-E 3)</Label>
+            <Label>OpenAI API Key (Recomendado para Pixar)</Label>
             <Input 
               type="password" 
               placeholder="sk-..." 
@@ -154,7 +161,7 @@ export default function SettingsPage() {
               <Label className="text-sm font-bold flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-primary" /> Priorizar OpenAI (DALL-E 3)
               </Label>
-              <p className="text-[10px] text-muted-foreground">Usa OpenAI para generar el Avatar Pixar con mayor realismo.</p>
+              <p className="text-[10px] text-muted-foreground">Usa OpenAI para el Avatar Pixar y análisis premium.</p>
             </div>
             <Switch checked={preferOpenAI} onCheckedChange={setPreferOpenAI} />
           </div>
@@ -162,14 +169,14 @@ export default function SettingsPage() {
           <div className="bg-blue-50 p-4 rounded-lg flex gap-3">
             <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
             <p className="text-[10px] text-blue-700 leading-normal">
-              <b>Nota:</b> Los datos se guardan exclusivamente en tu dispositivo. EstilizaPro no almacena tus llaves en servidores externos.
+              <b>Nota de Privacidad:</b> Tus llaves se guardan localmente en tu navegador. EstilizaPro no las envía a servidores externos excepto para realizar la consulta de IA.
             </p>
           </div>
         </CardContent>
       </Card>
 
-      <Button onClick={handleSaveAll} className="w-full h-14 bg-primary text-lg font-bold shadow-xl rounded-2xl">
-        <Save className="mr-2 w-5 h-5" /> Guardar Todo y Actualizar
+      <Button onClick={handleSaveAll} className="w-full h-14 bg-primary text-lg font-bold shadow-xl rounded-2xl transition-all active:scale-[0.98]">
+        <Save className="mr-2 w-5 h-5" /> Guardar Todo el Conocimiento
       </Button>
     </div>
   );
