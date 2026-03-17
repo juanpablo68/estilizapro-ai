@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -76,7 +77,7 @@ export default function AvatarCreationPage() {
       toast({
         variant: "destructive",
         title: "Error de Generación",
-        description: error.message || "No se pudo generar el avatar. Revisa tus claves de pago en Ajustes.",
+        description: error.message || "No se pudo generar el avatar. Revisa tus claves en Ajustes.",
       });
     } finally {
       setGenerating(false);
@@ -100,9 +101,9 @@ export default function AvatarCreationPage() {
         <div className="space-y-6 animate-in fade-in duration-500">
           <Alert className="bg-primary/5 border-primary/20">
             <Sparkles className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-primary font-bold">Motor: {preferOpenAI ? 'OpenAI (DALL-E 3)' : 'Google (Gemini)'}</AlertTitle>
+            <AlertTitle className="text-primary font-bold">Motor AI</AlertTitle>
             <AlertDescription className="text-xs flex items-center justify-between">
-              <span>Usa OpenAI con saldo para mejores resultados Pixar.</span>
+              <span>{preferOpenAI ? 'Priorizando OpenAI (DALL-E 3)' : 'Usando Google (Gemini)'}</span>
               <Link href="/settings" className="flex items-center gap-1 font-bold underline">
                 <Settings className="w-3 h-3" /> Ajustes
               </Link>

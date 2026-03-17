@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -36,12 +37,12 @@ export default function SettingsPage() {
       localStorage.setItem('google_genai_key', localKeys.google);
       localStorage.setItem('openai_api_key', localKeys.openai);
       
-      // Forzar guardado de perfil
+      // Persistir el perfil actualizado al almacenamiento local
       setProfile({ ...profile });
       
       toast({
         title: "Configuración Guardada",
-        description: "Toda tu información, claves y contexto de IA han sido actualizados con éxito.",
+        description: "Toda tu información y contexto de análisis de IA han sido actualizados.",
       });
     } catch (error) {
       console.error(error);
@@ -105,7 +106,6 @@ export default function SettingsPage() {
               onChange={e => setProfile({...profile, figureAnalysis: e.target.value})}
               placeholder="Ej: Reloj de Arena, Triángulo, Rectángulo..."
             />
-            <p className="text-[10px] text-muted-foreground italic">Influye en cómo la IA recomienda cortes de prendas.</p>
           </div>
           <div className="space-y-2">
             <Label>Análisis de Colorimetría (Paleta)</Label>
@@ -114,12 +114,11 @@ export default function SettingsPage() {
               onChange={e => setProfile({...profile, colorimetryAnalysis: e.target.value})}
               placeholder="Ej: Otoño Cálido, Invierno Frío, Verano..."
             />
-            <p className="text-[10px] text-muted-foreground italic">Influye en los colores sugeridos para tus cápsulas.</p>
           </div>
           <div className="space-y-2">
             <Label>Instrucciones de Estilo y Preferencias</Label>
             <Textarea 
-              placeholder="Describe detalles que la IA debe recordar..."
+              placeholder="Describe detalles que la IA debe recordar (Ej: prefiero cortes rectos, colores pasteles...)"
               value={profile.stylePreferences.preferredStyles.join(', ')}
               onChange={e => setProfile({
                 ...profile, 
@@ -130,7 +129,6 @@ export default function SettingsPage() {
               })}
               className="min-h-[100px]"
             />
-            <p className="text-[10px] text-muted-foreground italic">Base de conocimiento para el asistente de chat y cápsulas.</p>
           </div>
         </CardContent>
       </Card>
@@ -142,7 +140,7 @@ export default function SettingsPage() {
             <Key className="w-5 h-5" />
             <CardTitle className="text-lg">Motores de IA (Pago)</CardTitle>
           </div>
-          <CardDescription>Configura tus llaves de OpenAI/Google para máxima calidad Pixar.</CardDescription>
+          <CardDescription>Configura tus llaves de OpenAI/Google para el procesamiento de imágenes.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 pt-6">
           <div className="space-y-2">
@@ -170,7 +168,7 @@ export default function SettingsPage() {
               <Label className="text-sm font-bold flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-primary" /> Priorizar OpenAI (DALL-E 3)
               </Label>
-              <p className="text-[10px] text-muted-foreground">Recomendado para Avatares Pixar si tienes saldo.</p>
+              <p className="text-[10px] text-muted-foreground">Recomendado para Avatares Pixar con cuenta de pago.</p>
             </div>
             <Switch checked={preferOpenAI} onCheckedChange={setPreferOpenAI} />
           </div>
@@ -178,7 +176,7 @@ export default function SettingsPage() {
           <div className="bg-blue-50 p-4 rounded-lg flex gap-3">
             <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
             <p className="text-[10px] text-blue-700 leading-normal">
-              <b>Privacidad:</b> Tus llaves se guardan localmente en tu navegador.
+              Tus llaves se guardan localmente en tu dispositivo para máxima privacidad.
             </p>
           </div>
         </CardContent>
