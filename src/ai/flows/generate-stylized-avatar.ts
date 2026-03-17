@@ -1,7 +1,6 @@
-
 'use server';
 /**
- * @fileOverview Generación de Avatar Pixar utilizando Gemini 2.5 Flash Image.
+ * @fileOverview Generación de Avatar Pixar utilizando Gemini 2.0 Flash.
  * Aprovecha las capacidades multimodales para transformar fotos reales en personajes 3D.
  */
 
@@ -30,7 +29,6 @@ const GenerateStylizedAvatarOutputSchema = z.object({
     .describe(
       "Data URI de la imagen del avatar generado."
     ),
-  isPlaceholder: z.boolean().optional().describe("Indica si se usó una imagen de respaldo."),
 });
 export type GenerateStylizedAvatarOutput = z.infer<
   typeof GenerateStylizedAvatarOutputSchema
@@ -49,35 +47,25 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     outputSchema: GenerateStylizedAvatarOutputSchema,
   },
   async input => {
-    try {
-      // Usamos el modelo Flash con capacidades de generación de imagen multimodal
-      const response = await ai.generate({
-        model: 'googleai/gemini-2.5-flash-image',
-        prompt: [
-          { media: { url: input.facePhotoDataUri } },
-          { media: { url: input.figurePhotoDataUri } },
-          { text: 'Analyze the person in these two photos (face and body). Create a NEW 3D animated character in the style of Pixar. Requirements: 1) The character must resemble the person in the photos (hair, features, build). 2) Style must be professional 3D render (Disney/Pixar aesthetic). 3) Background MUST be PURE WHITE. 4) NO landscapes, NO outdoors, NO blurred backgrounds. 5) Return ONLY the resulting 3D character image.' },
-        ],
-        config: {
-          responseModalities: ['TEXT', 'IMAGE'],
-        },
-      });
+    // Usamos Gemini 2.0 Flash con salida multimodal de imagen
+    const response = await ai.generate({
+      model: 'googleai/gemini-2.0-flash',
+      prompt: [
+        { media: { url: input.facePhotoDataUri } },
+        { media: { url: input.figurePhotoDataUri } },
+        { text: 'Create a NEW 3D animated character in the style of Pixar based on the person in these two photos. Requirements: 1) The character must resemble the person in the photos (hair color, hair style, facial features, and body build). 2) Style must be professional 3D render (Disney/Pixar aesthetic). 3) Background MUST be PURE WHITE. 4) Return ONLY the resulting 3D character image.' },
+      ],
+      config: {
+        responseModalities: ['IMAGE'],
+      },
+    });
 
-      if (response.media && response.media.url) {
-        return { 
-          avatarDataUri: response.media.url,
-          isPlaceholder: false
-        };
-      }
-      
-      throw new Error("No se recibió imagen del modelo.");
-    } catch (e) {
-      console.error("Error en generación de avatar:", e);
-      // Fallback a un modelo de alta calidad que sí es un personaje (evitando paisajes)
+    if (response.media && response.media.url) {
       return { 
-        avatarDataUri: `https://picsum.photos/seed/fashion-avatar-base-3d/600/800`,
-        isPlaceholder: true
+        avatarDataUri: response.media.url
       };
     }
+    
+    throw new Error("El modelo no generó una imagen. Asegúrate de que tu API Key de Google AI Studio sea de pago y tenga habilitada la generación multimodal.");
   }
 );

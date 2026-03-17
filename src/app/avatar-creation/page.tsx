@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -7,7 +6,7 @@ import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storag
 import { generateStylizedAvatar } from '@/ai/flows/generate-stylized-avatar';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Camera, User, Loader2, Image as ImageIcon, Sparkles, AlertCircle, RefreshCw } from "lucide-react";
+import { Camera, User, Loader2, Image as ImageIcon, Sparkles, RefreshCw, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -54,22 +53,16 @@ export default function AvatarCreationPage() {
       setGeneratedAvatar(result.avatarDataUri);
       setProfile({ ...profile, avatarDataUri: result.avatarDataUri });
       
-      if (result.isPlaceholder) {
-        toast({
-          title: "Aviso de API",
-          description: "Se ha asignado un modelo base Pixar optimizado.",
-        });
-      } else {
-        toast({
-          title: "¡Avatar Creado!",
-          description: "Tu modelo 3D ha sido generado basándose en tus fotos.",
-        });
-      }
+      toast({
+        title: "¡Avatar Creado!",
+        description: "Tu modelo 3D ha sido generado con éxito.",
+      });
     } catch (error: any) {
+      console.error(error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "No se pudo generar el avatar. Inténtalo de nuevo.",
+        title: "Error de Generación",
+        description: error.message || "No se pudo generar el avatar. Inténtalo de nuevo.",
       });
     } finally {
       setGenerating(false);
@@ -85,17 +78,17 @@ export default function AvatarCreationPage() {
   return (
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">
       <div className="space-y-2 text-center pt-8">
-        <h1 className="text-3xl font-headline font-bold text-primary">Crea tu Yo Virtual</h1>
-        <p className="text-muted-foreground text-sm">Convierte tus fotos en un modelo 3D estilo Pixar.</p>
+        <h1 className="text-3xl font-headline font-bold text-primary">Tu Yo Digital</h1>
+        <p className="text-muted-foreground text-sm">Transformamos tus fotos en un modelo 3D estilo Pixar.</p>
       </div>
 
       {!generatedAvatar ? (
         <div className="grid gap-6">
           <Alert variant="default" className="bg-blue-50 border-blue-200">
             <AlertCircle className="h-4 w-4 text-blue-600" />
-            <AlertTitle className="text-blue-800">Uso de IA de Pago</AlertTitle>
+            <AlertTitle className="text-blue-800">Procesamiento Multimodal</AlertTitle>
             <AlertDescription className="text-blue-700 text-xs">
-              Tu clave de API se usará para realizar una transformación de imagen a imagen de alta calidad.
+              Usaremos Gemini 2.0 Flash para capturar tu esencia y rasgos reales.
             </AlertDescription>
           </Alert>
 
@@ -105,7 +98,7 @@ export default function AvatarCreationPage() {
                 <User className="w-6 h-6 text-primary" />
               </div>
               <CardTitle className="text-lg">Foto de Rostro</CardTitle>
-              <CardDescription className="text-xs">Asegúrate de que tu cara se vea clara.</CardDescription>
+              <CardDescription className="text-xs">Para capturar tus facciones y peinado.</CardDescription>
             </CardHeader>
             <CardContent>
               {facePhoto ? (
@@ -153,7 +146,7 @@ export default function AvatarCreationPage() {
             className="w-full h-16 bg-primary text-xl font-bold shadow-xl hover:scale-[1.02] transition-transform"
           >
             {generating ? (
-              <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> Creando Magia 3D...</>
+              <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> Creando Avatar...</>
             ) : (
               <><Sparkles className="mr-3 h-6 w-6" /> Generar Avatar Pixar</>
             )}
