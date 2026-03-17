@@ -3,7 +3,7 @@ import { openAI } from 'genkitx-openai';
 
 /**
  * Configuración central de Genkit para EstilizaPro AI.
- * Unificada exclusivamente en OpenAI para máxima estabilidad y evitar conflictos de plugins.
+ * Diseñada exclusivamente para utilizar OpenAI (GPT-4o y DALL-E 3).
  */
 export const ai = genkit({
   plugins: [

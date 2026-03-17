@@ -29,19 +29,19 @@ export default function SettingsPage() {
   const handleSaveAll = () => {
     try {
       localStorage.setItem('openai_api_key', localKeys.openai);
-      // Forzamos el guardado de los campos de perfil y conocimiento
+      // Forzamos el guardado del perfil
       setProfile({ ...profile });
       
       toast({
         title: "Configuración Guardada",
-        description: "El contexto de análisis de la IA y tus claves han sido actualizados.",
+        description: "Tus datos maestros y claves han sido actualizados localmente.",
       });
     } catch (error) {
       console.error(error);
       toast({
         variant: "destructive",
         title: "Error al guardar",
-        description: "No se pudieron persistir los cambios localmente.",
+        description: "No se pudieron persistir los cambios.",
       });
     }
   };
@@ -57,36 +57,15 @@ export default function SettingsPage() {
         <h1 className="text-2xl font-headline font-bold">Configuración AI</h1>
       </header>
 
-      {/* Perfil Básico */}
+      {/* Contexto de Análisis para la IA (Conocimiento Maestro) */}
       <Card className="border-none shadow-md overflow-hidden">
-        <CardHeader className="bg-primary/5">
-          <div className="flex items-center gap-2 text-primary">
-            <User className="w-5 h-5" />
-            <CardTitle className="text-lg">Perfil de Usuario</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4 pt-6">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nombre</Label>
-            <Input 
-              id="name"
-              value={profile.name} 
-              onChange={e => setProfile({...profile, name: e.target.value})}
-              placeholder="Tu nombre para la IA"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Área de Conocimiento Maestro (Contexto de Análisis para la IA) */}
-      <Card className="border-none shadow-md overflow-hidden">
-        <CardHeader className="bg-secondary/5">
+        <CardHeader className="bg-secondary/5 border-b border-secondary/10">
           <div className="flex items-center gap-2 text-secondary">
             <BrainCircuit className="w-5 h-5" />
             <CardTitle className="text-lg font-bold">Contexto de Análisis para la IA</CardTitle>
           </div>
           <CardDescription>
-            Estos datos maestros alimentan el motor de colorimetría, figura, cápsulas y el chat de asesoría.
+            Esta información es la base de conocimiento que utiliza la IA para personalizar tus cápsulas y asesoría.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
@@ -95,7 +74,7 @@ export default function SettingsPage() {
             <Input 
               value={profile.figureAnalysis || ''} 
               onChange={e => setProfile({...profile, figureAnalysis: e.target.value})}
-              placeholder="Ej: Reloj de Arena, Triángulo..."
+              placeholder="Ej: Reloj de Arena, Triángulo Invertido..."
             />
           </div>
           <div className="space-y-2">
@@ -103,13 +82,13 @@ export default function SettingsPage() {
             <Input 
               value={profile.colorimetryAnalysis || ''} 
               onChange={e => setProfile({...profile, colorimetryAnalysis: e.target.value})}
-              placeholder="Ej: Otoño Cálido, Invierno..."
+              placeholder="Ej: Otoño Cálido, Verano Frío..."
             />
           </div>
           <div className="space-y-2">
-            <Label className="font-bold">Instrucciones de Estilo</Label>
+            <Label className="font-bold">Instrucciones de Estilo Personalizadas</Label>
             <Textarea 
-              placeholder="Instrucciones maestras para la IA sobre tus gustos personales..."
+              placeholder="Instrucciones maestras para la IA sobre tus gustos personales, qué evitar, etc."
               value={profile.stylePreferences.preferredStyles.join(', ')}
               onChange={e => setProfile({
                 ...profile, 
@@ -126,12 +105,12 @@ export default function SettingsPage() {
 
       {/* Gestión de APIs */}
       <Card className="border-none shadow-md overflow-hidden">
-        <CardHeader className="bg-muted">
+        <CardHeader className="bg-muted border-b">
           <div className="flex items-center gap-2 text-foreground">
             <Key className="w-5 h-5" />
             <CardTitle className="text-lg">Llave Maestra OpenAI</CardTitle>
           </div>
-          <CardDescription>Requerido para el procesamiento de imágenes, avatar Pixar y chat experto.</CardDescription>
+          <CardDescription>Configura tu clave para usar GPT-4o y DALL-E 3 de forma exclusiva.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
           <div className="space-y-2">
@@ -147,8 +126,29 @@ export default function SettingsPage() {
           <div className="bg-blue-50 p-4 rounded-lg flex gap-3">
             <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
             <p className="text-[10px] text-blue-700">
-              Tus llaves se guardan localmente en tu navegador. El sistema está configurado para usar exclusivamente OpenAI.
+              Tus llaves se guardan localmente en tu navegador. El sistema está configurado para operar únicamente con OpenAI.
             </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Perfil Básico */}
+      <Card className="border-none shadow-md overflow-hidden">
+        <CardHeader className="bg-primary/5 border-b border-primary/10">
+          <div className="flex items-center gap-2 text-primary">
+            <User className="w-5 h-5" />
+            <CardTitle className="text-lg">Información de Usuario</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4 pt-6">
+          <div className="space-y-2">
+            <Label htmlFor="name">Nombre</Label>
+            <Input 
+              id="name"
+              value={profile.name} 
+              onChange={e => setProfile({...profile, name: e.target.value})}
+              placeholder="Tu nombre"
+            />
           </div>
         </CardContent>
       </Card>
