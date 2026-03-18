@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview Análisis de colorimetría y figura corporal utilizando Gemini 1.5 Flash.
+ * @fileOverview Análisis de colorimetría y figura corporal utilizando Gemini.
  */
 
 import { getGenkitEngine } from '@/ai/genkit';
