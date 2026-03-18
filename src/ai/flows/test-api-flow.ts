@@ -2,7 +2,7 @@
 'use server';
 /**
  * @fileOverview Flujo de diagnóstico profundo para validar API Keys.
- * Implementa pruebas secuenciales para modelos Gemini 2.0, 2.5 y 3 Flash.
+ * Prueba secuencialmente modelos de nueva generación para encontrar el activo en la cuenta del usuario.
  */
 
 import { getGenkitEngine } from '@/ai/genkit';
@@ -27,11 +27,12 @@ export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema
       return { success: false, message: `Error en OpenAI: ${err.message}` };
     }
   } else {
-    // Lista de modelos a probar secuencialmente según la consola del usuario
+    // Lista de identificadores de modelos a probar secuencialmente
+    // Basado en los modelos Flash que suelen tener cuota en Google AI Studio
     const modelsToTry = [
       'googleai/gemini-2.0-flash',
-      'googleai/gemini-2.0-flash-lite-preview-02-05',
-      'googleai/gemini-1.5-flash'
+      'googleai/gemini-1.5-flash',
+      'googleai/gemini-2.0-flash-lite-preview-02-05'
     ];
 
     let lastError = "";
@@ -42,34 +43,34 @@ export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema
         
         const response = await ai.generate({
           model: modelId,
-          prompt: 'OK',
-          config: { maxOutputTokens: 2 }
+          prompt: 'Reliza una prueba de conexión rápida. Responde solo con la palabra OK.',
+          config: { maxOutputTokens: 5 }
         });
 
         if (response && response.text) {
           return { 
             success: true, 
-            message: `¡Éxito! Conectado a Gemini mediante el modelo: ${modelId}.` 
+            message: `¡Éxito! Conectado a Gemini utilizando el motor: ${modelId.split('/')[1]}.` 
           };
         }
       } catch (err: any) {
         lastError = err.message || "Error desconocido";
-        // Si es un error de cuota (429), lo reportamos de inmediato
-        if (lastError.includes("429") || lastError.includes("quota")) {
+        // Si es un error de cuota (429), lo reportamos específicamente
+        if (lastError.includes("429") || lastError.includes("quota") || lastError.includes("limit")) {
           return { 
             success: false, 
-            message: "Límite de frecuencia agotado (Error 429). Tu cuota gratuita de Google AI Studio ha llegado al límite. Debes esperar un momento." 
+            message: "Límite de frecuencia agotado (Error 429). Has alcanzado el límite de tu cuota gratuita de Google AI Studio por ahora." 
           };
         }
       }
     }
 
-    // Mapeo de errores comunes para el usuario final
+    // Mapeo de errores amigables si ninguna prueba funciona
     let userFriendlyError = lastError;
     if (userFriendlyError.includes("API_KEY_INVALID")) {
       userFriendlyError = "La API Key de Gemini no es válida.";
     } else if (userFriendlyError.includes("Unknown action")) {
-      userFriendlyError = "Error de registro: El motor no reconoce los modelos Flash 2.0/3 en tu región todavía.";
+      userFriendlyError = "El motor de IA no reconoce este modelo en tu región actual.";
     }
 
     return { success: false, message: `Fallo en Gemini: ${userFriendlyError}` };

@@ -43,6 +43,7 @@ export default function SettingsPage() {
     try {
       localStorage.setItem('openai_api_key', localKeys.openai);
       localStorage.setItem('GOOGLE_GENAI_API_KEY', localKeys.gemini);
+      // Forzar actualización del estado local
       setProfile({ ...profile });
       
       toast({
