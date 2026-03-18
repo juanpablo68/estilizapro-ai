@@ -5,7 +5,7 @@ import { googleAI } from '@genkit-ai/google-genai';
 /**
  * Fábrica Dinámica de Genkit para EstilizaPro AI.
  * Crea una instancia de motor de IA configurada en tiempo real con la llave proporcionada.
- * Utilizamos identificadores de modelo estándar para garantizar compatibilidad con las cuotas de Google AI Studio.
+ * Se adapta a los modelos de última generación (2.0/3 Flash) detectados en la consola del usuario.
  */
 export function getGenkitEngine(apiKey?: string) {
   const key = apiKey || process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY;
@@ -14,23 +14,20 @@ export function getGenkitEngine(apiKey?: string) {
     throw new Error("No se proporcionó una API Key para Gemini. Configúrala en Ajustes.");
   }
 
-  // Inicializamos el plugin de Google AI con la llave específica
-  const plugin = googleAI({ apiKey: key });
-
-  // Creamos una instancia de Genkit vinculada a ese plugin
+  // Inicializamos el motor con el plugin de Google AI usando la llave dinámica
   const ai = genkit({
-    plugins: [plugin],
+    plugins: [googleAI({ apiKey: key })],
   });
 
   return {
     ai,
-    // 'gemini-1.5-flash' es el identificador estándar para el modelo Flash en el SDK.
-    // Es el modelo que aparece con cuota activa (3/5) en la mayoría de consolas gratuitas.
-    model: 'googleai/gemini-1.5-flash',
+    // Utilizamos el identificador 'googleai/gemini-2.0-flash' como base estable para los nuevos modelos Flash.
+    // El sistema de pruebas en Ajustes validará si este o los modelos 2.5/3 están activos.
+    model: 'googleai/gemini-2.0-flash',
   };
 }
 
-// Instancia por defecto para inicialización estática
+// Instancia estática base para inicialización
 export const ai = genkit({
   plugins: [googleAI()],
 });
