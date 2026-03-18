@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview Flujo para probar la validez de las API Keys de OpenAI y Gemini.
+ * @fileOverview Flujo de diagnóstico profundo para validar API Keys.
  */
 
 import { getGenkitEngine } from '@/ai/genkit';
@@ -17,7 +17,6 @@ export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema
   if (input.provider === 'openai') {
     try {
       const openai = new OpenAI({ apiKey: input.apiKey });
-      // Una llamada ligera para probar la conexión
       await openai.models.list();
       return { success: true, message: "Conexión con OpenAI (DALL-E 3) exitosa." };
     } catch (err: any) {
@@ -25,27 +24,40 @@ export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema
     }
   } else {
     try {
+      if (!input.apiKey || input.apiKey.trim() === '') {
+        throw new Error("La llave está vacía.");
+      }
+      
       if (!input.apiKey.startsWith('AIza')) {
-        throw new Error("El formato de la llave de Gemini parece incorrecto (debe empezar por AIza).");
+        throw new Error("El formato de la llave de Gemini es incorrecto (debe empezar por AIza).");
       }
 
-      // Inicializamos una instancia fresca y el modelo vinculado
+      // Usamos la fábrica dinámica para obtener un motor configurado con ESTA llave
       const { ai, model } = getGenkitEngine(input.apiKey);
       
-      const { text } = await ai.generate({
+      // Realizamos una llamada mínima de generación para probar la validez real de la llave
+      const response = await ai.generate({
         model: model,
         prompt: 'Responde solo con la palabra OK.',
+        config: {
+          maxOutputTokens: 5,
+          temperature: 0.1,
+        }
       });
 
-      if (text && text.length > 0) {
+      if (response && response.text) {
         return { success: true, message: "Conexión con Gemini (Cerebro Analítico) exitosa." };
       }
-      throw new Error("No se recibió respuesta del modelo. Revisa la cuota de tu API Key.");
+      
+      throw new Error("La IA no devolvió una respuesta válida.");
     } catch (err: any) {
       console.error("Gemini Test Error:", err);
       let errorMsg = err.message || "Error desconocido.";
+      
+      // Mapeo de errores comunes de Google AI para el usuario
       if (errorMsg.includes("API_KEY_INVALID")) errorMsg = "La API Key de Gemini no es válida.";
-      if (errorMsg.includes("403")) errorMsg = "Acceso denegado (403). Revisa si el modelo Gemini 1.5 Flash está habilitado en tu proyecto.";
+      if (errorMsg.includes("403")) errorMsg = "Acceso denegado (403). Asegúrate de que el modelo Gemini 1.5 Flash esté habilitado en tu consola de Google AI.";
+      if (errorMsg.includes("quota")) errorMsg = "Has agotado la cuota gratuita de tu llave de Gemini.";
       
       return { success: false, message: `Error en Gemini: ${errorMsg}` };
     }
