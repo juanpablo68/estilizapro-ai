@@ -28,7 +28,7 @@ export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema
     }
   } else {
     // Lista de identificadores de modelos a probar secuencialmente
-    // Basado en los modelos Flash que suelen tener cuota en Google AI Studio
+    // Intentamos 2.0 Flash primero (más común ahora), luego 1.5
     const modelsToTry = [
       'googleai/gemini-2.0-flash',
       'googleai/gemini-1.5-flash',
