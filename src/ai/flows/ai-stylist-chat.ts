@@ -4,7 +4,7 @@
  * @fileOverview Chat interactivo con el Asistente Estilista utilizando Gemini.
  */
 
-import { getGenkit, GEMINI_MODEL } from '@/ai/genkit';
+import { getGenkitEngine } from '@/ai/genkit';
 import { z } from 'genkit';
 
 const AIChatInputSchema = z.object({
@@ -18,10 +18,10 @@ const AIChatInputSchema = z.object({
 });
 
 export async function chatWithAIStylist(input: z.infer<typeof AIChatInputSchema>) {
-  const dynamicAI = getGenkit(input.geminiApiKey);
+  const { ai, model } = getGenkitEngine(input.geminiApiKey);
 
-  const { text } = await dynamicAI.generate({
-    model: GEMINI_MODEL,
+  const { text } = await ai.generate({
+    model: model,
     prompt: `Eres el asistente experto de la prestigiosa estilista Pilar Cifuentes Catalán.
     Tu objetivo es proporcionar asesoría de imagen profesional basada en ciencia del estilo.
     

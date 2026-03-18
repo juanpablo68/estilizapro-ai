@@ -4,7 +4,7 @@
  * @fileOverview Flujo para probar la validez de las API Keys de OpenAI y Gemini.
  */
 
-import { getGenkit } from '@/ai/genkit';
+import { getGenkitEngine } from '@/ai/genkit';
 import { z } from 'genkit';
 import OpenAI from 'openai';
 
@@ -25,21 +25,29 @@ export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema
     }
   } else {
     try {
-      // Inicializamos una instancia fresca de Genkit con la llave proporcionada
-      const dynamicAI = getGenkit(input.apiKey);
+      if (!input.apiKey.startsWith('AIza')) {
+        throw new Error("El formato de la llave de Gemini parece incorrecto (debe empezar por AIza).");
+      }
+
+      // Inicializamos una instancia fresca y el modelo vinculado
+      const { ai, model } = getGenkitEngine(input.apiKey);
       
-      const { text } = await dynamicAI.generate({
-        model: 'googleai/gemini-1.5-flash',
-        prompt: 'Hola, responde exactamente con la palabra "OK" si este mensaje te llega correctamente.',
+      const { text } = await ai.generate({
+        model: model,
+        prompt: 'Responde solo con la palabra OK.',
       });
 
-      if (text.toUpperCase().includes("OK") || text.length > 0) {
+      if (text && text.length > 0) {
         return { success: true, message: "Conexión con Gemini (Cerebro Analítico) exitosa." };
       }
-      throw new Error("Respuesta inesperada del modelo.");
+      throw new Error("No se recibió respuesta del modelo. Revisa la cuota de tu API Key.");
     } catch (err: any) {
       console.error("Gemini Test Error:", err);
-      return { success: false, message: `Error en Gemini: ${err.message || "Revisa si la llave es válida y tiene cuota disponible."}` };
+      let errorMsg = err.message || "Error desconocido.";
+      if (errorMsg.includes("API_KEY_INVALID")) errorMsg = "La API Key de Gemini no es válida.";
+      if (errorMsg.includes("403")) errorMsg = "Acceso denegado (403). Revisa si el modelo Gemini 1.5 Flash está habilitado en tu proyecto.";
+      
+      return { success: false, message: `Error en Gemini: ${errorMsg}` };
     }
   }
 }

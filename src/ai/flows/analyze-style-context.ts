@@ -4,7 +4,7 @@
  * @fileOverview Análisis de colorimetría y figura corporal utilizando Gemini 1.5 Flash.
  */
 
-import { getGenkit, GEMINI_MODEL } from '@/ai/genkit';
+import { getGenkitEngine } from '@/ai/genkit';
 import { z } from 'genkit';
 
 const AnalyzeStyleInputSchema = z.object({
@@ -23,14 +23,14 @@ export type AnalyzeStyleInput = z.infer<typeof AnalyzeStyleInputSchema>;
 export type AnalyzeStyleOutput = z.infer<typeof AnalyzeStyleOutputSchema>;
 
 export async function analyzeStyleContext(input: AnalyzeStyleInput): Promise<AnalyzeStyleOutput> {
-  const dynamicAI = getGenkit(input.geminiApiKey);
+  const { ai, model } = getGenkitEngine(input.geminiApiKey);
 
-  const { output } = await dynamicAI.generate({
-    model: GEMINI_MODEL,
+  const { output } = await ai.generate({
+    model: model,
     prompt: [
       { media: { url: input.facePhotoDataUri, contentType: 'image/jpeg' } },
       { media: { url: input.figurePhotoDataUri, contentType: 'image/jpeg' } },
-      { text: 'Actúa como un experto en colorimetría y morfología de moda. Analiza estas fotos y determina: 1. El tipo de figura corporal exacta. 2. La paleta de colorimetría estacional específica (Primavera, Verano, Otoño, Invierno y su subtipo). 3. Una descripción física detallada para que una IA generadora de imágenes pueda recrear a esta persona en estilo Pixar 3D perfecto con fondo blanco puro.' },
+      { text: 'Actúa como un experto en colorimetría y morfología de moda. Analiza estas fotos y determina: 1. El tipo de figura corporal exacta. 2. La paleta de colorimetría estacional específica. 3. Una descripción física detallada para que una IA generadora de imágenes pueda recrear a esta persona en estilo Pixar 3D perfecto con fondo blanco puro.' },
     ],
     output: { schema: AnalyzeStyleOutputSchema }
   });

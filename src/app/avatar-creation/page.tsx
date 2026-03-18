@@ -8,7 +8,7 @@ import { generateStylizedAvatar } from '@/ai/flows/generate-stylized-avatar';
 import { analyzeStyleContext } from '@/ai/flows/analyze-style-context';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, Image as ImageIcon, Loader2, Sparkles, RefreshCw, Brain } from "lucide-react";
+import { Camera, Image as ImageIcon, Loader2, Sparkles, RefreshCw, Brain } from "lucide-center";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -41,7 +41,6 @@ const resizeImage = (base64Str: string): Promise<string> => {
       canvas.height = height;
       const ctx = canvas.getContext('2d');
       ctx?.drawImage(img, 0, 0, width, height);
-      // Calidad 0.8 para un balance perfecto entre nitidez y peso de payload
       resolve(canvas.toDataURL('image/jpeg', 0.8));
     };
   });
@@ -71,7 +70,6 @@ export default function AvatarCreationPage() {
       const reader = new FileReader();
       reader.onloadend = async () => {
         const base64String = reader.result as string;
-        // Optimización inmediata al subir
         const optimized = await resizeImage(base64String);
         if (type === 'face') setFacePhoto(optimized);
         else setFigurePhoto(optimized);
@@ -91,17 +89,17 @@ export default function AvatarCreationPage() {
     }
 
     const openaiKey = localStorage.getItem('openai_api_key') || undefined;
+    const geminiKey = localStorage.getItem('GOOGLE_GENAI_API_KEY') || undefined;
 
     setLoading(true);
     try {
-      // 1. Gemini (Cerebro) analiza el contexto técnico
       setLoadingStatus('Gemini analizando tu ADN de estilo...');
       const analysis = await analyzeStyleContext({
         facePhotoDataUri: facePhoto,
-        figurePhotoDataUri: figurePhoto
+        figurePhotoDataUri: figurePhoto,
+        geminiApiKey: geminiKey
       });
 
-      // Actualizar perfil local con el conocimiento técnico de Gemini
       const updatedProfile = { 
         ...profile, 
         figureAnalysis: analysis.figureAnalysis, 
@@ -109,7 +107,6 @@ export default function AvatarCreationPage() {
       };
       setProfile(updatedProfile);
 
-      // 2. OpenAI (Artista) genera la imagen visual Pixar
       setLoadingStatus('OpenAI creando tu avatar Pixar 3D...');
       const result = await generateStylizedAvatar({
         visualDescription: analysis.visualDescription,
@@ -120,8 +117,8 @@ export default function AvatarCreationPage() {
       setProfile({ ...updatedProfile, avatarDataUri: result.avatarDataUri });
       
       toast({
-        title: "¡Arquitectura Híbrida Completa!",
-        description: "Análisis lógico por Gemini y Arte Pixar por OpenAI finalizado.",
+        title: "¡Proceso Completado!",
+        description: "Análisis por Gemini y Arte por OpenAI finalizado con éxito.",
       });
     } catch (error: any) {
       console.error(error);
@@ -145,7 +142,7 @@ export default function AvatarCreationPage() {
   return (
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">
       <div className="space-y-2 text-center pt-8">
-        <h1 className="text-3xl font-headline font-bold text-primary">Arquitectura Híbrida</h1>
+        <h1 className="text-3xl font-headline font-bold text-primary">Esencia Estilizada</h1>
         <p className="text-muted-foreground text-sm">Gemini analiza tu esencia, OpenAI crea tu imagen Pixar.</p>
       </div>
 
@@ -153,9 +150,9 @@ export default function AvatarCreationPage() {
         <div className="space-y-6 animate-in fade-in duration-500">
           <Alert className="bg-primary/5 border-primary/20">
             <Sparkles className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-primary font-bold">Optimización de Imágenes Activa</AlertTitle>
+            <AlertTitle className="text-primary font-bold">Arquitectura Híbrida</AlertTitle>
             <AlertDescription className="text-xs">
-              Tus fotos se comprimen automáticamente para garantizar estabilidad total en la IA.
+              Sube tus fotos para que Gemini y OpenAI trabajen juntos en tu perfil de estilo.
               <Link href="/settings" className="block mt-1 font-bold underline">Configurar APIs de IA</Link>
             </AlertDescription>
           </Alert>
@@ -205,7 +202,7 @@ export default function AvatarCreationPage() {
             {loading ? (
               <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> {loadingStatus}</>
             ) : (
-              <><Brain className="mr-3 h-6 w-6" /> Iniciar Proceso Híbrido</>
+              <><Brain className="mr-3 h-6 w-6" /> Iniciar Creación Híbrida</>
             )}
           </Button>
         </div>
@@ -218,7 +215,7 @@ export default function AvatarCreationPage() {
                 alt="3D Avatar Pixar Style" 
                 fill 
                 className="object-cover" 
-                unoptimized={generatedAvatar.startsWith('data:')}
+                unoptimized
               />
             </div>
             <CardContent className="p-8 text-center space-y-3">
