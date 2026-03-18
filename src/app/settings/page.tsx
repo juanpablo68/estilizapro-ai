@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -169,7 +170,7 @@ export default function SettingsPage() {
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-xs font-bold">Gemini Key (Análisis / 1.5 Flash)</Label>
+              <Label className="text-xs font-bold">Gemini Key (Análisis / Motor Flash)</Label>
               {testStatus.gemini === 'success' && <CheckCircle2 className="w-4 h-4 text-green-500" />}
               {testStatus.gemini === 'error' && <XCircle className="w-4 h-4 text-destructive" />}
             </div>

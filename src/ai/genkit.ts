@@ -5,7 +5,7 @@ import { googleAI } from '@genkit-ai/google-genai';
 /**
  * Fábrica Dinámica de Genkit para EstilizaPro AI.
  * Crea una instancia de motor de IA configurada en tiempo real con la llave proporcionada.
- * Se adapta a los modelos de última generación (2.0/3 Flash) detectados en la consola del usuario.
+ * Se adapta a los modelos de última generación (2.0/2.5/3 Flash) detectados en la consola del usuario.
  */
 export function getGenkitEngine(apiKey?: string) {
   const key = apiKey || process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY;
