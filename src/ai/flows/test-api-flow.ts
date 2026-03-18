@@ -2,7 +2,7 @@
 'use server';
 /**
  * @fileOverview Flujo de diagnóstico profundo para validar API Keys.
- * Configurado para probar específicamente Gemini 2.5 Flash.
+ * Detecta errores específicos de cuota (429) y modelos no habilitados.
  */
 
 import { getGenkitEngine } from '@/ai/genkit';
@@ -21,6 +21,7 @@ export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema
         throw new Error("La llave de OpenAI está vacía.");
       }
       const openai = new OpenAI({ apiKey: input.apiKey });
+      // Probamos listando modelos para validar la llave
       await openai.models.list();
       return { success: true, message: "Conexión con OpenAI (DALL-E 3) exitosa." };
     } catch (err: any) {
@@ -33,11 +34,13 @@ export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema
       }
       
       if (!input.apiKey.startsWith('AIza')) {
-        throw new Error("El formato de la llave de Gemini es incorrecto (debe empezar por AIza).");
+        throw new Error("Formato incorrecto: Las llaves de Gemini deben empezar por 'AIza'.");
       }
 
+      // Obtenemos el motor configurado con la llave del usuario
       const { ai, model } = getGenkitEngine(input.apiKey);
       
+      // Intentamos una generación mínima para validar el modelo y la cuota
       const response = await ai.generate({
         model: model,
         prompt: 'Responde solo con la palabra OK.',
@@ -48,7 +51,7 @@ export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema
       });
 
       if (response && response.text) {
-        return { success: true, message: "Conexión con Gemini 2.5 Flash exitosa." };
+        return { success: true, message: `Conexión con Gemini exitosa (Modelo: ${model}).` };
       }
       
       throw new Error("La IA no devolvió una respuesta válida.");
@@ -56,17 +59,18 @@ export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema
       console.error("Gemini Test Error:", err);
       let errorMsg = err.message || "Error desconocido.";
       
-      if (errorMsg.includes("429") || errorMsg.includes("quota")) {
-        errorMsg = "Límite de frecuencia agotado (Error 429). Según tu consola, has usado 3 de 5 solicitudes de Gemini 2.5 Flash. Debes esperar o activar la facturación.";
-      } else if (errorMsg.includes("API_KEY_INVALID")) {
-        errorMsg = "La API Key de Gemini no es válida.";
-      } else if (errorMsg.includes("403")) {
-        errorMsg = "Acceso denegado (403). Asegúrate de que el modelo Gemini 2.5 Flash esté habilitado en tu consola de Google AI Studio.";
-      } else if (errorMsg.includes("not found") || errorMsg.includes("Unknown action")) {
-        errorMsg = "El modelo Gemini 2.5 Flash no fue reconocido. Verifica que este modelo esté disponible para tu API Key.";
+      // Mapeo de errores comunes para el usuario
+      if (errorMsg.includes("429") || errorMsg.includes("quota") || errorMsg.includes("limit")) {
+        errorMsg = "Límite de frecuencia agotado (Error 429). Tu cuota gratuita de Google AI Studio ha llegado al límite. Debes esperar un momento o revisar tu facturación.";
+      } else if (errorMsg.includes("API_KEY_INVALID") || errorMsg.includes("invalid")) {
+        errorMsg = "La API Key de Gemini no es válida o ha sido revocada.";
+      } else if (errorMsg.includes("403") || errorMsg.includes("permission")) {
+        errorMsg = "Acceso denegado (403). Asegúrate de tener habilitado el modelo Flash en tu consola de Google.";
+      } else if (errorMsg.includes("Unknown action") || errorMsg.includes("not found")) {
+        errorMsg = "Error de registro: El motor no reconoce el modelo. Reintenta o contacta a soporte.";
       }
       
-      return { success: false, message: `Error en Gemini: ${errorMsg}` };
+      return { success: false, message: `Fallo en Gemini: ${errorMsg}` };
     }
   }
 }
