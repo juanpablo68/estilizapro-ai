@@ -27,7 +27,8 @@ export function getGenkitEngine(apiKey?: string) {
     // Devolvemos el plugin para poder usar .model() de forma segura si es necesario
     plugin: googleAIPlugin,
     // Identificador base estable para modelos Flash. 
-    modelId: 'googleai/gemini-1.5-flash',
+    // Se devuelve como 'model' para coincidir con la desestructuración en los flows.
+    model: 'googleai/gemini-1.5-flash',
   };
 }
 
