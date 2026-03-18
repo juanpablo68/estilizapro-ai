@@ -1,22 +1,57 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
 import { generateStylizedAvatar } from '@/ai/flows/generate-stylized-avatar';
+import { analyzeStyleContext } from '@/ai/flows/analyze-style-context';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Camera, User, Loader2, Image as ImageIcon, Sparkles, RefreshCw, Settings } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Camera, Image as ImageIcon, Loader2, Sparkles, RefreshCw, Brain } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from 'next/link';
 
+// Función para optimizar y redimensionar imágenes para máxima estabilidad en la IA
+const resizeImage = (base64Str: string): Promise<string> => {
+  return new Promise((resolve) => {
+    const img = new window.Image();
+    img.src = base64Str;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX_WIDTH = 640;
+      const MAX_HEIGHT = 640;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width *= MAX_HEIGHT / height;
+          height = MAX_HEIGHT;
+        }
+      }
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', 0.8));
+    };
+  });
+};
+
 export default function AvatarCreationPage() {
   const [profile, setProfile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
   const [facePhoto, setFacePhoto] = useState<string | null>(null);
   const [figurePhoto, setFigurePhoto] = useState<string | null>(null);
-  const [generating, setGenerating] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [loadingStatus, setLoadingStatus] = useState('');
   const [generatedAvatar, setGeneratedAvatar] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
@@ -29,55 +64,73 @@ export default function AvatarCreationPage() {
     }
   }, [profile.avatarDataUri]);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'face' | 'figure') => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'face' | 'figure') => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
+      reader.onloadend = async () => {
         const base64String = reader.result as string;
-        if (type === 'face') setFacePhoto(base64String);
-        else setFigurePhoto(base64String);
+        const optimized = await resizeImage(base64String);
+        if (type === 'face') setFacePhoto(optimized);
+        else setFigurePhoto(optimized);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleGenerate = async () => {
+  const handleProcess = async () => {
     if (!facePhoto || !figurePhoto) {
       toast({
         variant: "destructive",
         title: "Fotos Requeridas",
-        description: "Por favor sube tanto la foto de tu rostro como la de tu cuerpo.",
+        description: "Sube rostro y cuerpo para empezar el análisis híbrido.",
       });
       return;
     }
 
     const openaiKey = localStorage.getItem('openai_api_key') || undefined;
 
-    setGenerating(true);
+    setLoading(true);
     try {
-      const result = await generateStylizedAvatar({
+      // 1. Gemini analiza el contexto (Análisis visual y lógico de alta precisión)
+      setLoadingStatus('Gemini analizando colorimetría y figura...');
+      const analysis = await analyzeStyleContext({
         facePhotoDataUri: facePhoto,
-        figurePhotoDataUri: figurePhoto,
+        figurePhotoDataUri: figurePhoto
+      });
+
+      // Actualizar perfil con el análisis maestro
+      const updatedProfile = { 
+        ...profile, 
+        figureAnalysis: analysis.figureAnalysis, 
+        colorimetryAnalysis: analysis.colorimetryAnalysis 
+      };
+      setProfile(updatedProfile);
+
+      // 2. OpenAI genera el avatar (Potencia artística para estilo Pixar 3D)
+      setLoadingStatus('OpenAI creando tu avatar Pixar...');
+      const result = await generateStylizedAvatar({
+        visualDescription: analysis.visualDescription,
         openaiApiKey: openaiKey
       });
       
       setGeneratedAvatar(result.avatarDataUri);
-      setProfile({ ...profile, avatarDataUri: result.avatarDataUri });
+      setProfile({ ...updatedProfile, avatarDataUri: result.avatarDataUri });
       
       toast({
-        title: "¡Avatar Creado!",
-        description: "Tu modelo Pixar 3D ha sido generado con éxito.",
+        title: "¡Análisis Híbrido Completo!",
+        description: "Gemini ha definido tu estilo y OpenAI lo ha personificado.",
       });
     } catch (error: any) {
       console.error(error);
       toast({
         variant: "destructive",
-        title: "Error de Generación",
-        description: error.message || "No se pudo generar el avatar. Revisa tu clave en Ajustes.",
+        title: "Error en Motores IA",
+        description: error.message || "Revisa tus claves de API en la sección de Ajustes.",
       });
     } finally {
-      setGenerating(false);
+      setLoading(false);
+      setLoadingStatus('');
     }
   };
 
@@ -90,80 +143,69 @@ export default function AvatarCreationPage() {
   return (
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">
       <div className="space-y-2 text-center pt-8">
-        <h1 className="text-3xl font-headline font-bold text-primary">Tu Yo Digital</h1>
-        <p className="text-muted-foreground text-sm">Convertimos tus fotos en un avatar Pixar 3D.</p>
+        <h1 className="text-3xl font-headline font-bold text-primary">Arquitectura Híbrida</h1>
+        <p className="text-muted-foreground text-sm">Gemini analiza tu esencia, OpenAI crea tu imagen.</p>
       </div>
 
       {!generatedAvatar ? (
         <div className="space-y-6 animate-in fade-in duration-500">
           <Alert className="bg-primary/5 border-primary/20">
             <Sparkles className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-primary font-bold">Motor OpenAI Activo</AlertTitle>
-            <AlertDescription className="text-xs flex items-center justify-between">
-              <span>Usando GPT-4o y DALL-E 3 para máxima calidad.</span>
-              <Link href="/settings" className="flex items-center gap-1 font-bold underline">
-                <Settings className="w-3 h-3" /> Ajustes
-              </Link>
+            <AlertTitle className="text-primary font-bold">Optimización de Imágenes Activa</AlertTitle>
+            <AlertDescription className="text-xs">
+              Tus fotos se comprimen automáticamente para garantizar estabilidad total.
+              <Link href="/settings" className="block mt-1 font-bold underline">Configurar APIs de IA</Link>
             </AlertDescription>
           </Alert>
 
-          <Card className="border-dashed border-2 bg-white/50">
-            <CardHeader className="text-center p-4">
-              <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit">
-                <User className="w-6 h-6 text-primary" />
-              </div>
-              <CardTitle className="text-lg">Foto de Rostro</CardTitle>
-              <CardDescription className="text-xs">Para capturar tus rasgos faciales.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {facePhoto ? (
-                <div className="relative aspect-square w-full max-w-[200px] mx-auto rounded-xl overflow-hidden border-4 border-primary/20">
-                  <Image src={facePhoto} alt="Face" fill className="object-cover" />
-                  <Button variant="secondary" size="sm" className="absolute bottom-2 right-2 h-7" onClick={() => setFacePhoto(null)}>Cambiar</Button>
-                </div>
-              ) : (
-                <label className="flex flex-col items-center justify-center h-40 bg-muted/20 rounded-xl cursor-pointer hover:bg-muted/30 transition-all border-2 border-dashed border-muted">
-                  <Camera className="w-8 h-8 text-muted-foreground mb-2" />
-                  <span className="text-xs font-bold uppercase tracking-wider">Subir Rostro</span>
-                  <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'face')} />
-                </label>
-              )}
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 gap-4">
+            <Card className="border-dashed border-2 bg-white/50">
+                <CardHeader className="text-center p-4">
+                    <CardTitle className="text-lg">Tus Fotos de Referencia</CardTitle>
+                </CardHeader>
+                <CardContent className="flex justify-center gap-6">
+                    <div className="space-y-2 text-center">
+                        {facePhoto ? (
+                            <div className="relative h-40 w-32 rounded-lg overflow-hidden border-2 border-primary shadow-sm">
+                                <Image src={facePhoto} alt="Face" fill className="object-cover" />
+                                <Button variant="secondary" size="icon" className="absolute top-1 right-1 h-6 w-6 rounded-full" onClick={() => setFacePhoto(null)}>×</Button>
+                            </div>
+                        ) : (
+                            <label className="flex flex-col items-center justify-center h-40 w-32 bg-muted/20 rounded-lg cursor-pointer border-2 border-dashed hover:bg-muted/30 transition-colors">
+                                <Camera className="w-8 h-8 text-muted-foreground mb-2" />
+                                <span className="text-[10px] font-bold">ROSTRO</span>
+                                <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'face')} />
+                            </label>
+                        )}
+                    </div>
 
-          <Card className="border-dashed border-2 bg-white/50">
-            <CardHeader className="text-center p-4">
-              <div className="mx-auto bg-secondary/10 p-3 rounded-full w-fit">
-                <ImageIcon className="w-6 h-6 text-secondary" />
-              </div>
-              <CardTitle className="text-lg">Foto de Cuerpo</CardTitle>
-              <CardDescription className="text-xs">Para capturar tu complexión física.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {figurePhoto ? (
-                <div className="relative aspect-[3/4] w-full max-w-[200px] mx-auto rounded-xl overflow-hidden border-4 border-secondary/20">
-                  <Image src={figurePhoto} alt="Figure" fill className="object-cover" />
-                  <Button variant="secondary" size="sm" className="absolute bottom-2 right-2 h-7" onClick={() => setFigurePhoto(null)}>Cambiar</Button>
-                </div>
-              ) : (
-                <label className="flex flex-col items-center justify-center h-40 bg-muted/20 rounded-xl cursor-pointer hover:bg-muted/30 transition-all border-2 border-dashed border-muted">
-                  <Camera className="w-8 h-8 text-muted-foreground mb-2" />
-                  <span className="text-xs font-bold uppercase tracking-wider">Subir Cuerpo</span>
-                  <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'figure')} />
-                </label>
-              )}
-            </CardContent>
-          </Card>
+                    <div className="space-y-2 text-center">
+                        {figurePhoto ? (
+                            <div className="relative h-40 w-32 rounded-lg overflow-hidden border-2 border-primary shadow-sm">
+                                <Image src={figurePhoto} alt="Figure" fill className="object-cover" />
+                                <Button variant="secondary" size="icon" className="absolute top-1 right-1 h-6 w-6 rounded-full" onClick={() => setFigurePhoto(null)}>×</Button>
+                            </div>
+                        ) : (
+                            <label className="flex flex-col items-center justify-center h-40 w-32 bg-muted/20 rounded-lg cursor-pointer border-2 border-dashed hover:bg-muted/30 transition-colors">
+                                <ImageIcon className="w-8 h-8 text-muted-foreground mb-2" />
+                                <span className="text-[10px] font-bold">CUERPO</span>
+                                <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'figure')} />
+                            </label>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
+          </div>
 
           <Button 
-            disabled={!facePhoto || !figurePhoto || generating} 
-            onClick={handleGenerate}
-            className="w-full h-16 bg-primary text-xl font-bold shadow-xl hover:scale-[1.02] transition-transform"
+            disabled={!facePhoto || !figurePhoto || loading} 
+            onClick={handleProcess}
+            className="w-full h-16 bg-primary text-xl font-bold shadow-xl rounded-2xl"
           >
-            {generating ? (
-              <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> Creando Avatar Pixar...</>
+            {loading ? (
+              <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> {loadingStatus}</>
             ) : (
-              <><Sparkles className="mr-3 h-6 w-6" /> Generar con OpenAI</>
+              <><Brain className="mr-3 h-6 w-6" /> Iniciar Proceso Híbrido</>
             )}
           </Button>
         </div>
@@ -180,17 +222,20 @@ export default function AvatarCreationPage() {
               />
             </div>
             <CardContent className="p-8 text-center space-y-3">
-              <CardTitle className="text-3xl text-primary font-headline font-bold">¡Estás increíble!</CardTitle>
-              <p className="text-muted-foreground italic">"Tu modelo 3D personalizado está listo"</p>
+              <CardTitle className="text-2xl text-primary font-headline font-bold">¡Tu Avatar Pixar!</CardTitle>
+              <div className="flex justify-center gap-2">
+                <span className="text-[10px] bg-secondary/10 text-secondary px-3 py-1 rounded-full font-bold uppercase tracking-wider">Figura: {profile.figureAnalysis}</span>
+                <span className="text-[10px] bg-primary/10 text-primary px-3 py-1 rounded-full font-bold uppercase tracking-wider">Color: {profile.colorimetryAnalysis}</span>
+              </div>
             </CardContent>
           </Card>
           
           <div className="flex gap-4">
             <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={() => setGeneratedAvatar(null)}>
-              <RefreshCw className="mr-2 w-4 h-4" /> Reintentar
+              <RefreshCw className="mr-2 w-4 h-4" /> Nuevo Avatar
             </Button>
             <Button className="flex-1 bg-primary font-bold shadow-md h-12 rounded-xl" onClick={handleProceed}>
-              Ir al Armario
+              Ir al Dashboard
             </Button>
           </div>
         </div>

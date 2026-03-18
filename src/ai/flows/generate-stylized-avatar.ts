@@ -1,14 +1,16 @@
+
 'use server';
 /**
- * @fileOverview Generación de Avatar Pixar utilizando exclusivamente OpenAI (GPT-4o + DALL-E 3).
+ * @fileOverview Generación de Avatar Pixar utilizando OpenAI SDK directamente.
+ * Se utiliza el SDK oficial para evitar conflictos de dependencias en Genkit.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
+import OpenAI from 'openai';
 
 const GenerateStylizedAvatarInputSchema = z.object({
-  facePhotoDataUri: z.string(),
-  figurePhotoDataUri: z.string(),
+  visualDescription: z.string().describe('Descripción visual detallada para el avatar.'),
   openaiApiKey: z.string().optional(),
 });
 
@@ -16,32 +18,43 @@ const GenerateStylizedAvatarOutputSchema = z.object({
   avatarDataUri: z.string(),
 });
 
-export async function generateStylizedAvatar(input: any) {
-  if (input.openaiApiKey) {
-    process.env.OPENAI_API_KEY = input.openaiApiKey;
-  }
+export type GenerateStylizedAvatarInput = z.infer<typeof GenerateStylizedAvatarInputSchema>;
+export type GenerateStylizedAvatarOutput = z.infer<typeof GenerateStylizedAvatarOutputSchema>;
 
-  // Análisis con GPT-4o
-  const analysisResponse = await ai.generate({
-    model: 'openai/gpt-4o',
-    prompt: [
-      { media: { url: input.facePhotoDataUri, contentType: 'image/jpeg' } },
-      { media: { url: input.figurePhotoDataUri, contentType: 'image/jpeg' } },
-      { text: 'Analyze these photos. Describe the person for a 3D Pixar artist: hair style, face shape, eye color, and build. Be concise.' },
-    ],
-  });
-
-  const description = analysisResponse.text;
-
-  // Generación con DALL-E 3
-  const generationResponse = await ai.generate({
-    model: 'openai/dall-e-3',
-    prompt: `A high-quality 3D animated character in Disney/Pixar style. Character features: ${description}. PURE WHITE BACKGROUND. Full body shot, cinematic lighting.`,
-  });
-
-  if (generationResponse.media?.url) {
-    return { avatarDataUri: generationResponse.media.url };
-  }
-  
-  throw new Error("No se pudo generar el avatar con OpenAI. Revisa tus créditos.");
+export async function generateStylizedAvatar(input: GenerateStylizedAvatarInput): Promise<GenerateStylizedAvatarOutput> {
+  return generateStylizedAvatarFlow(input);
 }
+
+const generateStylizedAvatarFlow = ai.defineFlow(
+  {
+    name: 'generateStylizedAvatarFlow',
+    inputSchema: GenerateStylizedAvatarInputSchema,
+    outputSchema: GenerateStylizedAvatarOutputSchema,
+  },
+  async (input) => {
+    const apiKey = input.openaiApiKey || process.env.OPENAI_API_KEY;
+    
+    if (!apiKey) {
+      throw new Error("No se encontró la API Key de OpenAI. Configúrala en Ajustes.");
+    }
+
+    const openai = new OpenAI({ apiKey });
+
+    const response = await openai.images.generate({
+      model: "dall-e-3",
+      prompt: `A high-quality 3D animated character in Disney/Pixar style. Character features based on: ${input.visualDescription}. PURE WHITE BACKGROUND. Full body shot, cinematic lighting, vibrant colors. Professional fashion render. Masterpiece quality.`,
+      n: 1,
+      size: "1024x1024",
+      response_format: "b64_json",
+    });
+
+    const imageData = response.data[0].b64_json;
+    if (!imageData) {
+      throw new Error("Error al recibir la imagen de OpenAI.");
+    }
+
+    return {
+      avatarDataUri: `data:image/png;base64,${imageData}`
+    };
+  }
+);

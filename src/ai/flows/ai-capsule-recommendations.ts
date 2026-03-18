@@ -1,29 +1,21 @@
+
 'use server';
 /**
- * @fileOverview A Genkit flow for generating personalized outfit 'capsule' recommendations using OpenAI.
+ * @fileOverview Generación de cápsulas de moda personalizadas utilizando Gemini.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 
 const WardrobeItemSchema = z.object({
-  id: z.string().describe('Unique ID of the wardrobe item.'),
-  name: z.string().describe('The name of the clothing item.'),
-  type: z.string().describe('The type of clothing item.'),
-  imageDataUri: z.string().describe('A photo of the clothing item.'),
-});
-
-const StylePreferencesSchema = z.object({
-  favoriteColors: z.array(z.string()),
-  preferredStyles: z.array(z.string()),
-  dislikedStyles: z.array(z.string()),
-  bodyPartsToAccentuate: z.array(z.string()),
-  bodyPartsToMinimize: z.array(z.string()),
-  occasionPreferences: z.array(z.string()),
+  id: z.string(),
+  name: z.string(),
+  type: z.string(),
+  imageDataUri: z.string(),
 });
 
 const AICapsuleRecommendationsInputSchema = z.object({
-  stylePreferences: StylePreferencesSchema,
+  stylePreferences: z.any(),
   colorimetryAnalysis: z.string(),
   figureAnalysis: z.string(),
   eventType: z.string(),
@@ -31,49 +23,43 @@ const AICapsuleRecommendationsInputSchema = z.object({
   wardrobeItems: z.array(WardrobeItemSchema),
 });
 
-const CapsuleItemSchema = z.object({
-  name: z.string(),
-  type: z.enum(['top', 'bottom', 'dress', 'outerwear', 'shoe', 'accessory']),
-  source: z.enum(['wardrobe', 'shop']),
-  wardrobeItemId: z.string().optional(),
-  shopLink: z.string().optional(),
-  styleHint: z.string().describe('Exactly 2 words in English for image placeholder.'),
-});
-
 const CapsuleSchema = z.object({
   name: z.string(),
   description: z.string(),
   occasion: z.string(),
-  items: z.array(CapsuleItemSchema),
+  items: z.array(z.object({
+    name: z.string(),
+    type: z.enum(['top', 'bottom', 'dress', 'outerwear', 'shoe', 'accessory']),
+    source: z.enum(['wardrobe', 'shop']),
+    wardrobeItemId: z.string().optional(),
+    shopLink: z.string().optional(),
+    styleHint: z.string(),
+  })),
 });
 
 const AICapsuleRecommendationsOutputSchema = z.object({
   capsules: z.array(CapsuleSchema),
 });
 
-const aiCapsuleRecommendationsPrompt = ai.definePrompt({
-  name: 'aiCapsuleRecommendationsPrompt',
-  input: { schema: AICapsuleRecommendationsInputSchema },
-  output: { schema: AICapsuleRecommendationsOutputSchema },
-  config: { model: 'openai/gpt-4o' },
-  prompt: `You are an expert fashion stylist. Generate 2 personalized outfit capsules.
-  
-Context:
-- User Figure: {{figureAnalysis}}
-- Color Palette: {{colorimetryAnalysis}}
-- Styles: {{stylePreferences.preferredStyles}}
-- Event: {{eventType}}
-- Weather: {{weatherConditions}}
+export type Capsule = z.infer<typeof CapsuleSchema>;
+export type CapsuleItem = z.infer<typeof CapsuleSchema>['items'][number];
 
-Wardrobe available:
-{{#each wardrobeItems}}
-- ID: {{id}}, Name: {{name}}, Type: {{type}}
-{{/each}}
+export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICapsuleRecommendationsInputSchema>) {
+  const { output } = await ai.generate({
+    model: 'googleai/gemini-1.5-flash',
+    prompt: `Eres un experto estilista e imagen consultant de Pilar Cifuentes Catalán. Crea 2 cápsulas de ropa personalizadas.
+    
+    PERFIL FÍSICO: Figura ${input.figureAnalysis}, Colorimetría ${input.colorimetryAnalysis}.
+    PREFERENCIAS: ${JSON.stringify(input.stylePreferences)}.
+    EVENTO: ${input.eventType}, CLIMA: ${input.weatherConditions}.
+    
+    INSTRUCCIONES:
+    - Prioriza los ítems reales del armario: ${JSON.stringify(input.wardrobeItems.map(i => ({id: i.id, name: i.name, type: i.type})))}
+    - Para ítems faltantes, sugiere compras (source: 'shop') con un 'styleHint' preciso.
+    - Asegúrate de que las combinaciones respeten las reglas de colorimetría y morfología.`,
+    output: { schema: AICapsuleRecommendationsOutputSchema }
+  });
 
-Ensure styleHints are exactly 2 words in English.`
-});
-
-export async function receiveAICapsuleRecommendations(input: any) {
-  const {output} = await aiCapsuleRecommendationsPrompt(input);
-  return output!;
+  if (!output) throw new Error("Gemini no pudo generar las cápsulas.");
+  return output;
 }

@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useRef, useEffect } from 'react';
@@ -7,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowLeft, Send, Sparkles, User, Instagram } from "lucide-react";
 import Link from 'next/link';
+import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -14,8 +16,9 @@ interface Message {
 }
 
 export default function ChatPage() {
+  const [profile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: '¡Hola! Soy el asistente de Pilar Cifuentes Catalán. Estoy aquí para ayudarte a encontrar tu mejor versión. ¿En qué puedo asesorarte hoy?' }
+    { role: 'assistant', content: '¡Hola! Soy el asistente de Pilar Cifuentes Catalán. Estoy aquí para ayudarte a encontrar tu mejor versión utilizando tus datos de figura y colorimetría. ¿En qué puedo asesorarte hoy?' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -36,11 +39,18 @@ export default function ChatPage() {
     setLoading(true);
 
     try {
-      const response = await chatWithAIStylist(userMsg);
+      const response = await chatWithAIStylist({
+        message: userMsg,
+        userContext: {
+          figure: profile.figureAnalysis,
+          colorimetry: profile.colorimetryAnalysis,
+          preferences: profile.stylePreferences.preferredStyles.join(', ')
+        }
+      });
       setMessages(prev => [...prev, { role: 'assistant', content: response }]);
     } catch (err) {
       console.error(err);
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Lo siento, ha ocurrido un error al procesar tu consulta.' }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Lo siento, ha ocurrido un error al procesar tu consulta. Revisa tu clave de OpenAI en Ajustes.' }]);
     } finally {
       setLoading(false);
     }
