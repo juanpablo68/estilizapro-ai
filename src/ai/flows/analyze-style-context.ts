@@ -6,6 +6,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import { googleAI } from '@genkit-ai/google-genai';
 
 const AnalyzeStyleInputSchema = z.object({
   facePhotoDataUri: z.string().describe("Foto del rostro como data URI base64."),
@@ -22,27 +23,16 @@ export type AnalyzeStyleInput = z.infer<typeof AnalyzeStyleInputSchema>;
 export type AnalyzeStyleOutput = z.infer<typeof AnalyzeStyleOutputSchema>;
 
 export async function analyzeStyleContext(input: AnalyzeStyleInput): Promise<AnalyzeStyleOutput> {
-  return analyzeStyleFlow(input);
+  const { output } = await ai.generate({
+    model: googleAI.model('gemini-1.5-flash'),
+    prompt: [
+      { media: { url: input.facePhotoDataUri, contentType: 'image/jpeg' } },
+      { media: { url: input.figurePhotoDataUri, contentType: 'image/jpeg' } },
+      { text: 'Actúa como un experto en colorimetría y morfología de moda de alto nivel. Analiza estas fotos optimizadas y determina: 1. El tipo de figura corporal exacta. 2. La paleta de colorimetría estacional específica. 3. Una descripción física MUY detallada (rasgos, cabello, ropa que lleva, complexión) para que una IA generativa cree un avatar Pixar 3D perfecto de esta persona.' },
+    ],
+    output: { schema: AnalyzeStyleOutputSchema }
+  });
+
+  if (!output) throw new Error("Gemini no pudo procesar las fotos del perfil.");
+  return output;
 }
-
-const analyzeStyleFlow = ai.defineFlow(
-  {
-    name: 'analyzeStyleFlow',
-    inputSchema: AnalyzeStyleInputSchema,
-    outputSchema: AnalyzeStyleOutputSchema,
-  },
-  async (input) => {
-    const { output } = await ai.generate({
-      model: 'googleai/gemini-1.5-flash',
-      prompt: [
-        { media: { url: input.facePhotoDataUri, contentType: 'image/jpeg' } },
-        { media: { url: input.figurePhotoDataUri, contentType: 'image/jpeg' } },
-        { text: 'Actúa como un experto en colorimetría y morfología de moda. Analiza estas fotos y determina: 1. El tipo de figura corporal. 2. La paleta de colorimetría estacional. 3. Una descripción física detallada para que DALL-E 3 genere un avatar Pixar de esta persona.' },
-      ],
-      output: { schema: AnalyzeStyleOutputSchema }
-    });
-
-    if (!output) throw new Error("Gemini no pudo procesar las fotos.");
-    return output;
-  }
-);

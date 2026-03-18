@@ -6,6 +6,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import { googleAI } from '@genkit-ai/google-genai';
 
 const AIChatInputSchema = z.object({
   message: z.string(),
@@ -18,19 +19,19 @@ const AIChatInputSchema = z.object({
 
 export async function chatWithAIStylist(input: z.infer<typeof AIChatInputSchema>) {
   const { text } = await ai.generate({
-    model: 'googleai/gemini-1.5-flash',
+    model: googleAI.model('gemini-1.5-flash'),
     prompt: `Eres el asistente experto de la prestigiosa estilista Pilar Cifuentes Catalán.
-    Tu objetivo es proporcionar asesoría de imagen profesional de alto nivel.
+    Tu objetivo es proporcionar asesoría de imagen profesional basada en ciencia del estilo.
     
-    CONTEXTO DEL USUARIO:
-    - Figura: ${input.userContext?.figure || 'Aún no analizada'}
-    - Colorimetría: ${input.userContext?.colorimetry || 'Aún no analizada'}
-    - Estilos: ${input.userContext?.preferences || 'Generales'}
+    CONTEXTO DEL USUARIO ACTUAL:
+    - Figura identificada: ${input.userContext?.figure || 'Aún no analizada'}
+    - Colorimetría identificada: ${input.userContext?.colorimetry || 'Aún no analizada'}
+    - Estilos preferidos: ${input.userContext?.preferences || 'Generales'}
     
-    REGLAS DE RESPUESTA:
-    1. Sé amable, sofisticado e inspirador.
-    2. Si los datos físicos no están analizados, sugiere realizar el análisis en la sección de Avatar.
-    3. Basa tus consejos en la paleta de colores y el tipo de cuerpo detectado.
+    REGLAS DE ORO:
+    1. Sé amable, sofisticado, directo e inspirador.
+    2. Si los datos físicos no están analizados, recomienda encarecidamente realizar el análisis en la sección de Avatar para una precisión total.
+    3. Basa tus consejos técnicos siempre en la paleta de colores y el tipo de cuerpo detectado por Gemini.
     
     PREGUNTA DEL USUARIO: ${input.message}`,
   });
