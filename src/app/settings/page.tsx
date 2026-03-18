@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -7,10 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Save, Key, BrainCircuit, Sparkles } from "lucide-react";
+import { ArrowLeft, Save, Key, BrainCircuit, Sparkles, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import Link from 'next/link';
 import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
 import { useToast } from "@/hooks/use-toast";
+import { testAPIConnection } from '@/ai/flows/test-api-flow';
 
 export default function SettingsPage() {
   const [profile, setProfile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
@@ -20,6 +20,14 @@ export default function SettingsPage() {
   const [localKeys, setLocalKeys] = useState({
     openai: '',
     gemini: ''
+  });
+
+  const [testStatus, setTestStatus] = useState<{
+    openai: 'idle' | 'loading' | 'success' | 'error',
+    gemini: 'idle' | 'loading' | 'success' | 'error'
+  }>({
+    openai: 'idle',
+    gemini: 'idle'
   });
 
   useEffect(() => {
@@ -49,6 +57,34 @@ export default function SettingsPage() {
     }
   };
 
+  const handleTest = async (provider: 'openai' | 'gemini') => {
+    const key = provider === 'openai' ? localKeys.openai : localKeys.gemini;
+    if (!key) {
+      toast({
+        variant: "destructive",
+        title: "Llave faltante",
+        description: `Por favor, introduce la llave de ${provider} antes de probar.`,
+      });
+      return;
+    }
+
+    setTestStatus(prev => ({ ...prev, [provider]: 'loading' }));
+    
+    try {
+      const result = await testAPIConnection({ provider, apiKey: key });
+      if (result.success) {
+        setTestStatus(prev => ({ ...prev, [provider]: 'success' }));
+        toast({ title: "¡Prueba Exitosa!", description: result.message });
+      } else {
+        setTestStatus(prev => ({ ...prev, [provider]: 'error' }));
+        toast({ variant: "destructive", title: "Error de Conexión", description: result.message });
+      }
+    } catch (err: any) {
+      setTestStatus(prev => ({ ...prev, [provider]: 'error' }));
+      toast({ variant: "destructive", title: "Fallo Crítico", description: err.message });
+    }
+  };
+
   if (!mounted) return null;
 
   return (
@@ -57,35 +93,35 @@ export default function SettingsPage() {
         <Link href="/dashboard">
           <Button variant="ghost" size="icon"><ArrowLeft /></Button>
         </Link>
-        <h1 className="text-2xl font-headline font-bold">Gestión de IA Híbrida</h1>
+        <h1 className="text-2xl font-headline font-bold text-primary">Gestión de IA Híbrida</h1>
       </header>
 
-      <Card className="border-none shadow-md overflow-hidden">
+      <Card className="border-none shadow-md overflow-hidden bg-white/50 backdrop-blur-sm">
         <CardHeader className="bg-primary/5 border-b border-primary/10">
           <div className="flex items-center gap-2 text-primary">
             <BrainCircuit className="w-5 h-5" />
-            <CardTitle className="text-lg font-bold">Conocimiento Maestro de Pilar Catalán</CardTitle>
+            <CardTitle className="text-lg font-bold uppercase tracking-tight">Cerebro de Pilar Catalán</CardTitle>
           </div>
-          <CardDescription>Datos clave que Gemini utiliza para tu asesoría personalizada.</CardDescription>
+          <CardDescription className="text-xs">Conocimiento maestro que Gemini utiliza para tu asesoría.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
                 <Label className="text-[10px] font-bold uppercase text-muted-foreground">Figura Corporal</Label>
-                <Input value={profile.figureAnalysis || 'No analizada'} readOnly className="bg-muted/30 text-xs font-bold" />
+                <Input value={profile.figureAnalysis || 'No analizada'} readOnly className="bg-muted/30 text-xs font-bold border-none" />
             </div>
             <div className="space-y-2">
                 <Label className="text-[10px] font-bold uppercase text-muted-foreground">Colorimetría</Label>
-                <Input value={profile.colorimetryAnalysis || 'No analizada'} readOnly className="bg-muted/30 text-xs font-bold" />
+                <Input value={profile.colorimetryAnalysis || 'No analizada'} readOnly className="bg-muted/30 text-xs font-bold border-none" />
             </div>
           </div>
           <div className="space-y-2">
-            <Label className="font-bold flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-primary" /> Preferencias e Instrucciones
+            <Label className="font-bold flex items-center gap-2 text-sm">
+              <Sparkles className="w-4 h-4 text-primary" /> Preferencias de Estilo
             </Label>
             <Textarea 
-              placeholder="Instrucciones personalizadas para tu estilista virtual..."
-              className="min-h-[120px]"
+              placeholder="Instrucciones personalizadas..."
+              className="min-h-[100px] text-sm bg-white/50"
               value={profile.stylePreferences.preferredStyles.join(', ')}
               onChange={e => setProfile({
                 ...profile, 
@@ -99,24 +135,67 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card className="border-none shadow-md">
+      <Card className="border-none shadow-md bg-white">
         <CardHeader className="bg-secondary/5 border-b p-4">
-          <CardTitle className="text-sm flex items-center gap-2 text-secondary"><Key className="w-4 h-4" /> Conectores de IA</CardTitle>
+          <CardTitle className="text-sm flex items-center gap-2 text-secondary uppercase font-bold tracking-wider">
+            <Key className="w-4 h-4" /> Conectores de API
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4 pt-4">
-          <div className="space-y-2">
-            <Label className="text-xs">OpenAI Key (Avatar Pixar DALL-E 3)</Label>
-            <Input type="password" value={localKeys.openai} onChange={e => setLocalKeys({...localKeys, openai: e.target.value})} placeholder="sk-..." />
+        <CardContent className="space-y-6 pt-6">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold">OpenAI Key (Avatar Pixar / DALL-E 3)</Label>
+              {testStatus.openai === 'success' && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+              {testStatus.openai === 'error' && <XCircle className="w-4 h-4 text-destructive" />}
+            </div>
+            <div className="flex gap-2">
+              <Input 
+                type="password" 
+                value={localKeys.openai} 
+                onChange={e => setLocalKeys({...localKeys, openai: e.target.value})} 
+                placeholder="sk-..." 
+                className="flex-1 bg-muted/20"
+              />
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => handleTest('openai')}
+                disabled={testStatus.openai === 'loading'}
+              >
+                {testStatus.openai === 'loading' ? <Loader2 className="animate-spin w-4 h-4" /> : "Probar"}
+              </Button>
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label className="text-xs">Gemini Key (Cerebro Analítico 1.5 Flash)</Label>
-            <Input type="password" value={localKeys.gemini} onChange={e => setLocalKeys({...localKeys, gemini: e.target.value})} placeholder="AIza..." />
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold">Gemini Key (Análisis / 1.5 Flash)</Label>
+              {testStatus.gemini === 'success' && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+              {testStatus.gemini === 'error' && <XCircle className="w-4 h-4 text-destructive" />}
+            </div>
+            <div className="flex gap-2">
+              <Input 
+                type="password" 
+                value={localKeys.gemini} 
+                onChange={e => setLocalKeys({...localKeys, gemini: e.target.value})} 
+                placeholder="AIza..." 
+                className="flex-1 bg-muted/20"
+              />
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => handleTest('gemini')}
+                disabled={testStatus.gemini === 'loading'}
+              >
+                {testStatus.gemini === 'loading' ? <Loader2 className="animate-spin w-4 h-4" /> : "Probar"}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      <Button onClick={handleSaveAll} className="w-full h-14 bg-primary text-lg font-bold shadow-xl rounded-2xl">
-        <Save className="mr-2 w-5 h-5" /> Guardar Configuración Híbrida
+      <Button onClick={handleSaveAll} className="w-full h-14 bg-primary text-lg font-bold shadow-xl rounded-2xl hover:scale-[1.02] transition-transform">
+        <Save className="mr-2 w-5 h-5" /> Guardar y Activar Motor
       </Button>
     </div>
   );

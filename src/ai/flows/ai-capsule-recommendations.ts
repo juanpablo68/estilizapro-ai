@@ -1,10 +1,9 @@
-
 'use server';
 /**
  * @fileOverview Generación de cápsulas de moda personalizadas utilizando Gemini.
  */
 
-import { ai, GEMINI_MODEL } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
 const WardrobeItemSchema = z.object({
@@ -21,6 +20,7 @@ const AICapsuleRecommendationsInputSchema = z.object({
   eventType: z.string(),
   weatherConditions: z.string(),
   wardrobeItems: z.array(WardrobeItemSchema),
+  geminiApiKey: z.string().optional(),
 });
 
 const CapsuleSchema = z.object({
@@ -45,8 +45,12 @@ export type Capsule = z.infer<typeof CapsuleSchema>;
 export type CapsuleItem = z.infer<typeof CapsuleSchema>['items'][number];
 
 export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICapsuleRecommendationsInputSchema>) {
+  if (input.geminiApiKey) {
+    process.env.GOOGLE_GENAI_API_KEY = input.geminiApiKey;
+  }
+
   const { output } = await ai.generate({
-    model: GEMINI_MODEL,
+    model: 'googleai/gemini-1.5-flash',
     prompt: `Eres un experto estilista e imagen consultant de Pilar Cifuentes Catalán. Crea 2 cápsulas de ropa personalizadas de 4 prendas cada una.
     
     PERFIL FÍSICO: Figura ${input.figureAnalysis}, Colorimetría ${input.colorimetryAnalysis}.
