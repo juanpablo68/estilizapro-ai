@@ -1,20 +1,16 @@
+
 'use server';
 /**
  * @fileOverview Flujo para probar la validez de las API Keys de OpenAI y Gemini.
  */
 
-import { ai } from '@/ai/genkit';
+import { getGenkit } from '@/ai/genkit';
 import { z } from 'genkit';
 import OpenAI from 'openai';
 
 const TestAPIInputSchema = z.object({
   provider: z.enum(['openai', 'gemini']),
   apiKey: z.string(),
-});
-
-const TestAPIOutputSchema = z.object({
-  success: z.boolean(),
-  message: z.string(),
 });
 
 export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema>) {
@@ -29,21 +25,21 @@ export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema
     }
   } else {
     try {
-      // Para Gemini en modo servidor sin .env persistente, intentamos una generación mínima
-      // Nota: process.env se usa internamente por el plugin de googleAI
-      process.env.GOOGLE_GENAI_API_KEY = input.apiKey;
+      // Inicializamos una instancia fresca de Genkit con la llave proporcionada
+      const dynamicAI = getGenkit(input.apiKey);
       
-      const { text } = await ai.generate({
+      const { text } = await dynamicAI.generate({
         model: 'googleai/gemini-1.5-flash',
-        prompt: 'Hola, responde con la palabra "OK" si me escuchas.',
+        prompt: 'Hola, responde exactamente con la palabra "OK" si este mensaje te llega correctamente.',
       });
 
-      if (text.includes("OK") || text.length > 0) {
+      if (text.toUpperCase().includes("OK") || text.length > 0) {
         return { success: true, message: "Conexión con Gemini (Cerebro Analítico) exitosa." };
       }
       throw new Error("Respuesta inesperada del modelo.");
     } catch (err: any) {
-      return { success: false, message: `Error en Gemini: ${err.message}` };
+      console.error("Gemini Test Error:", err);
+      return { success: false, message: `Error en Gemini: ${err.message || "Revisa si la llave es válida y tiene cuota disponible."}` };
     }
   }
 }

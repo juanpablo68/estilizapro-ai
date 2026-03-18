@@ -1,9 +1,10 @@
+
 'use server';
 /**
  * @fileOverview Análisis de colorimetría y figura corporal utilizando Gemini 1.5 Flash.
  */
 
-import { ai } from '@/ai/genkit';
+import { getGenkit, GEMINI_MODEL } from '@/ai/genkit';
 import { z } from 'genkit';
 
 const AnalyzeStyleInputSchema = z.object({
@@ -22,12 +23,10 @@ export type AnalyzeStyleInput = z.infer<typeof AnalyzeStyleInputSchema>;
 export type AnalyzeStyleOutput = z.infer<typeof AnalyzeStyleOutputSchema>;
 
 export async function analyzeStyleContext(input: AnalyzeStyleInput): Promise<AnalyzeStyleOutput> {
-  if (input.geminiApiKey) {
-    process.env.GOOGLE_GENAI_API_KEY = input.geminiApiKey;
-  }
+  const dynamicAI = getGenkit(input.geminiApiKey);
 
-  const { output } = await ai.generate({
-    model: 'googleai/gemini-1.5-flash',
+  const { output } = await dynamicAI.generate({
+    model: GEMINI_MODEL,
     prompt: [
       { media: { url: input.facePhotoDataUri, contentType: 'image/jpeg' } },
       { media: { url: input.figurePhotoDataUri, contentType: 'image/jpeg' } },
