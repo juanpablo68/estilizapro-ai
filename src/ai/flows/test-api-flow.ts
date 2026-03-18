@@ -26,7 +26,7 @@ export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema
       return { success: false, message: `Error en OpenAI: ${err.message}` };
     }
   } else {
-    // Intentamos probar el modelo Flash estándar que suele tener cuota gratuita activa
+    // Para Gemini, probamos con los identificadores más comunes de Flash
     const modelsToTry = [
       'googleai/gemini-1.5-flash',
       'googleai/gemini-2.0-flash'
@@ -52,6 +52,7 @@ export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema
         }
       } catch (err: any) {
         lastError = err.message || "Error desconocido";
+        // Si es un error de cuota, la llave es válida pero no tiene saldo/permisos
         if (lastError.includes("429") || lastError.includes("quota")) {
           return { 
             success: false, 
@@ -61,6 +62,6 @@ export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema
       }
     }
 
-    return { success: false, message: `Fallo en Gemini: ${lastError}` };
+    return { success: false, message: `Fallo en Gemini: ${lastError}. Asegúrate de que el modelo Flash esté habilitado en Google AI Studio.` };
   }
 }

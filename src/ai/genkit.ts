@@ -23,7 +23,7 @@ export function getGenkitEngine(apiKey?: string) {
 
   return {
     ai,
-    // Identificador de modelo estándar para máxima compatibilidad
+    // Identificador oficial para el modelo Flash en Genkit 1.x
     model: 'googleai/gemini-1.5-flash',
   };
 }
