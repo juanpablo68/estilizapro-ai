@@ -16,7 +16,11 @@ const TestAPIInputSchema = z.object({
 export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema>) {
   if (input.provider === 'openai') {
     try {
+      if (!input.apiKey || input.apiKey.trim() === '') {
+        throw new Error("La llave de OpenAI está vacía.");
+      }
       const openai = new OpenAI({ apiKey: input.apiKey });
+      // Prueba mínima: listado de modelos
       await openai.models.list();
       return { success: true, message: "Conexión con OpenAI (DALL-E 3) exitosa." };
     } catch (err: any) {
@@ -25,17 +29,17 @@ export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema
   } else {
     try {
       if (!input.apiKey || input.apiKey.trim() === '') {
-        throw new Error("La llave está vacía.");
+        throw new Error("La llave de Gemini está vacía.");
       }
       
       if (!input.apiKey.startsWith('AIza')) {
         throw new Error("El formato de la llave de Gemini es incorrecto (debe empezar por AIza).");
       }
 
-      // Usamos la fábrica dinámica para obtener un motor configurado con ESTA llave
+      // Obtenemos el motor configurado con la llave a probar
       const { ai, model } = getGenkitEngine(input.apiKey);
       
-      // Realizamos una llamada mínima de generación para probar la validez real de la llave
+      // Realizamos una llamada mínima de generación para probar la validez real
       const response = await ai.generate({
         model: model,
         prompt: 'Responde solo con la palabra OK.',
@@ -46,7 +50,7 @@ export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema
       });
 
       if (response && response.text) {
-        return { success: true, message: "Conexión con Gemini 2.0 (Cerebro Analítico) exitosa." };
+        return { success: true, message: "Conexión con Gemini 1.5 Flash (Cerebro Analítico) exitosa." };
       }
       
       throw new Error("La IA no devolvió una respuesta válida.");
@@ -54,13 +58,13 @@ export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema
       console.error("Gemini Test Error:", err);
       let errorMsg = err.message || "Error desconocido.";
       
-      // Mapeo de errores comunes de Google AI para el usuario
-      if (errorMsg.includes("API_KEY_INVALID")) {
+      // Mapeo de errores de cuota y permisos para el usuario
+      if (errorMsg.includes("429") || errorMsg.includes("quota") || errorMsg.includes("limit")) {
+        errorMsg = "Límite de frecuencia agotado (Error 429). Según tu consola, has usado 3 de 5 solicitudes de Gemini 1.5 Flash. Debes esperar un poco o activar la facturación para aumentar el límite.";
+      } else if (errorMsg.includes("API_KEY_INVALID")) {
         errorMsg = "La API Key de Gemini no es válida.";
-      } else if (errorMsg.includes("429") || errorMsg.includes("quota") || errorMsg.includes("limit")) {
-        errorMsg = "Has alcanzado el límite de frecuencia de tu API de Gemini (Error 429). Tal como indica tu consola, debes esperar o activar la facturación en Google Cloud para continuar.";
       } else if (errorMsg.includes("403")) {
-        errorMsg = "Acceso denegado (403). Asegúrate de que el modelo Gemini 2.0 Flash esté habilitado en tu consola de Google AI Studio.";
+        errorMsg = "Acceso denegado (403). Asegúrate de que el modelo Gemini 1.5 Flash esté habilitado en tu consola.";
       }
       
       return { success: false, message: `Error en Gemini: ${errorMsg}` };
