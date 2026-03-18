@@ -2,9 +2,10 @@
 'use server';
 /**
  * @fileOverview Previsualización de ropa en avatar utilizando OpenAI DALL-E 3.
+ * Gemini analiza la prenda y OpenAI la visualiza en el personaje.
  */
 
-import { ai } from '@/ai/genkit';
+import { ai, geminiModel } from '@/ai/genkit';
 import { z } from 'genkit';
 import OpenAI from 'openai';
 
@@ -20,18 +21,19 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
 
   const openai = new OpenAI({ apiKey });
 
-  // Primero usamos Gemini para "entender" la prenda y describirla para DALL-E
+  // Gemini (El Cerebro) analiza la prenda para describirla
   const { text: description } = await ai.generate({
-    model: 'googleai/gemini-1.5-flash',
+    model: geminiModel,
     prompt: [
       { media: { url: input.clothingItemDataUri, contentType: 'image/jpeg' } },
-      { text: 'Describe detalladamente esta prenda de vestir para que una IA generadora de imágenes pueda ponérsela a un personaje 3D Pixar.' }
+      { text: 'Describe detalladamente esta prenda de vestir para que una IA generadora de imágenes pueda ponérsela a un personaje 3D Pixar. Sé muy específico con el color, tejido y forma.' }
     ]
   });
 
+  // OpenAI (El Artista) genera la imagen final
   const response = await openai.images.generate({
     model: "dall-e-3",
-    prompt: `A 3D Pixar-style animated character wearing this specific item: ${description}. The character should look consistent with a fashion avatar. High quality, cinematic lighting, plain background.`,
+    prompt: `A 3D Pixar-style animated character wearing this specific item: ${description}. The character should look consistent with a fashion avatar. High quality, cinematic lighting, plain background. Professional render.`,
     n: 1,
     size: "1024x1024",
     response_format: "b64_json",

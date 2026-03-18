@@ -4,7 +4,7 @@
  * @fileOverview Análisis de colorimetría y figura corporal utilizando Gemini 1.5 Flash.
  */
 
-import { ai } from '@/ai/genkit';
+import { ai, geminiModel } from '@/ai/genkit';
 import { z } from 'genkit';
 
 const AnalyzeStyleInputSchema = z.object({
@@ -23,7 +23,7 @@ export type AnalyzeStyleOutput = z.infer<typeof AnalyzeStyleOutputSchema>;
 
 export async function analyzeStyleContext(input: AnalyzeStyleInput): Promise<AnalyzeStyleOutput> {
   const { output } = await ai.generate({
-    model: 'googleai/gemini-1.5-flash',
+    model: geminiModel,
     prompt: [
       { media: { url: input.facePhotoDataUri, contentType: 'image/jpeg' } },
       { media: { url: input.figurePhotoDataUri, contentType: 'image/jpeg' } },
