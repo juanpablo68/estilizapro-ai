@@ -4,7 +4,7 @@
  * @fileOverview Generación de cápsulas de moda personalizadas utilizando Gemini.
  */
 
-import { ai, geminiModel } from '@/ai/genkit';
+import { ai, GEMINI_MODEL } from '@/ai/genkit';
 import { z } from 'genkit';
 
 const WardrobeItemSchema = z.object({
@@ -46,7 +46,7 @@ export type CapsuleItem = z.infer<typeof CapsuleSchema>['items'][number];
 
 export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICapsuleRecommendationsInputSchema>) {
   const { output } = await ai.generate({
-    model: geminiModel,
+    model: GEMINI_MODEL,
     prompt: `Eres un experto estilista e imagen consultant de Pilar Cifuentes Catalán. Crea 2 cápsulas de ropa personalizadas de 4 prendas cada una.
     
     PERFIL FÍSICO: Figura ${input.figureAnalysis}, Colorimetría ${input.colorimetryAnalysis}.

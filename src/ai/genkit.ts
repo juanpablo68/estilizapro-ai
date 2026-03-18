@@ -1,14 +1,12 @@
 
 import { genkit } from 'genkit';
-import { googleAI, gemini15Flash } from '@genkit-ai/google-genai';
+import { googleAI } from '@genkit-ai/google-genai';
 
 /**
  * Configuración Maestra de Genkit para EstilizaPro AI.
  * Arquitectura Híbrida:
  * - Google AI (Gemini 1.5 Flash): El cerebro analítico (visión y lógica).
  * - OpenAI (SDK Directo): El artista creativo para imágenes Pixar.
- * 
- * Usamos gemini15Flash como referencia directa para evitar errores de "Unknown action type".
  */
 export const ai = genkit({
   plugins: [
@@ -16,4 +14,5 @@ export const ai = genkit({
   ],
 });
 
-export const geminiModel = gemini15Flash;
+// Definimos el ID del modelo como constante para evitar errores de tipado
+export const GEMINI_MODEL = 'googleai/gemini-1.5-flash';

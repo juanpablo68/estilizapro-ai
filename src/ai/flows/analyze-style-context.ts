@@ -4,7 +4,7 @@
  * @fileOverview Análisis de colorimetría y figura corporal utilizando Gemini 1.5 Flash.
  */
 
-import { ai, geminiModel } from '@/ai/genkit';
+import { ai, GEMINI_MODEL } from '@/ai/genkit';
 import { z } from 'genkit';
 
 const AnalyzeStyleInputSchema = z.object({
@@ -23,11 +23,11 @@ export type AnalyzeStyleOutput = z.infer<typeof AnalyzeStyleOutputSchema>;
 
 export async function analyzeStyleContext(input: AnalyzeStyleInput): Promise<AnalyzeStyleOutput> {
   const { output } = await ai.generate({
-    model: geminiModel,
+    model: GEMINI_MODEL,
     prompt: [
       { media: { url: input.facePhotoDataUri, contentType: 'image/jpeg' } },
       { media: { url: input.figurePhotoDataUri, contentType: 'image/jpeg' } },
-      { text: 'Actúa como un experto en colorimetría y morfología de moda. Analiza estas fotos y determina: 1. El tipo de figura corporal exacta. 2. La paleta de colorimetría estacional específica. 3. Una descripción física detallada para que OpenAI DALL-E cree un avatar Pixar 3D perfecto de esta persona.' },
+      { text: 'Actúa como un experto en colorimetría y morfología de moda. Analiza estas fotos y determina: 1. El tipo de figura corporal exacta. 2. La paleta de colorimetría estacional específica. 3. Una descripción física detallada para que una IA generadora de imágenes pueda recrear a esta persona en estilo Pixar 3D perfecto con fondo blanco puro.' },
     ],
     output: { schema: AnalyzeStyleOutputSchema }
   });

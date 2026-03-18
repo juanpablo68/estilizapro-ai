@@ -5,7 +5,7 @@
  * Gemini analiza la prenda y OpenAI la visualiza en el personaje.
  */
 
-import { ai, geminiModel } from '@/ai/genkit';
+import { ai, GEMINI_MODEL } from '@/ai/genkit';
 import { z } from 'genkit';
 import OpenAI from 'openai';
 
@@ -23,7 +23,7 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
 
   // Gemini (El Cerebro) analiza la prenda para describirla
   const { text: description } = await ai.generate({
-    model: geminiModel,
+    model: GEMINI_MODEL,
     prompt: [
       { media: { url: input.clothingItemDataUri, contentType: 'image/jpeg' } },
       { text: 'Describe detalladamente esta prenda de vestir para que una IA generadora de imágenes pueda ponérsela a un personaje 3D Pixar. Sé muy específico con el color, tejido y forma.' }
