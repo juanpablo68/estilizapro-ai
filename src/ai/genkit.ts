@@ -5,8 +5,9 @@ import { googleAI } from '@genkit-ai/google-genai';
 /**
  * Fábrica Dinámica de Genkit para EstilizaPro AI.
  * Crea una instancia de motor de IA configurada en tiempo real con la llave proporcionada.
+ * Soporta modelos de nueva generación (2.0+) de forma adaptativa.
  */
-export function getGenkitEngine(apiKey?: string) {
+export function getGenkitEngine(apiKey?: string, preferredModel?: string) {
   const key = apiKey || process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY;
 
   if (!key) {
@@ -21,14 +22,16 @@ export function getGenkitEngine(apiKey?: string) {
     plugins: [googleAIPlugin],
   });
 
+  // El identificador oficial más estable para el motor Flash actual
+  const modelToUse = preferredModel || 'googleai/gemini-2.0-flash';
+
   return {
     ai,
-    // Identificador oficial para el modelo Flash en Genkit 1.x
-    model: 'googleai/gemini-1.5-flash',
+    model: modelToUse,
   };
 }
 
-// Instancia estática base para inicialización del sistema
+// Instancia estática base para inicialización del sistema (usada por Genkit CLI)
 export const ai = genkit({
   plugins: [googleAI()],
 });

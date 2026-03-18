@@ -47,8 +47,8 @@ export default function SettingsPage() {
       setProfile({ ...profile });
       
       toast({
-        title: "Llaves Maestras Guardadas",
-        description: "Motor híbrido OpenAI + Gemini listo para operar.",
+        title: "Motor Híbrido Activado",
+        description: "Configuración guardada correctamente en el dispositivo.",
       });
     } catch (error) {
       toast({
@@ -95,16 +95,16 @@ export default function SettingsPage() {
         <Link href="/dashboard">
           <Button variant="ghost" size="icon"><ArrowLeft /></Button>
         </Link>
-        <h1 className="text-2xl font-headline font-bold text-primary">Gestión de IA Híbrida</h1>
+        <h1 className="text-2xl font-headline font-bold text-primary">Ajustes de IA</h1>
       </header>
 
       <Card className="border-none shadow-md overflow-hidden bg-white/50 backdrop-blur-sm">
         <CardHeader className="bg-primary/5 border-b border-primary/10">
           <div className="flex items-center gap-2 text-primary">
             <BrainCircuit className="w-5 h-5" />
-            <CardTitle className="text-lg font-bold uppercase tracking-tight">Cerebro de Pilar Catalán</CardTitle>
+            <CardTitle className="text-lg font-bold uppercase tracking-tight">Análisis de Perfil</CardTitle>
           </div>
-          <CardDescription className="text-xs">Conocimiento maestro que Gemini utiliza para tu asesoría.</CardDescription>
+          <CardDescription className="text-xs">Datos técnicos que Gemini utiliza para tu asesoría personalizada.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
           <div className="grid grid-cols-2 gap-4">
@@ -119,7 +119,7 @@ export default function SettingsPage() {
           </div>
           <div className="space-y-2">
             <Label className="font-bold flex items-center gap-2 text-sm">
-              <Sparkles className="w-4 h-4 text-primary" /> Preferencias de Estilo
+              <Sparkles className="w-4 h-4 text-primary" /> Estilos Preferidos
             </Label>
             <Textarea 
               placeholder="Instrucciones personalizadas..."
@@ -146,7 +146,7 @@ export default function SettingsPage() {
         <CardContent className="space-y-6 pt-6">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-xs font-bold">OpenAI Key (Avatar Pixar / DALL-E 3)</Label>
+              <Label className="text-xs font-bold">OpenAI Key (Artista Pixar)</Label>
               {testStatus.openai === 'success' && <CheckCircle2 className="w-4 h-4 text-green-500" />}
               {testStatus.openai === 'error' && <XCircle className="w-4 h-4 text-destructive" />}
             </div>
@@ -171,7 +171,7 @@ export default function SettingsPage() {
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-xs font-bold">Gemini Key (Análisis / Motor Flash)</Label>
+              <Label className="text-xs font-bold">Gemini Key (Cerebro Analítico)</Label>
               {testStatus.gemini === 'success' && <CheckCircle2 className="w-4 h-4 text-green-500" />}
               {testStatus.gemini === 'error' && <XCircle className="w-4 h-4 text-destructive" />}
             </div>
@@ -192,11 +192,12 @@ export default function SettingsPage() {
                 {testStatus.gemini === 'loading' ? <Loader2 className="animate-spin w-4 h-4" /> : "Probar"}
               </Button>
             </div>
+            <p className="text-[10px] text-muted-foreground italic">El sistema probará automáticamente modelos Flash 2.0 y 2.5.</p>
           </div>
         </CardContent>
       </Card>
 
-      <Button onClick={handleSaveAll} className="w-full h-14 bg-primary text-lg font-bold shadow-xl rounded-2xl hover:scale-[1.02] transition-transform">
+      <Button onClick={handleSaveAll} className="w-full h-14 bg-primary text-lg font-bold shadow-xl rounded-2xl hover:scale-[1.02] transition-all">
         <Save className="mr-2 w-5 h-5" /> Guardar y Activar Motor
       </Button>
     </div>
