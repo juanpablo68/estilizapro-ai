@@ -32,7 +32,7 @@ export default function DashboardPage() {
     { name: 'Estilista', icon: MessageCircle, color: 'text-pink-600', bg: 'bg-pink-50', href: '/chat' },
     { name: 'Probador Virtual', icon: UserCircle, color: 'text-indigo-600', bg: 'bg-indigo-50', href: '/preview' },
     { name: 'Más Cápsulas', icon: PlusCircle, color: 'text-orange-600', bg: 'bg-orange-50', href: '/purchase' },
-    { name: 'Ajustes API', icon: Settings, color: 'text-primary', bg: 'bg-primary/20', href: '/settings', highlight: true },
+    { name: 'CONFIGURAR APIS', icon: Settings, color: 'text-white', bg: 'bg-primary', href: '/settings', highlight: true },
   ];
 
   if (!mounted) return null;
@@ -63,7 +63,7 @@ export default function DashboardPage() {
                 Ver Sugerencia Diaria
               </Button>
               <Button variant="outline" size="sm" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => router.push('/settings')}>
-                <Settings className="w-4 h-4 mr-1" /> Ajustes
+                <Settings className="w-4 h-4 mr-1" /> Ajustes de IA
               </Button>
           </div>
         </div>
@@ -73,14 +73,14 @@ export default function DashboardPage() {
         {actions.map((action) => (
           <Card 
             key={action.name} 
-            className={`hover:shadow-md transition-shadow cursor-pointer border-none ${action.highlight ? 'ring-2 ring-primary ring-offset-2' : ''}`} 
+            className={`hover:shadow-md transition-shadow cursor-pointer border-none ${action.highlight ? 'ring-4 ring-primary ring-offset-2 animate-pulse' : ''}`} 
             onClick={() => router.push(action.href)}
           >
             <CardContent className="p-6 flex flex-col items-center justify-center space-y-3">
               <div className={`p-4 rounded-2xl ${action.bg}`}>
                 <action.icon className={`w-8 h-8 ${action.color}`} />
               </div>
-              <span className="font-bold text-sm text-foreground">{action.name}</span>
+              <span className={`font-bold text-sm ${action.highlight ? 'text-primary' : 'text-foreground'}`}>{action.name}</span>
             </CardContent>
           </Card>
         ))}

@@ -30,7 +30,16 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-6 bg-background">
+    <div className="flex-1 flex flex-col items-center justify-center p-6 bg-background relative">
+      {/* Botón de Ajustes Flotante Muy Visible */}
+      <div className="absolute top-6 right-6 z-50">
+        <Link href="/settings">
+          <Button variant="outline" className="rounded-full shadow-lg border-primary text-primary font-bold gap-2 bg-white">
+            <Settings className="w-5 h-5" /> Configurar APIs
+          </Button>
+        </Link>
+      </div>
+
       <div className="w-full max-w-md space-y-8 text-center">
         <div className="space-y-2">
           <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-2xl mb-4">
@@ -51,7 +60,7 @@ export default function LoginPage() {
                 <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder="1,2,3,4"
+                  placeholder="1, 2, 3, 4"
                   value={passcode}
                   onChange={(e) => {
                     setPasscode(e.target.value);
@@ -67,14 +76,6 @@ export default function LoginPage() {
                 Entrar
               </Button>
             </form>
-
-            <div className="pt-2 border-t border-dashed">
-                <Link href="/settings">
-                    <Button variant="ghost" size="sm" className="w-full text-muted-foreground gap-2">
-                        <Settings className="w-4 h-4" /> Configurar APIs de IA
-                    </Button>
-                </Link>
-            </div>
           </CardContent>
         </Card>
 
