@@ -46,7 +46,7 @@ export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema
       });
 
       if (response && response.text) {
-        return { success: true, message: "Conexión con Gemini (Cerebro Analítico) exitosa." };
+        return { success: true, message: "Conexión con Gemini 2.0 (Cerebro Analítico) exitosa." };
       }
       
       throw new Error("La IA no devolvió una respuesta válida.");
@@ -55,9 +55,13 @@ export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema
       let errorMsg = err.message || "Error desconocido.";
       
       // Mapeo de errores comunes de Google AI para el usuario
-      if (errorMsg.includes("API_KEY_INVALID")) errorMsg = "La API Key de Gemini no es válida.";
-      if (errorMsg.includes("403")) errorMsg = "Acceso denegado (403). Asegúrate de que el modelo Gemini 1.5 Flash esté habilitado en tu consola de Google AI.";
-      if (errorMsg.includes("quota")) errorMsg = "Has agotado la cuota gratuita de tu llave de Gemini.";
+      if (errorMsg.includes("API_KEY_INVALID")) {
+        errorMsg = "La API Key de Gemini no es válida.";
+      } else if (errorMsg.includes("429") || errorMsg.includes("quota") || errorMsg.includes("limit")) {
+        errorMsg = "Has alcanzado el límite de frecuencia de tu API de Gemini (Error 429). Tal como indica tu consola, debes esperar o activar la facturación en Google Cloud para continuar.";
+      } else if (errorMsg.includes("403")) {
+        errorMsg = "Acceso denegado (403). Asegúrate de que el modelo Gemini 2.0 Flash esté habilitado en tu consola de Google AI Studio.";
+      }
       
       return { success: false, message: `Error en Gemini: ${errorMsg}` };
     }

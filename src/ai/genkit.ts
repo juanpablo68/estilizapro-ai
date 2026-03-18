@@ -5,7 +5,7 @@ import { googleAI } from '@genkit-ai/google-genai';
 /**
  * Fábrica Dinámica de Genkit para EstilizaPro AI.
  * Crea una instancia de motor de IA configurada en tiempo real con la llave proporcionada.
- * Esto soluciona los errores de 'Unknown action type' al permitir configuraciones dinámicas.
+ * Se actualiza a Gemini 2.0 Flash para máxima compatibilidad con las nuevas cuotas de Google AI Studio.
  */
 export function getGenkitEngine(apiKey?: string) {
   // Buscamos la llave en el parámetro, o en las variables de entorno como fallback
@@ -25,12 +25,12 @@ export function getGenkitEngine(apiKey?: string) {
 
   return {
     ai,
-    // Usamos el identificador de modelo estándar para máxima compatibilidad
-    model: 'googleai/gemini-1.5-flash',
+    // Actualizado a gemini-2.0-flash para coincidir con lo disponible en tu consola
+    model: 'googleai/gemini-2.0-flash',
   };
 }
 
-// Instancia por defecto para inicialización estática si fuera necesaria
+// Instancia por defecto para inicialización estática
 export const ai = genkit({
   plugins: [googleAI()],
 });
