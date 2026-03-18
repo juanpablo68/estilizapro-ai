@@ -6,7 +6,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { googleAI } from '@genkit-ai/google-genai';
 
 const WardrobeItemSchema = z.object({
   id: z.string(),
@@ -47,7 +46,7 @@ export type CapsuleItem = z.infer<typeof CapsuleSchema>['items'][number];
 
 export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICapsuleRecommendationsInputSchema>) {
   const { output } = await ai.generate({
-    model: googleAI.model('gemini-1.5-flash'),
+    model: 'googleai/gemini-1.5-flash',
     prompt: `Eres un experto estilista e imagen consultant de Pilar Cifuentes Catalán. Crea 2 cápsulas de ropa personalizadas de 4 prendas cada una.
     
     PERFIL FÍSICO: Figura ${input.figureAnalysis}, Colorimetría ${input.colorimetryAnalysis}.

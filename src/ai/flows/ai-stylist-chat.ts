@@ -6,7 +6,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { googleAI } from '@genkit-ai/google-genai';
 
 const AIChatInputSchema = z.object({
   message: z.string(),
@@ -19,7 +18,7 @@ const AIChatInputSchema = z.object({
 
 export async function chatWithAIStylist(input: z.infer<typeof AIChatInputSchema>) {
   const { text } = await ai.generate({
-    model: googleAI.model('gemini-1.5-flash'),
+    model: 'googleai/gemini-1.5-flash',
     prompt: `Eres el asistente experto de la prestigiosa estilista Pilar Cifuentes Catalán.
     Tu objetivo es proporcionar asesoría de imagen profesional basada en ciencia del estilo.
     

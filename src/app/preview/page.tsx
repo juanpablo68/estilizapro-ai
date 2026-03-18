@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from 'react';
@@ -8,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Loader2, Sparkles, User, Shirt, CheckCircle } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
+import { useToast } from "@/hooks/use-toast";
 
 export default function PreviewPage() {
   const [profile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
@@ -15,19 +17,37 @@ export default function PreviewPage() {
   const [selectedItem, setSelectedItem] = useState<WardrobeItem | null>(null);
   const [previewing, setPreviewing] = useState(false);
   const [resultImage, setResultImage] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const handlePreview = async () => {
     if (!profile.avatarDataUri || !selectedItem) return;
+    
+    const openaiKey = localStorage.getItem('openai_api_key') || undefined;
+    if (!openaiKey) {
+      toast({
+        variant: "destructive",
+        title: "API Key Faltante",
+        description: "Configura tu OpenAI Key en Ajustes para usar el Probador Virtual.",
+      });
+      return;
+    }
+
     setPreviewing(true);
     setResultImage(null);
     try {
       const result = await previewOutfitOnAvatar({
         avatarDataUri: profile.avatarDataUri,
-        clothingItemDataUri: selectedItem.imageDataUri
+        clothingItemDataUri: selectedItem.imageDataUri,
+        openaiApiKey: openaiKey
       });
       setResultImage(result.previewImageDataUri);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      toast({
+        variant: "destructive",
+        title: "Error de IA",
+        description: err.message || "No se pudo generar la vista previa.",
+      });
     } finally {
       setPreviewing(false);
     }
@@ -71,25 +91,25 @@ export default function PreviewPage() {
             disabled={!selectedItem || !profile.avatarDataUri || previewing}
             onClick={handlePreview}
           >
-            {previewing ? <><Loader2 className="mr-2 animate-spin" /> Procesando look...</> : <><Sparkles className="mr-2" /> Probar en mi Avatar</>}
+            {previewing ? <><Loader2 className="mr-2 animate-spin" /> Vistiendo Avatar...</> : <><Sparkles className="mr-2" /> Probar con OpenAI</>}
           </Button>
         </div>
 
         <div className="space-y-6">
-          <h2 className="text-lg font-bold flex items-center gap-2"><User className="w-5 h-5 text-primary" /> Vista Previa</h2>
-          <Card className="aspect-[3/4] w-full max-w-[350px] mx-auto overflow-hidden relative shadow-2xl border-none ring-8 ring-white">
+          <h2 className="text-lg font-bold flex items-center gap-2"><User className="w-5 h-5 text-primary" /> Resultado Pixar</h2>
+          <Card className="aspect-[3/4] w-full max-w-[350px] mx-auto overflow-hidden relative shadow-2xl border-none ring-8 ring-white rounded-[2rem]">
             {resultImage ? (
-              <Image src={resultImage} alt="Result" fill className="object-cover" />
+              <Image src={resultImage} alt="Result" fill className="object-cover" unoptimized />
             ) : previewing ? (
               <div className="w-full h-full flex flex-col items-center justify-center bg-muted/20">
                 <Loader2 className="w-10 h-10 text-primary animate-spin mb-2" />
-                <p className="text-xs text-muted-foreground">La IA está vistiendo a tu avatar...</p>
+                <p className="text-xs text-muted-foreground text-center px-4">Gemini analiza la prenda y OpenAI recrea el look...</p>
               </div>
             ) : profile.avatarDataUri ? (
               <div className="relative w-full h-full">
-                <Image src={profile.avatarDataUri} alt="Avatar Base" fill className="object-cover opacity-50 grayscale-[50%]" />
+                <Image src={profile.avatarDataUri} alt="Avatar Base" fill className="object-cover opacity-50 grayscale-[50%]" unoptimized />
                 <div className="absolute inset-0 flex items-center justify-center p-8 text-center bg-black/5">
-                  <p className="text-xs font-medium bg-white/80 p-3 rounded-lg shadow-sm">Selecciona una prenda para ver el resultado</p>
+                  <p className="text-xs font-medium bg-white/80 p-3 rounded-lg shadow-sm">Selecciona una prenda para iniciar la previsualización híbrida</p>
                 </div>
               </div>
             ) : (
@@ -98,11 +118,6 @@ export default function PreviewPage() {
               </div>
             )}
           </Card>
-          {resultImage && (
-            <div className="text-center">
-              <Button variant="outline" size="sm" onClick={() => setResultImage(null)}>Limpiar Probador</Button>
-            </div>
-          )}
         </div>
       </div>
     </div>
