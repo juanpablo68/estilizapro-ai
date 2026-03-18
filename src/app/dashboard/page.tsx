@@ -32,7 +32,7 @@ export default function DashboardPage() {
     { name: 'Estilista', icon: MessageCircle, color: 'text-pink-600', bg: 'bg-pink-50', href: '/chat' },
     { name: 'Probador Virtual', icon: UserCircle, color: 'text-indigo-600', bg: 'bg-indigo-50', href: '/preview' },
     { name: 'Más Cápsulas', icon: PlusCircle, color: 'text-orange-600', bg: 'bg-orange-50', href: '/purchase' },
-    { name: 'Ajustes API', icon: Settings, color: 'text-slate-600', bg: 'bg-slate-50', href: '/settings' },
+    { name: 'Ajustes API', icon: Settings, color: 'text-primary', bg: 'bg-primary/20', href: '/settings', highlight: true },
   ];
 
   if (!mounted) return null;
@@ -58,20 +58,29 @@ export default function DashboardPage() {
         <div className="relative z-10 space-y-2">
           <h2 className="text-xl font-bold">Asistente de Pilar Cifuentes</h2>
           <p className="text-sm opacity-90">Análisis listo: Eres tipo <strong>{profile.figureAnalysis || 'Reloj de Arena'}</strong> con paleta <strong>{profile.colorimetryAnalysis || 'Otoño Cálido'}</strong>.</p>
-          <Button variant="secondary" size="sm" className="mt-2" onClick={() => router.push('/capsules')}>
-            Ver Sugerencia Diaria
-          </Button>
+          <div className="flex gap-2 mt-3">
+              <Button variant="secondary" size="sm" onClick={() => router.push('/capsules')}>
+                Ver Sugerencia Diaria
+              </Button>
+              <Button variant="outline" size="sm" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => router.push('/settings')}>
+                <Settings className="w-4 h-4 mr-1" /> Ajustes
+              </Button>
+          </div>
         </div>
       </section>
 
       <div className="grid grid-cols-2 gap-4">
         {actions.map((action) => (
-          <Card key={action.name} className="hover:shadow-md transition-shadow cursor-pointer border-none" onClick={() => router.push(action.href)}>
+          <Card 
+            key={action.name} 
+            className={`hover:shadow-md transition-shadow cursor-pointer border-none ${action.highlight ? 'ring-2 ring-primary ring-offset-2' : ''}`} 
+            onClick={() => router.push(action.href)}
+          >
             <CardContent className="p-6 flex flex-col items-center justify-center space-y-3">
               <div className={`p-4 rounded-2xl ${action.bg}`}>
                 <action.icon className={`w-8 h-8 ${action.color}`} />
               </div>
-              <span className="font-medium text-sm text-foreground">{action.name}</span>
+              <span className="font-bold text-sm text-foreground">{action.name}</span>
             </CardContent>
           </Card>
         ))}
@@ -79,7 +88,7 @@ export default function DashboardPage() {
 
       <footer className="text-center pt-8 space-y-2">
         <p className="text-xs text-muted-foreground">Asesoría personalizada: @by.pilarcatalan</p>
-        <p className="text-[10px] text-muted-foreground/60 uppercase tracking-widest font-bold">EstilizaPro AI v1.0 - Local Storage Mode</p>
+        <p className="text-[10px] text-muted-foreground/60 uppercase tracking-widest font-bold">EstilizaPro AI v1.0 - Motor Híbrido Activo</p>
       </footer>
     </div>
   );

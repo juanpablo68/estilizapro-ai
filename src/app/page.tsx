@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -5,7 +6,8 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Lock, Sparkles } from "lucide-react";
+import { Lock, Sparkles, Settings } from "lucide-react";
+import Link from 'next/link';
 
 export default function LoginPage() {
   const [passcode, setPasscode] = useState('');
@@ -43,7 +45,7 @@ export default function LoginPage() {
             <CardTitle className="text-xl">Acceso Seguro</CardTitle>
             <CardDescription>Introduce el código de acceso genérico para desbloquear tu perfil local.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="relative">
                 <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
@@ -65,12 +67,20 @@ export default function LoginPage() {
                 Entrar
               </Button>
             </form>
+
+            <div className="pt-2 border-t border-dashed">
+                <Link href="/settings">
+                    <Button variant="ghost" size="sm" className="w-full text-muted-foreground gap-2">
+                        <Settings className="w-4 h-4" /> Configurar APIs de IA
+                    </Button>
+                </Link>
+            </div>
           </CardContent>
         </Card>
 
         <p className="text-xs text-muted-foreground mt-8">
           Todos tus datos se almacenan de forma privada en tu dispositivo.<br />
-          No se requiere conexión a la nube para la privacidad total.
+          Arquitectura Híbrida: OpenAI + Gemini.
         </p>
       </div>
     </div>
