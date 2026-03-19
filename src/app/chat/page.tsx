@@ -34,6 +34,8 @@ export default function ChatPage() {
     if (!input.trim() || loading) return;
     
     const userMsg = input;
+    const openaiKey = localStorage.getItem('openai_api_key') || undefined;
+    
     setInput('');
     setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
     setLoading(true);
@@ -45,7 +47,8 @@ export default function ChatPage() {
           figure: profile.figureAnalysis,
           colorimetry: profile.colorimetryAnalysis,
           preferences: profile.stylePreferences.preferredStyles.join(', ')
-        }
+        },
+        openaiApiKey: openaiKey
       });
       setMessages(prev => [...prev, { role: 'assistant', content: response }]);
     } catch (err) {

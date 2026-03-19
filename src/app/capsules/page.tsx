@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from 'react';
@@ -24,6 +25,7 @@ export default function CapsulesPage() {
   });
 
   const generateCapsules = async () => {
+    const openaiKey = localStorage.getItem('openai_api_key') || undefined;
     setLoading(true);
     try {
       const result = await receiveAICapsuleRecommendations({
@@ -35,9 +37,9 @@ export default function CapsulesPage() {
         wardrobeItems: wardrobe.map(i => ({ 
           id: i.id, 
           name: i.name, 
-          type: i.type, 
-          imageDataUri: i.imageDataUri 
-        }))
+          type: i.type 
+        })),
+        openaiApiKey: openaiKey
       });
       setCapsules(result.capsules);
     } catch (err) {
@@ -53,7 +55,6 @@ export default function CapsulesPage() {
       if (localItem && localItem.imageDataUri) return localItem.imageDataUri;
     }
     
-    // Fallback based on category
     const normalizedType = item.type.toLowerCase();
     const typeMapping: Record<string, string> = {
       'top': 'fashion-top',
@@ -163,7 +164,6 @@ export default function CapsulesPage() {
                       fill 
                       className="object-cover transition-transform group-hover:scale-105 duration-500" 
                       unoptimized={item.source === 'shop'}
-                      data-ai-hint={item.source === 'shop' ? item.styleHint : undefined}
                     />
                   </div>
                   <CardContent className="p-3">

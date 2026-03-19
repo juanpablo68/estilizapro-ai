@@ -8,13 +8,12 @@ import { generateStylizedAvatar } from '@/ai/flows/generate-stylized-avatar';
 import { analyzeStyleContext } from '@/ai/flows/analyze-style-context';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, Image as ImageIcon, Loader2, Sparkles, RefreshCw, Brain } from "lucide-center";
+import { Camera, Image as ImageIcon, Loader2, Sparkles, RefreshCw, Brain } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from 'next/link';
 
-// Función Maestra de Optimización: Redimensiona imágenes para garantizar estabilidad total en la IA
 const resizeImage = (base64Str: string): Promise<string> => {
   return new Promise((resolve) => {
     const img = new window.Image();
@@ -89,15 +88,14 @@ export default function AvatarCreationPage() {
     }
 
     const openaiKey = localStorage.getItem('openai_api_key') || undefined;
-    const geminiKey = localStorage.getItem('GOOGLE_GENAI_API_KEY') || undefined;
 
     setLoading(true);
     try {
-      setLoadingStatus('Gemini analizando tu ADN de estilo...');
+      setLoadingStatus('Razonamiento GPT-4o analizando tu esencia...');
       const analysis = await analyzeStyleContext({
         facePhotoDataUri: facePhoto,
         figurePhotoDataUri: figurePhoto,
-        geminiApiKey: geminiKey
+        openaiApiKey: openaiKey
       });
 
       const updatedProfile = { 
@@ -107,7 +105,7 @@ export default function AvatarCreationPage() {
       };
       setProfile(updatedProfile);
 
-      setLoadingStatus('OpenAI creando tu avatar Pixar 3D...');
+      setLoadingStatus('DALL-E 3 creando tu avatar Pixar...');
       const result = await generateStylizedAvatar({
         visualDescription: analysis.visualDescription,
         openaiApiKey: openaiKey
@@ -118,7 +116,7 @@ export default function AvatarCreationPage() {
       
       toast({
         title: "¡Proceso Completado!",
-        description: "Análisis por Gemini y Arte por OpenAI finalizado con éxito.",
+        description: "Análisis y Arte por OpenAI finalizado con éxito.",
       });
     } catch (error: any) {
       console.error(error);
@@ -143,17 +141,17 @@ export default function AvatarCreationPage() {
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">
       <div className="space-y-2 text-center pt-8">
         <h1 className="text-3xl font-headline font-bold text-primary">Esencia Estilizada</h1>
-        <p className="text-muted-foreground text-sm">Gemini analiza tu esencia, OpenAI crea tu imagen Pixar.</p>
+        <p className="text-muted-foreground text-sm">OpenAI analiza tu esencia y crea tu imagen Pixar.</p>
       </div>
 
       {!generatedAvatar ? (
         <div className="space-y-6 animate-in fade-in duration-500">
           <Alert className="bg-primary/5 border-primary/20">
             <Sparkles className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-primary font-bold">Arquitectura Híbrida</AlertTitle>
+            <AlertTitle className="text-primary font-bold">Pure OpenAI Architecture</AlertTitle>
             <AlertDescription className="text-xs">
-              Sube tus fotos para que Gemini y OpenAI trabajen juntos en tu perfil de estilo.
-              <Link href="/settings" className="block mt-1 font-bold underline">Configurar APIs de IA</Link>
+              Sube tus fotos para que GPT-4o y DALL-E 3 trabajen juntos en tu perfil.
+              <Link href="/settings" className="block mt-1 font-bold underline">Configurar OpenAI Key</Link>
             </AlertDescription>
           </Alert>
 
@@ -202,7 +200,7 @@ export default function AvatarCreationPage() {
             {loading ? (
               <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> {loadingStatus}</>
             ) : (
-              <><Brain className="mr-3 h-6 w-6" /> Iniciar Creación Híbrida</>
+              <><Brain className="mr-3 h-6 w-6" /> Iniciar Análisis GPT-4o</>
             )}
           </Button>
         </div>
