@@ -13,6 +13,10 @@ import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from 'next/link';
 
+/**
+ * Función crítica para optimizar imágenes antes de enviarlas al servidor
+ * o guardarlas en localStorage. Reduce el peso drásticamente.
+ */
 const resizeImage = (base64Str: string): Promise<string> => {
   return new Promise((resolve) => {
     const img = new window.Image();
@@ -102,7 +106,6 @@ export default function AvatarCreationPage() {
         figureAnalysis: analysis.figureAnalysis, 
         colorimetryAnalysis: analysis.colorimetryAnalysis 
       };
-      setProfile(updatedProfile);
 
       setLoadingStatus('FASE 2: Generando avatar Pixar con fidelidad de identidad...');
       const result = await generateStylizedAvatar({
@@ -110,8 +113,13 @@ export default function AvatarCreationPage() {
         openaiApiKey: openaiKey
       });
       
-      setGeneratedAvatar(result.avatarDataUri);
-      setProfile({ ...updatedProfile, avatarDataUri: result.avatarDataUri });
+      // OPTIMIZACIÓN CRÍTICA: Redimensionar el avatar generado (que es 1024x1024) a 600px
+      // para evitar errores de "Body exceeded 1 MB limit" y saturación de localStorage.
+      setLoadingStatus('Finalizando renderizado...');
+      const optimizedAvatar = await resizeImage(result.avatarDataUri);
+      
+      setGeneratedAvatar(optimizedAvatar);
+      setProfile({ ...updatedProfile, avatarDataUri: optimizedAvatar });
       
       toast({
         title: "¡Proceso Completado!",
