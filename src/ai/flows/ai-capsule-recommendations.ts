@@ -1,7 +1,7 @@
-
 'use server';
 /**
- * @fileOverview Generación de cápsulas de moda personalizadas utilizando Gemini.
+ * @fileOverview Generación de cápsulas de moda personalizadas utilizando Gemini Flash Lite.
+ * Optimizada para no exceder los límites de cuota de la API gratuita.
  */
 
 import { getGenkitEngine } from '@/ai/genkit';
@@ -48,21 +48,22 @@ export type CapsuleItem = z.infer<typeof CapsuleSchema>['items'][number];
 export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICapsuleRecommendationsInputSchema>) {
   const { ai, model } = getGenkitEngine(input.geminiApiKey);
 
+  // Limitamos a máximo 2 cápsulas de 4 prendas para no saturar la respuesta y la cuota
   const { output } = await ai.generate({
     model: model,
-    prompt: `Eres un experto estilista e imagen consultant de Pilar Cifuentes Catalán. Crea 2 cápsulas de ropa personalizadas de 4 prendas cada una.
+    prompt: `Eres un experto estilista de Pilar Cifuentes Catalán. Crea 2 cápsulas de ropa (4 prendas cada una).
     
     PERFIL FÍSICO: Figura ${input.figureAnalysis}, Colorimetría ${input.colorimetryAnalysis}.
     PREFERENCIAS: ${JSON.stringify(input.stylePreferences)}.
     EVENTO: ${input.eventType}, CLIMA: ${input.weatherConditions}.
     
     INSTRUCCIONES:
-    - Prioriza los ítems reales del armario del usuario: ${JSON.stringify(input.wardrobeItems.map(i => ({id: i.id, name: i.name, type: i.type})))}
-    - Para ítems faltantes necesarios para completar el look, sugiere compras (source: 'shop') con un 'styleHint' preciso para buscar en tiendas.
-    - Asegúrate de que las combinaciones respeten estrictamente las reglas de colorimetría y morfología analizadas.`,
+    - Prioriza los ítems reales: ${JSON.stringify(input.wardrobeItems.map(i => ({id: i.id, name: i.name, type: i.type})))}
+    - Para ítems faltantes, sugiere compras (source: 'shop').
+    - Respeta estrictamente la colorimetría y morfología.`,
     output: { schema: AICapsuleRecommendationsOutputSchema }
   });
 
-  if (!output) throw new Error("El cerebro de Gemini no pudo generar las cápsulas.");
+  if (!output) throw new Error("El motor Flash Lite no pudo generar las cápsulas.");
   return output;
 }

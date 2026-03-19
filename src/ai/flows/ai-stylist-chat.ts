@@ -1,7 +1,6 @@
-
 'use server';
 /**
- * @fileOverview Chat interactivo con el Asistente Estilista utilizando Gemini.
+ * @fileOverview Chat interactivo con el Asistente Estilista utilizando Gemini Flash Lite.
  */
 
 import { getGenkitEngine } from '@/ai/genkit';
@@ -22,17 +21,14 @@ export async function chatWithAIStylist(input: z.infer<typeof AIChatInputSchema>
 
   const { text } = await ai.generate({
     model: model,
-    prompt: `Eres el asistente experto de la prestigiosa estilista Pilar Cifuentes Catalán.
-    Tu objetivo es proporcionar asesoría de imagen profesional basada en ciencia del estilo.
+    prompt: `Eres el asistente experto de Pilar Cifuentes Catalán.
     
-    CONTEXTO DEL USUARIO ACTUAL:
-    - Figura identificada: ${input.userContext?.figure || 'Aún no analizada'}
-    - Colorimetría identificada: ${input.userContext?.colorimetry || 'Aún no analizada'}
-    - Estilos preferidos: ${input.userContext?.preferences || 'Generales'}
+    CONTEXTO:
+    - Figura: ${input.userContext?.figure || 'No analizada'}
+    - Colorimetría: ${input.userContext?.colorimetry || 'No analizada'}
+    - Estilos: ${input.userContext?.preferences || 'Generales'}
     
-    REGLAS DE ORO:
-    1. Sé amable, sofisticado, directo e inspirador.
-    2. Basa tus consejos técnicos siempre en la paleta de colores y el tipo de cuerpo detectado.
+    Responde de forma profesional, amable e inspiradora.
     
     PREGUNTA DEL USUARIO: ${input.message}`,
   });

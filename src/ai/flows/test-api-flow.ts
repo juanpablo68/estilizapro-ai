@@ -1,8 +1,7 @@
-
 'use server';
 /**
  * @fileOverview Flujo de diagnóstico inteligente para validar API Keys.
- * Prueba secuencialmente modelos de nueva generación para encontrar el activo.
+ * Prueba secuencialmente modelos de nueva generación Flash Lite para encontrar el activo.
  */
 
 import { getGenkitEngine } from '@/ai/genkit';
@@ -22,16 +21,16 @@ export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema
       }
       const openai = new OpenAI({ apiKey: input.apiKey });
       await openai.models.list();
-      return { success: true, message: "Conexión con OpenAI (DALL-E 3) exitosa." };
+      return { success: true, message: "Conexión con OpenAI (Artista Pixar) exitosa." };
     } catch (err: any) {
       return { success: false, message: `Error en OpenAI: ${err.message}` };
     }
   } else {
-    // Lista de identificadores técnicos oficiales para modelos Flash (incluyendo versiones 2.0+)
+    // Lista de identificadores técnicos oficiales para modelos Flash Lite de nueva generación
     const modelsToTry = [
+      'googleai/gemini-2.0-flash-lite-preview-02-05',
       'googleai/gemini-2.0-flash',
-      'googleai/gemini-1.5-flash',
-      'googleai/gemini-2.0-flash-lite-preview-02-05'
+      'googleai/gemini-1.5-flash'
     ];
 
     let lastError = "";
@@ -47,10 +46,9 @@ export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema
         });
 
         if (response && response.text) {
-          const versionLabel = modelId.includes('2.0') ? '2.0 / 2.5' : '1.5';
           return { 
             success: true, 
-            message: `¡Éxito! Conectado a Gemini utilizando el motor Flash ${versionLabel}.` 
+            message: `¡Éxito! Conectado a Gemini utilizando el motor Flash Lite (Nueva Generación).` 
           };
         }
       } catch (err: any) {
@@ -62,7 +60,6 @@ export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema
             message: "Límite de cuota alcanzado (Error 429). Tu llave es válida pero Google ha pausado el acceso gratuito por hoy." 
           };
         }
-        // Si el modelo no existe, simplemente probamos el siguiente de la lista
         continue;
       }
     }

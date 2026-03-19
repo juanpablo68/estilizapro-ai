@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -192,7 +191,7 @@ export default function SettingsPage() {
                 {testStatus.gemini === 'loading' ? <Loader2 className="animate-spin w-4 h-4" /> : "Probar"}
               </Button>
             </div>
-            <p className="text-[10px] text-muted-foreground italic">El sistema probará automáticamente modelos Flash 2.0 y 2.5.</p>
+            <p className="text-[10px] text-muted-foreground italic">El sistema utilizará automáticamente el motor Flash Lite 2.0/2.5 optimizado para cuotas gratuitas.</p>
           </div>
         </CardContent>
       </Card>
