@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from 'react';
@@ -8,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, ArrowLeft, Sparkles, MapPin, CloudSun, ShoppingBag, Pin, FolderHeart, ExternalLink, CheckCircle2 } from "lucide-react";
+import { Loader2, ArrowLeft, Sparkles, MapPin, CloudSun, Pin, FolderHeart, ExternalLink } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
 import { useToast } from "@/hooks/use-toast";
@@ -29,7 +28,7 @@ export default function CapsulesPage() {
   const generateCapsules = async () => {
     const openaiKey = localStorage.getItem('openai_api_key');
     if (!openaiKey) {
-      toast({ variant: "destructive", title: "Falta OpenAI Key" });
+      toast({ variant: "destructive", title: "Configura tu OpenAI Key en Ajustes" });
       return;
     }
 
@@ -44,14 +43,12 @@ export default function CapsulesPage() {
         wardrobeItems: wardrobe.map(i => ({ id: i.id, name: i.name, type: i.type })),
         openaiApiKey: openaiKey,
         pinterestToken: localStorage.getItem('pinterest_token') || undefined,
-        shopifyDomain: localStorage.getItem('shopify_domain') || undefined,
-        shopifyToken: localStorage.getItem('shopify_token') || undefined,
       });
       
       setCapsules(result.capsules);
-      toast({ title: "¡Cápsulas Híbridas Listas!", description: "GPT-4o ha procesado Pinterest y Shopify." });
+      toast({ title: "¡Cápsulas Híbridas Listas!", description: "GPT-4o ha procesado tu armario e inspiración visual." });
     } catch (err: any) {
-      toast({ variant: "destructive", title: "Error en Pipeline", description: err.message });
+      toast({ variant: "destructive", title: "Error en Generación", description: err.message });
     } finally {
       setLoading(false);
     }
@@ -73,7 +70,7 @@ export default function CapsulesPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-headline font-bold">Styling Híbrido</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">GPT-4o + Pinterest + Shopify</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">GPT-4o + Pinterest Inspiration</p>
         </div>
       </header>
 
@@ -88,6 +85,7 @@ export default function CapsulesPage() {
                   <SelectItem value="Trabajo">Oficina</SelectItem>
                   <SelectItem value="Casual">Día Casual</SelectItem>
                   <SelectItem value="Cena">Noche</SelectItem>
+                  <SelectItem value="Gala">Evento Formal</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -104,7 +102,7 @@ export default function CapsulesPage() {
             </div>
           </div>
           <Button onClick={generateCapsules} disabled={loading} className="w-full bg-primary h-14 text-white font-bold rounded-2xl shadow-lg text-lg">
-            {loading ? <><Loader2 className="mr-3 animate-spin" /> GPT-4o buscando en redes...</> : <><Sparkles className="mr-3" /> Crear Cápsula Maestra</>}
+            {loading ? <><Loader2 className="mr-3 animate-spin" /> GPT-4o buscando inspiración...</> : <><Sparkles className="mr-3" /> Crear Cápsula Maestra</>}
           </Button>
         </CardContent>
       </Card>
@@ -114,29 +112,34 @@ export default function CapsulesPage() {
           <div key={idx} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center gap-4">
               <div className="h-10 w-1.5 bg-primary rounded-full" />
-              <h2 className="text-2xl font-headline font-bold">{capsule.name}</h2>
+              <div>
+                <h2 className="text-2xl font-headline font-bold">{capsule.name}</h2>
+                <p className="text-xs text-muted-foreground">{capsule.description}</p>
+              </div>
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {capsule.items.map((item, itemIdx) => (
                 <Card key={itemIdx} className="overflow-hidden border-none shadow-md relative group rounded-2xl bg-white">
                   <div className="absolute top-2 left-2 z-10">
-                    {item.source === 'wardrobe' && <Badge className="bg-green-500 gap-1"><FolderHeart className="w-2.5 h-2.5" /> Armario</Badge>}
-                    {item.source === 'pinterest' && <Badge className="bg-red-500 gap-1"><Pin className="w-2.5 h-2.5" /> Pinterest</Badge>}
-                    {item.source === 'shopify' && <Badge className="bg-green-700 gap-1"><ShoppingBag className="w-2.5 h-2.5" /> Shopify</Badge>}
+                    {item.source === 'wardrobe' ? (
+                      <Badge className="bg-green-500 gap-1"><FolderHeart className="w-2.5 h-2.5" /> Armario</Badge>
+                    ) : (
+                      <Badge className="bg-red-500 gap-1"><Pin className="w-2.5 h-2.5" /> Pinterest</Badge>
+                    )}
                   </div>
                   <div className="relative aspect-[3/4]">
                     <Image src={getItemImage(item)} alt={item.name} fill className="object-cover" unoptimized />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity p-3 flex items-end">
-                      <p className="text-[9px] text-white font-medium">{item.styleHint}</p>
+                      <p className="text-[9px] text-white font-medium leading-tight">{item.styleHint}</p>
                     </div>
                   </div>
                   <CardContent className="p-3">
-                    <p className="font-bold text-[11px] truncate">{item.name}</p>
-                    {item.price && <p className="text-[10px] text-primary font-bold mt-1">${item.price}</p>}
+                    <p className="font-bold text-[11px] truncate uppercase">{item.name}</p>
+                    <p className="text-[9px] text-muted-foreground mt-0.5">{item.type}</p>
                     {item.externalUrl && (
-                      <Link href={item.externalUrl} target="_blank" className="text-[10px] text-secondary hover:underline mt-2 flex items-center gap-1 font-bold">
-                        VER LINK <ExternalLink className="w-2.5 h-2.5" />
+                      <Link href={item.externalUrl} target="_blank" className="text-[9px] text-secondary hover:underline mt-2 flex items-center gap-1 font-bold">
+                        VER REFERENCIA <ExternalLink className="w-2 h-2" />
                       </Link>
                     )}
                   </CardContent>

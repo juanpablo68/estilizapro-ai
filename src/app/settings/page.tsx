@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -6,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Save, Key, ShoppingBag, Pin, Sparkles, CheckCircle2, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Key, Pin, Loader2 } from "lucide-react";
 import Link from 'next/link';
 import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
 import { useToast } from "@/hooks/use-toast";
@@ -19,27 +18,21 @@ export default function SettingsPage() {
 
   const [openaiKey, setOpenaiKey] = useState('');
   const [pinterestToken, setPinterestToken] = useState('');
-  const [shopifyDomain, setShopifyDomain] = useState('');
-  const [shopifyToken, setShopifyToken] = useState('');
   const [testStatus, setTestStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   useEffect(() => {
     setMounted(true);
     setOpenaiKey(localStorage.getItem('openai_api_key') || '');
     setPinterestToken(localStorage.getItem('pinterest_token') || '');
-    setShopifyDomain(localStorage.getItem('shopify_domain') || '');
-    setShopifyToken(localStorage.getItem('shopify_token') || '');
   }, []);
 
   const handleSaveAll = () => {
     localStorage.setItem('openai_api_key', openaiKey);
     localStorage.setItem('pinterest_token', pinterestToken);
-    localStorage.setItem('shopify_domain', shopifyDomain);
-    localStorage.setItem('shopify_token', shopifyToken);
     
     toast({
       title: "Configuración Guardada",
-      description: "Pipeline de IA (OpenAI + Pinterest + Shopify) actualizado.",
+      description: "Pipeline de IA (OpenAI + Pinterest) actualizado.",
     });
   };
 
@@ -70,12 +63,12 @@ export default function SettingsPage() {
       </header>
 
       <div className="space-y-6">
-        {/* OpenAI Card */}
         <Card className="border-none shadow-md">
           <CardHeader className="bg-primary/5 p-4">
             <CardTitle className="text-sm flex items-center gap-2 text-primary font-bold uppercase tracking-wider">
               <Key className="w-4 h-4" /> OpenAI (Cerebro GPT-4o)
             </CardTitle>
+            <CardDescription className="text-[10px]">Utilizado para análisis de imagen y razonamiento de estilo.</CardDescription>
           </CardHeader>
           <CardContent className="pt-4 space-y-4">
             <div className="flex gap-2">
@@ -93,48 +86,26 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Pinterest Card */}
         <Card className="border-none shadow-md">
           <CardHeader className="bg-red-50 p-4">
             <CardTitle className="text-sm flex items-center gap-2 text-red-600 font-bold uppercase tracking-wider">
-              <Pin className="w-4 h-4" /> Pinterest API (Inspiración)
+              <Pin className="w-4 h-4" /> Pinterest (Inspiración)
             </CardTitle>
+            <CardDescription className="text-[10px]">Utilizado para obtener moodboards y referencias visuales.</CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
             <Input 
               type="password" 
               value={pinterestToken} 
               onChange={e => setPinterestToken(e.target.value)} 
-              placeholder="Access Token de Pinterest" 
-            />
-          </CardContent>
-        </Card>
-
-        {/* Shopify Card */}
-        <Card className="border-none shadow-md">
-          <CardHeader className="bg-green-50 p-4">
-            <CardTitle className="text-sm flex items-center gap-2 text-green-600 font-bold uppercase tracking-wider">
-              <ShoppingBag className="w-4 h-4" /> Shopify API (Productos)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4 space-y-3">
-            <Input 
-              value={shopifyDomain} 
-              onChange={e => setShopifyDomain(e.target.value)} 
-              placeholder="tu-tienda.myshopify.com" 
-            />
-            <Input 
-              type="password" 
-              value={shopifyToken} 
-              onChange={e => setShopifyToken(e.target.value)} 
-              placeholder="Storefront Access Token" 
+              placeholder="Pinterest Access Token" 
             />
           </CardContent>
         </Card>
       </div>
 
       <Button onClick={handleSaveAll} className="w-full h-14 bg-primary text-lg font-bold shadow-xl rounded-2xl">
-        <Save className="mr-2" /> Guardar Todo el Pipeline
+        <Save className="mr-2" /> Guardar Configuración
       </Button>
     </div>
   );

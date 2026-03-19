@@ -1,7 +1,6 @@
-
 'use server';
 /**
- * @fileOverview Shopify GraphQL Service for Real Product Sourcing.
+ * @fileOverview Servicio de Shopify desactivado por restricciones de acceso.
  */
 
 export interface ShopifyProduct {
@@ -14,59 +13,11 @@ export interface ShopifyProduct {
   url: string;
 }
 
-export async function searchShopifyProducts(query: string, storeDomain?: string, accessToken?: string): Promise<ShopifyProduct[]> {
-  if (!storeDomain || !accessToken) return [];
-
-  const graphQLQuery = `
-    {
-      products(first: 5, query: "title:${query}*") {
-        edges {
-          node {
-            id
-            title
-            description
-            images(first: 1) {
-              edges {
-                node {
-                  url
-                }
-              }
-            }
-            variants(first: 1) {
-              edges {
-                node {
-                  price {
-                    amount
-                    currencyCode
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  `;
-
-  try {
-    // Simulate Shopify GraphQL Request
-    // In a real scenario: fetch(`https://${storeDomain}/api/2023-01/graphql.json`, ...)
-    
-    const mockProducts: ShopifyProduct[] = [
-      {
-        id: 's1',
-        title: `Prenda Real: ${query}`,
-        description: 'Producto sincronizado de Shopify.',
-        imageUrl: `https://picsum.photos/seed/${encodeURIComponent(query)}-shop/600/800`,
-        price: '49.99',
-        currency: 'USD',
-        url: `https://${storeDomain}/products/item`
-      }
-    ];
-
-    return mockProducts;
-  } catch (error) {
-    console.error('Shopify API Error:', error);
-    return [];
-  }
+/**
+ * Función dummy para evitar errores de compilación si hay referencias residuales.
+ * No realiza ninguna petición a la API.
+ */
+export async function searchShopifyProducts(): Promise<ShopifyProduct[]> {
+  console.log('Shopify API desactivada por el usuario.');
+  return [];
 }
