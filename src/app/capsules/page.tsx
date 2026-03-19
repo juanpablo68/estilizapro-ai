@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, ArrowLeft, Sparkles, MapPin, CloudSun, Pin, FolderHeart, ExternalLink } from "lucide-react";
+import { Loader2, ArrowLeft, Sparkles, MapPin, CloudSun, Pin, FolderHeart, ExternalLink, AlertCircle } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
 import { useToast } from "@/hooks/use-toast";
@@ -24,7 +24,7 @@ export default function CapsulesPage() {
   
   const [params, setParams] = useState({
     eventType: 'Casual',
-    weather: 'Soleado y Templado'
+    weather: 'Templado'
   });
 
   useEffect(() => {
@@ -38,12 +38,22 @@ export default function CapsulesPage() {
       return;
     }
 
+    if (wardrobe.length === 0) {
+      toast({ 
+        variant: "destructive", 
+        title: "Armario Vacío", 
+        description: "Sube fotos de tu ropa para que la IA pueda crear tus cápsulas." 
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const result = await receiveAICapsuleRecommendations({
         stylePreferences: profile.stylePreferences,
         colorimetryAnalysis: profile.colorimetryAnalysis || 'No definida',
         figureAnalysis: profile.figureAnalysis || 'No definida',
+        knowledgeBase: profile.knowledgeBase,
         eventType: params.eventType,
         weatherConditions: params.weather,
         wardrobeItems: wardrobe.map(i => ({ id: i.id, name: i.name, type: i.type })),
@@ -52,7 +62,7 @@ export default function CapsulesPage() {
       });
       
       setCapsules(result.capsules);
-      toast({ title: "¡Cápsulas Híbridas Listas!", description: "GPT-4o ha procesado tu armario e inspiración visual." });
+      toast({ title: "¡Cápsulas Personalizadas!", description: "GPT-4o ha combinado tus prendas reales con inspiración visual." });
     } catch (err: any) {
       toast({ variant: "destructive", title: "Error en Generación", description: err.message });
     } finally {
@@ -77,8 +87,8 @@ export default function CapsulesPage() {
           <Button variant="ghost" size="icon" className="rounded-full"><ArrowLeft /></Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-headline font-bold">Styling Híbrido</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">GPT-4o + Pinterest Inspiration</p>
+          <h1 className="text-2xl font-headline font-bold">Capsulizador AI</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Priorizando tu Armario Real</p>
         </div>
       </header>
 
@@ -90,10 +100,11 @@ export default function CapsulesPage() {
               <Select value={params.eventType} onValueChange={v => setParams({...params, eventType: v})}>
                 <SelectTrigger className="rounded-2xl h-12"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Trabajo">Oficina</SelectItem>
+                  <SelectItem value="Trabajo">Oficina / Negocios</SelectItem>
                   <SelectItem value="Casual">Día Casual</SelectItem>
-                  <SelectItem value="Cena">Noche</SelectItem>
-                  <SelectItem value="Gala">Evento Formal</SelectItem>
+                  <SelectItem value="Cena">Cena Romántica / Social</SelectItem>
+                  <SelectItem value="Gala">Evento de Gala</SelectItem>
+                  <SelectItem value="Viaje">Aeropuerto / Viaje</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -105,15 +116,23 @@ export default function CapsulesPage() {
                   <SelectItem value="Caluroso">Caluroso</SelectItem>
                   <SelectItem value="Templado">Templado</SelectItem>
                   <SelectItem value="Frio">Frío</SelectItem>
+                  <SelectItem value="Lluvioso">Lluvioso</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <Button onClick={generateCapsules} disabled={loading} className="w-full bg-primary h-14 text-white font-bold rounded-2xl shadow-lg text-lg">
-            {loading ? <><Loader2 className="mr-3 animate-spin" /> GPT-4o buscando inspiración...</> : <><Sparkles className="mr-3" /> Crear Cápsula Maestra</>}
+            {loading ? <><Loader2 className="mr-3 animate-spin" /> GPT-4o escaneando tu armario...</> : <><Sparkles className="mr-3" /> Generar Look con mis Prendas</>}
           </Button>
         </CardContent>
       </Card>
+
+      {capsules.length === 0 && !loading && (
+        <div className="flex flex-col items-center justify-center py-20 text-center opacity-40">
+           <AlertCircle className="w-12 h-12 mb-4" />
+           <p className="text-sm font-medium">Configura el evento y pulsa Generar</p>
+        </div>
+      )}
 
       <div className="space-y-12 mt-8">
         {capsules.map((capsule, idx) => (
@@ -131,9 +150,9 @@ export default function CapsulesPage() {
                 <Card key={itemIdx} className="overflow-hidden border-none shadow-md relative group rounded-2xl bg-white">
                   <div className="absolute top-2 left-2 z-10">
                     {item.source === 'wardrobe' ? (
-                      <div className="text-[8px] font-black text-white px-2 py-1 rounded-full flex items-center shadow-md bg-green-500 gap-1"><FolderHeart className="w-2.5 h-2.5" /> Armario</div>
+                      <div className="text-[8px] font-black text-white px-2 py-1 rounded-full flex items-center shadow-md bg-green-500 gap-1"><FolderHeart className="w-2.5 h-2.5" /> Mi Armario</div>
                     ) : (
-                      <div className="text-[8px] font-black text-white px-2 py-1 rounded-full flex items-center shadow-md bg-red-500 gap-1"><Pin className="w-2.5 h-2.5" /> Pinterest</div>
+                      <div className="text-[8px] font-black text-white px-2 py-1 rounded-full flex items-center shadow-md bg-red-500 gap-1"><Pin className="w-2.5 h-2.5" /> Sugerencia</div>
                     )}
                   </div>
                   <div className="relative aspect-[3/4]">
@@ -145,11 +164,6 @@ export default function CapsulesPage() {
                   <CardContent className="p-3">
                     <p className="font-bold text-[11px] truncate uppercase">{item.name}</p>
                     <p className="text-[9px] text-muted-foreground mt-0.5">{item.type}</p>
-                    {item.externalUrl && (
-                      <Link href={item.externalUrl} target="_blank" className="text-[9px] text-secondary hover:underline mt-2 flex items-center gap-1 font-bold">
-                        VER REFERENCIA <ExternalLink className="w-2 h-2" />
-                      </Link>
-                    )}
                   </CardContent>
                 </Card>
               ))}
