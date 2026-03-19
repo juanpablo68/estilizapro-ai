@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -48,8 +47,10 @@ export default function WardrobePage() {
       return;
     }
     
+    // Generación de ID robusta para entornos locales
+    const randomId = Math.random().toString(36).substring(2, 9);
     const item: WardrobeItem = {
-      id: crypto.randomUUID(),
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `item-${Date.now()}-${randomId}`,
       name: newItem.name,
       type: newItem.type,
       imageDataUri: newItem.imageDataUri,
@@ -172,7 +173,7 @@ export default function WardrobePage() {
               {items.map(item => (
                 <Card key={item.id} className="overflow-hidden border-none shadow-md group rounded-2xl bg-white hover:shadow-xl transition-all">
                   <div className="relative aspect-[3/4] bg-muted">
-                    <Image src={item.imageDataUri} alt={item.name} fill className="object-cover" />
+                    <Image src={item.imageDataUri} alt={item.name || "Prenda de armario"} fill className="object-cover" />
                     <Button 
                       variant="destructive" 
                       size="icon" 

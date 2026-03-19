@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -8,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, ArrowLeft, Sparkles, MapPin, CloudSun, Pin, FolderHeart, ExternalLink, AlertCircle } from "lucide-react";
+import { Loader2, ArrowLeft, Sparkles, MapPin, CloudSun, Pin, FolderHeart, AlertCircle } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
 import { useToast } from "@/hooks/use-toast";
@@ -156,13 +155,13 @@ export default function CapsulesPage() {
                     )}
                   </div>
                   <div className="relative aspect-[3/4]">
-                    <Image src={getItemImage(item)} alt={item.name} fill className="object-cover" unoptimized />
+                    <Image src={getItemImage(item)} alt={item.name || "Prenda de vestir"} fill className="object-cover" unoptimized />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity p-3 flex items-end">
                       <p className="text-[9px] text-white font-medium leading-tight">{item.styleHint}</p>
                     </div>
                   </div>
                   <CardContent className="p-3">
-                    <p className="font-bold text-[11px] truncate uppercase">{item.name}</p>
+                    <p className="font-bold text-[11px] truncate uppercase">{item.name || "Sin nombre"}</p>
                     <p className="text-[9px] text-muted-foreground mt-0.5">{item.type}</p>
                   </CardContent>
                 </Card>
