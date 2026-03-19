@@ -1,8 +1,7 @@
-
 'use server';
 /**
- * @fileOverview Generación de Avatar Pixar utilizando OpenAI SDK directamente.
- * Se utiliza el SDK oficial para evitar conflictos de dependencias en Genkit.
+ * @fileOverview Generación de Avatar Pixar de alta fidelidad utilizando DALL-E 3.
+ * Optimizado para realismo cinematográfico 3D y rasgos específicos.
  */
 
 import { ai } from '@/ai/genkit';
@@ -10,7 +9,7 @@ import { z } from 'genkit';
 import OpenAI from 'openai';
 
 const GenerateStylizedAvatarInputSchema = z.object({
-  visualDescription: z.string().describe('Descripción visual detallada para el avatar.'),
+  visualDescription: z.string().describe('Descripción visual detallada extraída de las fotos reales.'),
   openaiApiKey: z.string().optional(),
 });
 
@@ -40,11 +39,21 @@ const generateStylizedAvatarFlow = ai.defineFlow(
 
     const openai = new OpenAI({ apiKey });
 
+    // Prompt optimizado para realismo 3D Disney/Pixar moderno
+    const finalPrompt = `A stunning, high-quality 3D animated character in the modern Disney/Pixar "Turning Red" or "Luca" style. 
+    CHARACTER FEATURES: ${input.visualDescription}. 
+    ARTISTIC STYLE: Ultra-detailed 3D render, subsurface scattering on skin, incredibly realistic eye reflections, individual hair strand rendering, vibrant cinematic colors. 
+    COMPOSITION: Full body shot, character in a neutral but confident fashion pose. 
+    LIGHTING: Professional studio lighting with rim light to pop from background. 
+    BACKGROUND: PURE SOLID WHITE. 
+    Masterpiece, 8k resolution, trendy fashion aesthetic.`;
+
     const response = await openai.images.generate({
       model: "dall-e-3",
-      prompt: `A high-quality 3D animated character in Disney/Pixar style. Character features based on: ${input.visualDescription}. PURE WHITE BACKGROUND. Full body shot, cinematic lighting, vibrant colors. Professional fashion render. Masterpiece quality.`,
+      prompt: finalPrompt,
       n: 1,
       size: "1024x1024",
+      quality: "hd",
       response_format: "b64_json",
     });
 
