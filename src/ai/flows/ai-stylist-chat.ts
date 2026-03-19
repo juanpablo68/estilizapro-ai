@@ -1,10 +1,10 @@
 'use server';
 /**
- * @fileOverview Chat interactivo con el Asistente Estilista utilizando Gemini Flash Lite.
+ * @fileOverview Chat interactivo con el Asistente Estilista utilizando OpenAI GPT-4o.
  */
 
-import { getGenkitEngine } from '@/ai/genkit';
 import { z } from 'genkit';
+import OpenAI from 'openai';
 
 const AIChatInputSchema = z.object({
   message: z.string(),
@@ -13,24 +13,30 @@ const AIChatInputSchema = z.object({
     colorimetry: z.string().optional(),
     preferences: z.string().optional(),
   }).optional(),
-  geminiApiKey: z.string().optional(),
+  openaiApiKey: z.string().optional(),
 });
 
 export async function chatWithAIStylist(input: z.infer<typeof AIChatInputSchema>) {
-  const { ai, model } = getGenkitEngine(input.geminiApiKey);
+  const apiKey = input.openaiApiKey || process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error("API Key de OpenAI requerida para el chat.");
 
-  const { text } = await ai.generate({
-    model: model,
-    prompt: `Eres el asistente experto de Pilar Cifuentes Catalán.
-    
-    CONTEXTO:
-    - Figura: ${input.userContext?.figure || 'No analizada'}
-    - Colorimetría: ${input.userContext?.colorimetry || 'No analizada'}
-    - Estilos: ${input.userContext?.preferences || 'Generales'}
-    
-    Responde de forma profesional, amable e inspiradora.
-    
-    PREGUNTA DEL USUARIO: ${input.message}`,
+  const openai = new OpenAI({ apiKey });
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o",
+    messages: [
+      {
+        role: "system",
+        content: `Eres el asistente experto de Pilar Cifuentes Catalán. 
+        CONTEXTO DEL USUARIO:
+        - Figura: ${input.userContext?.figure || 'No analizada'}
+        - Colorimetría: ${input.userContext?.colorimetry || 'No analizada'}
+        - Estilos: ${input.userContext?.preferences || 'Generales'}
+        Responde de forma profesional, amable e inspiradora.`
+      },
+      { role: "user", content: input.message }
+    ]
   });
-  return text;
+
+  return response.choices[0].message.content || "Lo siento, no pude procesar tu mensaje.";
 }

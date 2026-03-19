@@ -1,15 +1,16 @@
 'use server';
 /**
- * @fileOverview Análisis de colorimetría y figura corporal utilizando Gemini Flash Lite.
+ * @fileOverview Análisis de colorimetría y figura corporal utilizando OpenAI GPT-4o (Cerebro de Razonamiento).
  */
 
-import { getGenkitEngine } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import OpenAI from 'openai';
 
 const AnalyzeStyleInputSchema = z.object({
   facePhotoDataUri: z.string().describe("Foto del rostro como data URI base64."),
   figurePhotoDataUri: z.string().describe("Foto del cuerpo como data URI base64."),
-  geminiApiKey: z.string().optional(),
+  openaiApiKey: z.string().optional(),
 });
 
 const AnalyzeStyleOutputSchema = z.object({
@@ -22,18 +23,35 @@ export type AnalyzeStyleInput = z.infer<typeof AnalyzeStyleInputSchema>;
 export type AnalyzeStyleOutput = z.infer<typeof AnalyzeStyleOutputSchema>;
 
 export async function analyzeStyleContext(input: AnalyzeStyleInput): Promise<AnalyzeStyleOutput> {
-  const { ai, model } = getGenkitEngine(input.geminiApiKey);
+  const apiKey = input.openaiApiKey || process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error("API Key de OpenAI requerida para el análisis.");
 
-  const { output } = await ai.generate({
-    model: model,
-    prompt: [
-      { media: { url: input.facePhotoDataUri, contentType: 'image/jpeg' } },
-      { media: { url: input.figurePhotoDataUri, contentType: 'image/jpeg' } },
-      { text: 'Analiza estas fotos. Determina: 1. Figura corporal exacta. 2. Colorimetría estacional específica. 3. Descripción física detallada para generar un avatar 3D Pixar profesional con fondo blanco.' },
+  const openai = new OpenAI({ apiKey });
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o",
+    messages: [
+      {
+        role: "system",
+        content: "Eres un experto en colorimetría y morfología corporal de Pilar Cifuentes Catalán. Analiza las imágenes y devuelve un JSON con: figureAnalysis, colorimetryAnalysis y visualDescription (para Pixar 3D)."
+      },
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "Analiza mi rostro y mi cuerpo para determinar mi perfil de estilo." },
+          { type: "image_url", image_url: { url: input.facePhotoDataUri } },
+          { type: "image_url", image_url: { url: input.figurePhotoDataUri } }
+        ],
+      },
     ],
-    output: { schema: AnalyzeStyleOutputSchema }
+    response_format: { type: "json_object" }
   });
 
-  if (!output) throw new Error("Gemini Lite no pudo procesar las fotos del perfil.");
-  return output;
+  const content = JSON.parse(response.choices[0].message.content || "{}");
+  
+  return {
+    figureAnalysis: content.figureAnalysis || "No identificada",
+    colorimetryAnalysis: content.colorimetryAnalysis || "No identificada",
+    visualDescription: content.visualDescription || "Persona con estilo casual"
+  };
 }

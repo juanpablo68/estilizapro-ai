@@ -1,17 +1,15 @@
 'use server';
 /**
- * @fileOverview Generación de cápsulas de moda personalizadas utilizando Gemini Flash Lite.
- * Optimizada para no exceder los límites de cuota de la API gratuita.
+ * @fileOverview Generación de cápsulas de moda personalizadas utilizando OpenAI GPT-4o.
  */
 
-import { getGenkitEngine } from '@/ai/genkit';
 import { z } from 'genkit';
+import OpenAI from 'openai';
 
 const WardrobeItemSchema = z.object({
   id: z.string(),
   name: z.string(),
   type: z.string(),
-  imageDataUri: z.string(),
 });
 
 const AICapsuleRecommendationsInputSchema = z.object({
@@ -21,7 +19,7 @@ const AICapsuleRecommendationsInputSchema = z.object({
   eventType: z.string(),
   weatherConditions: z.string(),
   wardrobeItems: z.array(WardrobeItemSchema),
-  geminiApiKey: z.string().optional(),
+  openaiApiKey: z.string().optional(),
 });
 
 const CapsuleSchema = z.object({
@@ -46,24 +44,32 @@ export type Capsule = z.infer<typeof CapsuleSchema>;
 export type CapsuleItem = z.infer<typeof CapsuleSchema>['items'][number];
 
 export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICapsuleRecommendationsInputSchema>) {
-  const { ai, model } = getGenkitEngine(input.geminiApiKey);
+  const apiKey = input.openaiApiKey || process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error("API Key de OpenAI requerida.");
 
-  // Limitamos a máximo 2 cápsulas de 4 prendas para no saturar la respuesta y la cuota
-  const { output } = await ai.generate({
-    model: model,
-    prompt: `Eres un experto estilista de Pilar Cifuentes Catalán. Crea 2 cápsulas de ropa (4 prendas cada una).
+  const openai = new OpenAI({ apiKey });
+
+  const prompt = `Eres un experto estilista de Pilar Cifuentes Catalán. Crea 2 cápsulas de ropa (4 prendas cada una).
     
-    PERFIL FÍSICO: Figura ${input.figureAnalysis}, Colorimetría ${input.colorimetryAnalysis}.
-    PREFERENCIAS: ${JSON.stringify(input.stylePreferences)}.
-    EVENTO: ${input.eventType}, CLIMA: ${input.weatherConditions}.
-    
-    INSTRUCCIONES:
-    - Prioriza los ítems reales: ${JSON.stringify(input.wardrobeItems.map(i => ({id: i.id, name: i.name, type: i.type})))}
-    - Para ítems faltantes, sugiere compras (source: 'shop').
-    - Respeta estrictamente la colorimetría y morfología.`,
-    output: { schema: AICapsuleRecommendationsOutputSchema }
+  PERFIL FÍSICO: Figura ${input.figureAnalysis}, Colorimetría ${input.colorimetryAnalysis}.
+  PREFERENCIAS: ${JSON.stringify(input.stylePreferences)}.
+  EVENTO: ${input.eventType}, CLIMA: ${input.weatherConditions}.
+  
+  ARMARIO ACTUAL: ${JSON.stringify(input.wardrobeItems)}
+  
+  INSTRUCCIONES:
+  - Prioriza los ítems reales del armario.
+  - Para ítems faltantes, sugiere compras (source: 'shop').
+  - Devuelve un JSON que cumpla con el esquema solicitado.`;
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o",
+    messages: [{ role: "user", content: prompt }],
+    response_format: { type: "json_object" }
   });
 
-  if (!output) throw new Error("El motor Flash Lite no pudo generar las cápsulas.");
-  return output;
+  const content = JSON.parse(response.choices[0].message.content || "{}");
+  return {
+    capsules: content.capsules || []
+  };
 }

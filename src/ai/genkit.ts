@@ -2,35 +2,20 @@ import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 
 /**
- * Fábrica Dinámica de Genkit para EstilizaPro AI.
- * Crea una instancia de motor de IA configurada en tiempo real con la llave proporcionada.
- * Utiliza el modelo Gemini 2.0/2.5 Flash Lite para optimizar la cuota gratuita.
+ * Fábrica de IA para EstilizaPro.
+ * Aunque el sistema ahora es Pure OpenAI, mantenemos la instancia base de Genkit
+ * para la compatibilidad con los flujos definidos.
  */
-export function getGenkitEngine(apiKey?: string, preferredModel?: string) {
-  const key = apiKey || process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY;
-
-  if (!key) {
-    throw new Error("No se proporcionó una API Key para Gemini. Configúrala en Ajustes.");
-  }
-
-  // Inicializamos el plugin con la llave dinámica
-  const googleAIPlugin = googleAI({ apiKey: key });
-
-  // Creamos la instancia de Genkit vinculada a ese plugin
-  const ai = genkit({
-    plugins: [googleAIPlugin],
-  });
-
-  // El identificador oficial para el motor Flash Lite de nueva generación
-  const modelToUse = preferredModel || 'googleai/gemini-2.0-flash-lite-preview-02-05';
-
-  return {
-    ai,
-    model: modelToUse,
-  };
-}
-
-// Instancia estática base para inicialización del sistema (usada por Genkit CLI)
 export const ai = genkit({
   plugins: [googleAI()],
 });
+
+/**
+ * Obtiene la llave de OpenAI configurada localmente o en el entorno.
+ */
+export function getOpenAIKey() {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('openai_api_key') || process.env.OPENAI_API_KEY;
+  }
+  return process.env.OPENAI_API_KEY;
+}

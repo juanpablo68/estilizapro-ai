@@ -17,72 +17,54 @@ export default function SettingsPage() {
   const [mounted, setMounted] = useState(false);
   const { toast } = useToast();
 
-  const [localKeys, setLocalKeys] = useState({
-    openai: '',
-    gemini: ''
-  });
-
-  const [testStatus, setTestStatus] = useState<{
-    openai: 'idle' | 'loading' | 'success' | 'error',
-    gemini: 'idle' | 'loading' | 'success' | 'error'
-  }>({
-    openai: 'idle',
-    gemini: 'idle'
-  });
+  const [openaiKey, setOpenaiKey] = useState('');
+  const [testStatus, setTestStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   useEffect(() => {
     setMounted(true);
-    setLocalKeys({
-      openai: localStorage.getItem('openai_api_key') || '',
-      gemini: localStorage.getItem('GOOGLE_GENAI_API_KEY') || ''
-    });
+    setOpenaiKey(localStorage.getItem('openai_api_key') || '');
   }, []);
 
   const handleSaveAll = () => {
     try {
-      localStorage.setItem('openai_api_key', localKeys.openai);
-      localStorage.setItem('GOOGLE_GENAI_API_KEY', localKeys.gemini);
-      // Forzar actualización del estado local
+      localStorage.setItem('openai_api_key', openaiKey);
       setProfile({ ...profile });
-      
       toast({
-        title: "Motor Híbrido Activado",
-        description: "Configuración guardada correctamente en el dispositivo.",
+        title: "Arquitectura OpenAI Activada",
+        description: "El cerebro y el artista están sincronizados.",
       });
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Error al guardar",
-        description: "No se pudieron persistir las llaves.",
+        description: "No se pudieron persistir los datos.",
       });
     }
   };
 
-  const handleTest = async (provider: 'openai' | 'gemini') => {
-    const key = provider === 'openai' ? localKeys.openai : localKeys.gemini;
-    if (!key) {
+  const handleTest = async () => {
+    if (!openaiKey) {
       toast({
         variant: "destructive",
         title: "Llave faltante",
-        description: `Por favor, introduce la llave de ${provider} antes de probar.`,
+        description: "Introduce tu llave de OpenAI.",
       });
       return;
     }
 
-    setTestStatus(prev => ({ ...prev, [provider]: 'loading' }));
-    
+    setTestStatus('loading');
     try {
-      const result = await testAPIConnection({ provider, apiKey: key });
+      const result = await testAPIConnection({ provider: 'openai', apiKey: openaiKey });
       if (result.success) {
-        setTestStatus(prev => ({ ...prev, [provider]: 'success' }));
-        toast({ title: "¡Prueba Exitosa!", description: result.message });
+        setTestStatus('success');
+        toast({ title: "¡Perfecto!", description: result.message });
       } else {
-        setTestStatus(prev => ({ ...prev, [provider]: 'error' }));
-        toast({ variant: "destructive", title: "Error de Conexión", description: result.message });
+        setTestStatus('error');
+        toast({ variant: "destructive", title: "Error", description: result.message });
       }
     } catch (err: any) {
-      setTestStatus(prev => ({ ...prev, [provider]: 'error' }));
-      toast({ variant: "destructive", title: "Fallo Crítico", description: err.message });
+      setTestStatus('error');
+      toast({ variant: "destructive", title: "Fallo", description: err.message });
     }
   };
 
@@ -97,31 +79,55 @@ export default function SettingsPage() {
         <h1 className="text-2xl font-headline font-bold text-primary">Ajustes de IA</h1>
       </header>
 
-      <Card className="border-none shadow-md overflow-hidden bg-white/50 backdrop-blur-sm">
-        <CardHeader className="bg-primary/5 border-b border-primary/10">
-          <div className="flex items-center gap-2 text-primary">
-            <BrainCircuit className="w-5 h-5" />
-            <CardTitle className="text-lg font-bold uppercase tracking-tight">Análisis de Perfil</CardTitle>
+      <Card className="border-none shadow-md bg-white">
+        <CardHeader className="bg-primary/5 border-b p-4">
+          <CardTitle className="text-sm flex items-center gap-2 text-primary uppercase font-bold tracking-wider">
+            <Key className="w-4 h-4" /> Motor Unificado OpenAI
+          </CardTitle>
+          <CardDescription className="text-[10px]">Utiliza GPT-4o para análisis y DALL-E 3 para arte.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6 pt-6">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold">API KEY DE OPENAI</Label>
+              {testStatus === 'success' && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+              {testStatus === 'error' && <XCircle className="w-4 h-4 text-destructive" />}
+            </div>
+            <div className="flex gap-2">
+              <Input 
+                type="password" 
+                value={openaiKey} 
+                onChange={e => setOpenaiKey(e.target.value)} 
+                placeholder="sk-..." 
+                className="flex-1 bg-muted/20"
+              />
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleTest}
+                disabled={testStatus === 'loading'}
+              >
+                {testStatus === 'loading' ? <Loader2 className="animate-spin w-4 h-4" /> : "Probar"}
+              </Button>
+            </div>
           </div>
-          <CardDescription className="text-xs">Datos técnicos que Gemini utiliza para tu asesoría personalizada.</CardDescription>
+        </CardContent>
+      </Card>
+
+      <Card className="border-none shadow-md overflow-hidden bg-white/50 backdrop-blur-sm">
+        <CardHeader className="bg-secondary/5 border-b border-secondary/10">
+          <div className="flex items-center gap-2 text-secondary">
+            <BrainCircuit className="w-5 h-5" />
+            <CardTitle className="text-lg font-bold uppercase tracking-tight">Manual de Estilo</CardTitle>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-                <Label className="text-[10px] font-bold uppercase text-muted-foreground">Figura Corporal</Label>
-                <Input value={profile.figureAnalysis || 'No analizada'} readOnly className="bg-muted/30 text-xs font-bold border-none" />
-            </div>
-            <div className="space-y-2">
-                <Label className="text-[10px] font-bold uppercase text-muted-foreground">Colorimetría</Label>
-                <Input value={profile.colorimetryAnalysis || 'No analizada'} readOnly className="bg-muted/30 text-xs font-bold border-none" />
-            </div>
-          </div>
           <div className="space-y-2">
             <Label className="font-bold flex items-center gap-2 text-sm">
-              <Sparkles className="w-4 h-4 text-primary" /> Estilos Preferidos
+              <Sparkles className="w-4 h-4 text-primary" /> Preferencias para GPT-4o
             </Label>
             <Textarea 
-              placeholder="Instrucciones personalizadas..."
+              placeholder="Ej: Prefiero colores sobrios, evitar rayas..."
               className="min-h-[100px] text-sm bg-white/50"
               value={profile.stylePreferences.preferredStyles.join(', ')}
               onChange={e => setProfile({
@@ -136,68 +142,8 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card className="border-none shadow-md bg-white">
-        <CardHeader className="bg-secondary/5 border-b p-4">
-          <CardTitle className="text-sm flex items-center gap-2 text-secondary uppercase font-bold tracking-wider">
-            <Key className="w-4 h-4" /> Conectores de API
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6 pt-6">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs font-bold">OpenAI Key (Artista Pixar)</Label>
-              {testStatus.openai === 'success' && <CheckCircle2 className="w-4 h-4 text-green-500" />}
-              {testStatus.openai === 'error' && <XCircle className="w-4 h-4 text-destructive" />}
-            </div>
-            <div className="flex gap-2">
-              <Input 
-                type="password" 
-                value={localKeys.openai} 
-                onChange={e => setLocalKeys({...localKeys, openai: e.target.value})} 
-                placeholder="sk-..." 
-                className="flex-1 bg-muted/20"
-              />
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => handleTest('openai')}
-                disabled={testStatus.openai === 'loading'}
-              >
-                {testStatus.openai === 'loading' ? <Loader2 className="animate-spin w-4 h-4" /> : "Probar"}
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs font-bold">Gemini Key (Cerebro Analítico)</Label>
-              {testStatus.gemini === 'success' && <CheckCircle2 className="w-4 h-4 text-green-500" />}
-              {testStatus.gemini === 'error' && <XCircle className="w-4 h-4 text-destructive" />}
-            </div>
-            <div className="flex gap-2">
-              <Input 
-                type="password" 
-                value={localKeys.gemini} 
-                onChange={e => setLocalKeys({...localKeys, gemini: e.target.value})} 
-                placeholder="AIza..." 
-                className="flex-1 bg-muted/20"
-              />
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => handleTest('gemini')}
-                disabled={testStatus.gemini === 'loading'}
-              >
-                {testStatus.gemini === 'loading' ? <Loader2 className="animate-spin w-4 h-4" /> : "Probar"}
-              </Button>
-            </div>
-            <p className="text-[10px] text-muted-foreground italic">El sistema utilizará automáticamente el motor Flash Lite 2.0/2.5 optimizado para cuotas gratuitas.</p>
-          </div>
-        </CardContent>
-      </Card>
-
       <Button onClick={handleSaveAll} className="w-full h-14 bg-primary text-lg font-bold shadow-xl rounded-2xl hover:scale-[1.02] transition-all">
-        <Save className="mr-2 w-5 h-5" /> Guardar y Activar Motor
+        <Save className="mr-2 w-5 h-5" /> Activar Sistema OpenAI
       </Button>
     </div>
   );
