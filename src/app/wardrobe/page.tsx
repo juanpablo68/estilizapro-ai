@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -11,6 +12,37 @@ import { Camera, Plus, Trash2, ArrowLeft, Shirt, Loader2 } from "lucide-react";
 import Image from 'next/image';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
+
+const resizeImage = (base64Str: string): Promise<string> => {
+  return new Promise((resolve) => {
+    const img = new window.Image();
+    img.src = base64Str;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX_WIDTH = 800;
+      const MAX_HEIGHT = 800;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width *= MAX_HEIGHT / height;
+          height = MAX_HEIGHT;
+        }
+      }
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', 0.8));
+    };
+  });
+};
 
 export default function WardrobePage() {
   const [items, setItems] = useLocalStorage<WardrobeItem[]>('estiliza_wardrobe', []);
@@ -29,8 +61,9 @@ export default function WardrobePage() {
     if (file) {
       setLoading(true);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewItem({ ...newItem, imageDataUri: reader.result as string });
+      reader.onloadend = async () => {
+        const optimized = await resizeImage(reader.result as string);
+        setNewItem({ ...newItem, imageDataUri: optimized });
         setLoading(false);
       };
       reader.readAsDataURL(file);
@@ -47,7 +80,6 @@ export default function WardrobePage() {
       return;
     }
     
-    // Generación de ID robusta para entornos locales
     const randomId = Math.random().toString(36).substring(2, 9);
     const item: WardrobeItem = {
       id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `item-${Date.now()}-${randomId}`,
