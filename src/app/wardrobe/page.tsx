@@ -19,8 +19,9 @@ const resizeImage = (base64Str: string): Promise<string> => {
     img.src = base64Str;
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      const MAX_WIDTH = 800;
-      const MAX_HEIGHT = 800;
+      // Reducimos a 600px para maximizar capacidad de LocalStorage y evitar errores de red
+      const MAX_WIDTH = 600;
+      const MAX_HEIGHT = 600;
       let width = img.width;
       let height = img.height;
 
@@ -89,15 +90,21 @@ export default function WardrobePage() {
       dateAdded: new Date().toISOString(),
     };
     
-    setItems([item, ...items]);
-    
-    toast({
-      title: "Prenda Guardada",
-      description: `${newItem.name} ha sido añadida a tu armario.`
-    });
-    
-    setAdding(false);
-    setNewItem({ name: '', type: 'top', imageDataUri: '' });
+    try {
+      setItems([item, ...items]);
+      toast({
+        title: "Prenda Guardada",
+        description: `${newItem.name} ha sido añadida a tu armario.`
+      });
+      setAdding(false);
+      setNewItem({ name: '', type: 'top', imageDataUri: '' });
+    } catch (e) {
+      toast({
+        variant: "destructive",
+        title: "Armario Lleno",
+        description: "No hay espacio suficiente en el almacenamiento local. Intenta eliminar algunas prendas."
+      });
+    }
   };
 
   const deleteItem = (id: string) => {
