@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Chat interactivo con el Asistente Estilista utilizando OpenAI GPT-4o.
@@ -12,6 +13,7 @@ const AIChatInputSchema = z.object({
     figure: z.string().optional(),
     colorimetry: z.string().optional(),
     preferences: z.string().optional(),
+    knowledgeBase: z.string().optional(),
   }).optional(),
   openaiApiKey: z.string().optional(),
 });
@@ -22,18 +24,23 @@ export async function chatWithAIStylist(input: z.infer<typeof AIChatInputSchema>
 
   const openai = new OpenAI({ apiKey });
 
+  const systemPrompt = `Eres el asistente experto de Pilar Cifuentes Catalán. 
+  
+  CONTEXTO DEL USUARIO:
+  - Figura: ${input.userContext?.figure || 'No analizada'}
+  - Colorimetría: ${input.userContext?.colorimetry || 'No analizada'}
+  - Estilos Preferidos: ${input.userContext?.preferences || 'Generales'}
+  
+  BASE DE CONOCIMIENTO MAESTRA:
+  ${input.userContext?.knowledgeBase || 'No hay guías específicas cargadas.'}
+  
+  INSTRUCCIONES:
+  Responde de forma profesional, amable e inspiradora. Utiliza la BASE DE CONOCIMIENTO como tu guía principal de estilo para todas las recomendaciones.`;
+
   const response = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
-      {
-        role: "system",
-        content: `Eres el asistente experto de Pilar Cifuentes Catalán. 
-        CONTEXTO DEL USUARIO:
-        - Figura: ${input.userContext?.figure || 'No analizada'}
-        - Colorimetría: ${input.userContext?.colorimetry || 'No analizada'}
-        - Estilos: ${input.userContext?.preferences || 'Generales'}
-        Responde de forma profesional, amable e inspiradora.`
-      },
+      { role: "system", content: systemPrompt },
       { role: "user", content: input.message }
     ]
   });

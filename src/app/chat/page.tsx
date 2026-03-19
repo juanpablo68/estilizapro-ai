@@ -6,7 +6,7 @@ import { chatWithAIStylist } from '@/ai/flows/ai-stylist-chat';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Send, Sparkles, User, Instagram } from "lucide-react";
+import { ArrowLeft, Send, Sparkles, User, Instagram, BookOpen } from "lucide-react";
 import Link from 'next/link';
 import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
 
@@ -18,7 +18,7 @@ interface Message {
 export default function ChatPage() {
   const [profile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: '¡Hola! Soy el asistente de Pilar Cifuentes Catalán. Estoy aquí para ayudarte a encontrar tu mejor versión utilizando tus datos de figura y colorimetría. ¿En qué puedo asesorarte hoy?' }
+    { role: 'assistant', content: '¡Hola! Soy el asistente de Pilar Cifuentes Catalán. Estoy aquí para ayudarte a encontrar tu mejor versión utilizando tus datos de figura, colorimetría y tu base de conocimiento maestra. ¿En qué puedo asesorarte hoy?' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -46,7 +46,8 @@ export default function ChatPage() {
         userContext: {
           figure: profile.figureAnalysis,
           colorimetry: profile.colorimetryAnalysis,
-          preferences: profile.stylePreferences.preferredStyles.join(', ')
+          preferences: profile.stylePreferences.preferredStyles.join(', '),
+          knowledgeBase: profile.knowledgeBase
         },
         openaiApiKey: openaiKey
       });
@@ -61,23 +62,31 @@ export default function ChatPage() {
 
   return (
     <div className="flex flex-col h-screen max-w-3xl mx-auto w-full bg-background border-x">
-      <header className="p-4 flex items-center gap-3 border-b bg-white/80 backdrop-blur-md sticky top-0 z-20">
-        <Link href="/dashboard">
-          <Button variant="ghost" size="icon"><ArrowLeft className="w-5 h-5" /></Button>
-        </Link>
+      <header className="p-4 flex items-center justify-between border-b bg-white/80 backdrop-blur-md sticky top-0 z-20">
         <div className="flex items-center gap-3">
-          <div className="relative">
-            <Avatar className="w-10 h-10 border-2 border-primary">
-              <AvatarImage src="https://picsum.photos/seed/pilar/200" alt="Pilar" />
-              <AvatarFallback>PC</AvatarFallback>
-            </Avatar>
-            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
-          </div>
-          <div>
-            <h1 className="font-bold text-sm leading-none">Asistente Estilista</h1>
-            <p className="text-[10px] text-muted-foreground">Pilar Cifuentes Catalán</p>
+          <Link href="/dashboard">
+            <Button variant="ghost" size="icon" className="rounded-full"><ArrowLeft className="w-5 h-5" /></Button>
+          </Link>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Avatar className="w-10 h-10 border-2 border-primary">
+                <AvatarImage src="https://picsum.photos/seed/pilar/200" alt="Pilar" />
+                <AvatarFallback>PC</AvatarFallback>
+              </Avatar>
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
+            </div>
+            <div>
+              <h1 className="font-bold text-sm leading-none">Asistente Estilista</h1>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-tighter">Pilar Cifuentes Catalán</p>
+            </div>
           </div>
         </div>
+        {profile.knowledgeBase && (
+          <div className="flex items-center gap-1.5 bg-indigo-50 px-3 py-1.5 rounded-full">
+            <BookOpen className="w-3.5 h-3.5 text-indigo-600" />
+            <span className="text-[10px] font-black text-indigo-700 uppercase">Sincronizado</span>
+          </div>
+        )}
       </header>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4" ref={scrollRef}>
@@ -86,7 +95,7 @@ export default function ChatPage() {
             <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
               msg.role === 'user' 
                 ? 'bg-primary text-white rounded-tr-none' 
-                : 'bg-white text-foreground rounded-tl-none'
+                : 'bg-white text-foreground rounded-tl-none border border-muted'
             }`}>
               {msg.content}
             </div>
@@ -94,11 +103,11 @@ export default function ChatPage() {
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-white rounded-2xl rounded-tl-none px-4 py-3 text-sm shadow-sm flex items-center gap-2">
+            <div className="bg-white border rounded-2xl rounded-tl-none px-4 py-3 text-sm shadow-sm flex items-center gap-2">
               <div className="flex gap-1">
-                <div className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce" />
-                <div className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce [animation-delay:0.2s]" />
-                <div className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce [animation-delay:0.4s]" />
+                <div className="w-1 h-1 bg-primary rounded-full animate-bounce" />
+                <div className="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:0.2s]" />
+                <div className="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:0.4s]" />
               </div>
             </div>
           </div>
@@ -121,10 +130,10 @@ export default function ChatPage() {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && sendMessage()}
-            className="flex-1 rounded-full border-muted bg-muted/20"
+            className="flex-1 rounded-2xl border-muted bg-muted/10 h-12"
           />
-          <Button onClick={sendMessage} size="icon" className="rounded-full bg-secondary">
-            <Send className="w-4 h-4" />
+          <Button onClick={sendMessage} size="icon" className="rounded-2xl bg-primary h-12 w-12 shadow-lg hover:scale-105 transition-transform">
+            <Send className="w-5 h-5" />
           </Button>
         </div>
       </div>

@@ -48,6 +48,7 @@ export interface UserProfile {
     bodyPartsToMinimize: string[];
     occasionPreferences: string[];
   };
+  knowledgeBase: string; // Nueva Área de Conocimiento
   colorimetryAnalysis?: string;
   figureAnalysis?: string;
   avatarDataUri?: string;
@@ -66,6 +67,7 @@ export const INITIAL_USER_PROFILE: UserProfile = {
     bodyPartsToMinimize: [],
     occasionPreferences: [],
   },
+  knowledgeBase: '',
   onboardingComplete: false,
   passcode: '1,2,3,4',
   purchasedCapsulesCount: 1,
