@@ -1,19 +1,27 @@
+
 "use client"
 
+import { useState, useEffect } from 'react';
 import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ArrowLeft, CreditCard, ShoppingCart, CheckCircle, Instagram, ExternalLink, Sparkles } from "lucide-react";
+import { ArrowLeft, ShoppingCart, CheckCircle, Instagram, ExternalLink, Sparkles } from "lucide-react";
 import Link from 'next/link';
 
 export default function PurchasePage() {
   const [profile, setProfile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const buyCapsule = () => {
-    // Simulated purchase
     setProfile({ ...profile, purchasedCapsulesCount: profile.purchasedCapsulesCount + 1 });
     alert('¡Compra exitosa! Ahora tienes acceso a 1 cápsula adicional.');
   };
+
+  if (!mounted) return null;
 
   return (
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">

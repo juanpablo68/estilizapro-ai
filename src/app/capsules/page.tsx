@@ -1,6 +1,7 @@
+
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE, WardrobeItem as LocalWardrobeItem } from '@/lib/storage-hooks';
 import { receiveAICapsuleRecommendations, Capsule, CapsuleItem } from '@/ai/flows/ai-capsule-recommendations';
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 export default function CapsulesPage() {
   const [profile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
   const [wardrobe] = useLocalStorage<LocalWardrobeItem[]>('estiliza_wardrobe', []);
+  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [capsules, setCapsules] = useState<Capsule[]>([]);
   const { toast } = useToast();
@@ -24,6 +26,10 @@ export default function CapsulesPage() {
     eventType: 'Casual',
     weather: 'Soleado y Templado'
   });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const generateCapsules = async () => {
     const openaiKey = localStorage.getItem('openai_api_key');
@@ -61,6 +67,8 @@ export default function CapsulesPage() {
     }
     return item.imageUrl || PlaceHolderImages[0].imageUrl;
   };
+
+  if (!mounted) return null;
 
   return (
     <div className="flex-1 max-w-4xl mx-auto w-full p-6 space-y-6 pb-20">
@@ -123,9 +131,9 @@ export default function CapsulesPage() {
                 <Card key={itemIdx} className="overflow-hidden border-none shadow-md relative group rounded-2xl bg-white">
                   <div className="absolute top-2 left-2 z-10">
                     {item.source === 'wardrobe' ? (
-                      <Badge className="bg-green-500 gap-1"><FolderHeart className="w-2.5 h-2.5" /> Armario</Badge>
+                      <div className="text-[8px] font-black text-white px-2 py-1 rounded-full flex items-center shadow-md bg-green-500 gap-1"><FolderHeart className="w-2.5 h-2.5" /> Armario</div>
                     ) : (
-                      <Badge className="bg-red-500 gap-1"><Pin className="w-2.5 h-2.5" /> Pinterest</Badge>
+                      <div className="text-[8px] font-black text-white px-2 py-1 rounded-full flex items-center shadow-md bg-red-500 gap-1"><Pin className="w-2.5 h-2.5" /> Pinterest</div>
                     )}
                   </div>
                   <div className="relative aspect-[3/4]">
@@ -149,14 +157,6 @@ export default function CapsulesPage() {
           </div>
         ))}
       </div>
-    </div>
-  );
-}
-
-function Badge({ children, className }: { children: React.ReactNode, className?: string }) {
-  return (
-    <div className={`text-[8px] font-black text-white px-2 py-1 rounded-full flex items-center shadow-md ${className}`}>
-      {children}
     </div>
   );
 }

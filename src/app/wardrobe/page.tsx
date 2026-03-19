@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocalStorage, WardrobeItem } from '@/lib/storage-hooks';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,10 +15,15 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function WardrobePage() {
   const [items, setItems] = useLocalStorage<WardrobeItem[]>('estiliza_wardrobe', []);
+  const [mounted, setMounted] = useState(false);
   const [adding, setAdding] = useState(false);
   const [loading, setLoading] = useState(false);
   const [newItem, setNewItem] = useState({ name: '', type: 'top', imageDataUri: '' });
   const { toast } = useToast();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -51,9 +56,7 @@ export default function WardrobePage() {
       dateAdded: new Date().toISOString(),
     };
     
-    // Forzamos actualización del storage
-    const updatedItems = [item, ...items];
-    setItems(updatedItems);
+    setItems([item, ...items]);
     
     toast({
       title: "Prenda Guardada",
@@ -70,6 +73,8 @@ export default function WardrobePage() {
       title: "Prenda Eliminada",
     });
   };
+
+  if (!mounted) return null;
 
   return (
     <div className="flex-1 max-w-4xl mx-auto w-full p-6 space-y-6 pb-20">

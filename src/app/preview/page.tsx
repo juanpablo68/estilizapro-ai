@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE, WardrobeItem } from '@/lib/storage-hooks';
 import { previewOutfitOnAvatar } from '@/ai/flows/preview-outfit-on-avatar';
 import { Button } from "@/components/ui/button";
@@ -14,10 +14,15 @@ import { useToast } from "@/hooks/use-toast";
 export default function PreviewPage() {
   const [profile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
   const [wardrobe] = useLocalStorage<WardrobeItem[]>('estiliza_wardrobe', []);
+  const [mounted, setMounted] = useState(false);
   const [selectedItem, setSelectedItem] = useState<WardrobeItem | null>(null);
   const [previewing, setPreviewing] = useState(false);
   const [resultImage, setResultImage] = useState<string | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handlePreview = async () => {
     if (!profile.avatarDataUri || !selectedItem) return;
@@ -52,6 +57,8 @@ export default function PreviewPage() {
       setPreviewing(false);
     }
   };
+
+  if (!mounted) return null;
 
   return (
     <div className="flex-1 max-w-4xl mx-auto w-full p-6 space-y-6 pb-20">
@@ -103,13 +110,13 @@ export default function PreviewPage() {
             ) : previewing ? (
               <div className="w-full h-full flex flex-col items-center justify-center bg-muted/20">
                 <Loader2 className="w-10 h-10 text-primary animate-spin mb-2" />
-                <p className="text-xs text-muted-foreground text-center px-4">Gemini analiza la prenda y OpenAI recrea el look...</p>
+                <p className="text-xs text-muted-foreground text-center px-4">Análisis experto de GPT-4o...</p>
               </div>
             ) : profile.avatarDataUri ? (
               <div className="relative w-full h-full">
                 <Image src={profile.avatarDataUri} alt="Avatar Base" fill className="object-cover opacity-50 grayscale-[50%]" unoptimized />
                 <div className="absolute inset-0 flex items-center justify-center p-8 text-center bg-black/5">
-                  <p className="text-xs font-medium bg-white/80 p-3 rounded-lg shadow-sm">Selecciona una prenda para iniciar la previsualización híbrida</p>
+                  <p className="text-xs font-medium bg-white/80 p-3 rounded-lg shadow-sm">Selecciona una prenda para iniciar la previsualización</p>
                 </div>
               </div>
             ) : (
