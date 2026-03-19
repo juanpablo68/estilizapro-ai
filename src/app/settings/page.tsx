@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -5,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Save, Key, BrainCircuit, Sparkles, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Key, ShoppingBag, Pin, Sparkles, CheckCircle2, Loader2 } from "lucide-react";
 import Link from 'next/link';
 import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
 import { useToast } from "@/hooks/use-toast";
@@ -18,54 +18,44 @@ export default function SettingsPage() {
   const { toast } = useToast();
 
   const [openaiKey, setOpenaiKey] = useState('');
+  const [pinterestToken, setPinterestToken] = useState('');
+  const [shopifyDomain, setShopifyDomain] = useState('');
+  const [shopifyToken, setShopifyToken] = useState('');
   const [testStatus, setTestStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   useEffect(() => {
     setMounted(true);
     setOpenaiKey(localStorage.getItem('openai_api_key') || '');
+    setPinterestToken(localStorage.getItem('pinterest_token') || '');
+    setShopifyDomain(localStorage.getItem('shopify_domain') || '');
+    setShopifyToken(localStorage.getItem('shopify_token') || '');
   }, []);
 
   const handleSaveAll = () => {
-    try {
-      localStorage.setItem('openai_api_key', openaiKey);
-      setProfile({ ...profile });
-      toast({
-        title: "Arquitectura OpenAI Activada",
-        description: "El cerebro y el artista están sincronizados.",
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error al guardar",
-        description: "No se pudieron persistir los datos.",
-      });
-    }
+    localStorage.setItem('openai_api_key', openaiKey);
+    localStorage.setItem('pinterest_token', pinterestToken);
+    localStorage.setItem('shopify_domain', shopifyDomain);
+    localStorage.setItem('shopify_token', shopifyToken);
+    
+    toast({
+      title: "Configuración Guardada",
+      description: "Pipeline de IA (OpenAI + Pinterest + Shopify) actualizado.",
+    });
   };
 
   const handleTest = async () => {
     if (!openaiKey) {
-      toast({
-        variant: "destructive",
-        title: "Llave faltante",
-        description: "Introduce tu llave de OpenAI.",
-      });
+      toast({ variant: "destructive", title: "OpenAI Key Requerida" });
       return;
     }
-
     setTestStatus('loading');
-    try {
-      const result = await testAPIConnection({ provider: 'openai', apiKey: openaiKey });
-      if (result.success) {
-        setTestStatus('success');
-        toast({ title: "¡Perfecto!", description: result.message });
-      } else {
-        setTestStatus('error');
-        toast({ variant: "destructive", title: "Error", description: result.message });
-      }
-    } catch (err: any) {
-      setTestStatus('error');
-      toast({ variant: "destructive", title: "Fallo", description: err.message });
-    }
+    const result = await testAPIConnection({ provider: 'openai', apiKey: openaiKey });
+    setTestStatus(result.success ? 'success' : 'error');
+    toast({ 
+      title: result.success ? "¡Éxito!" : "Error", 
+      description: result.message,
+      variant: result.success ? "default" : "destructive"
+    });
   };
 
   if (!mounted) return null;
@@ -76,74 +66,75 @@ export default function SettingsPage() {
         <Link href="/dashboard">
           <Button variant="ghost" size="icon"><ArrowLeft /></Button>
         </Link>
-        <h1 className="text-2xl font-headline font-bold text-primary">Ajustes de IA</h1>
+        <h1 className="text-2xl font-headline font-bold text-primary">Conexiones de IA</h1>
       </header>
 
-      <Card className="border-none shadow-md bg-white">
-        <CardHeader className="bg-primary/5 border-b p-4">
-          <CardTitle className="text-sm flex items-center gap-2 text-primary uppercase font-bold tracking-wider">
-            <Key className="w-4 h-4" /> Motor Unificado OpenAI
-          </CardTitle>
-          <CardDescription className="text-[10px]">Utiliza GPT-4o para análisis y DALL-E 3 para arte.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6 pt-6">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs font-bold">API KEY DE OPENAI</Label>
-              {testStatus === 'success' && <CheckCircle2 className="w-4 h-4 text-green-500" />}
-              {testStatus === 'error' && <XCircle className="w-4 h-4 text-destructive" />}
-            </div>
+      <div className="space-y-6">
+        {/* OpenAI Card */}
+        <Card className="border-none shadow-md">
+          <CardHeader className="bg-primary/5 p-4">
+            <CardTitle className="text-sm flex items-center gap-2 text-primary font-bold uppercase tracking-wider">
+              <Key className="w-4 h-4" /> OpenAI (Cerebro GPT-4o)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4 space-y-4">
             <div className="flex gap-2">
               <Input 
                 type="password" 
                 value={openaiKey} 
                 onChange={e => setOpenaiKey(e.target.value)} 
                 placeholder="sk-..." 
-                className="flex-1 bg-muted/20"
+                className="flex-1"
               />
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleTest}
-                disabled={testStatus === 'loading'}
-              >
-                {testStatus === 'loading' ? <Loader2 className="animate-spin w-4 h-4" /> : "Probar"}
+              <Button variant="outline" size="sm" onClick={handleTest}>
+                {testStatus === 'loading' ? <Loader2 className="animate-spin h-4 w-4" /> : "Probar"}
               </Button>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      <Card className="border-none shadow-md overflow-hidden bg-white/50 backdrop-blur-sm">
-        <CardHeader className="bg-secondary/5 border-b border-secondary/10">
-          <div className="flex items-center gap-2 text-secondary">
-            <BrainCircuit className="w-5 h-5" />
-            <CardTitle className="text-lg font-bold uppercase tracking-tight">Manual de Estilo</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4 pt-6">
-          <div className="space-y-2">
-            <Label className="font-bold flex items-center gap-2 text-sm">
-              <Sparkles className="w-4 h-4 text-primary" /> Preferencias para GPT-4o
-            </Label>
-            <Textarea 
-              placeholder="Ej: Prefiero colores sobrios, evitar rayas..."
-              className="min-h-[100px] text-sm bg-white/50"
-              value={profile.stylePreferences.preferredStyles.join(', ')}
-              onChange={e => setProfile({
-                ...profile, 
-                stylePreferences: {
-                  ...profile.stylePreferences,
-                  preferredStyles: e.target.value.split(',').map(s => s.trim())
-                }
-              })}
+        {/* Pinterest Card */}
+        <Card className="border-none shadow-md">
+          <CardHeader className="bg-red-50 p-4">
+            <CardTitle className="text-sm flex items-center gap-2 text-red-600 font-bold uppercase tracking-wider">
+              <Pin className="w-4 h-4" /> Pinterest API (Inspiración)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <Input 
+              type="password" 
+              value={pinterestToken} 
+              onChange={e => setPinterestToken(e.target.value)} 
+              placeholder="Access Token de Pinterest" 
             />
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      <Button onClick={handleSaveAll} className="w-full h-14 bg-primary text-lg font-bold shadow-xl rounded-2xl hover:scale-[1.02] transition-all">
-        <Save className="mr-2 w-5 h-5" /> Activar Sistema OpenAI
+        {/* Shopify Card */}
+        <Card className="border-none shadow-md">
+          <CardHeader className="bg-green-50 p-4">
+            <CardTitle className="text-sm flex items-center gap-2 text-green-600 font-bold uppercase tracking-wider">
+              <ShoppingBag className="w-4 h-4" /> Shopify API (Productos)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4 space-y-3">
+            <Input 
+              value={shopifyDomain} 
+              onChange={e => setShopifyDomain(e.target.value)} 
+              placeholder="tu-tienda.myshopify.com" 
+            />
+            <Input 
+              type="password" 
+              value={shopifyToken} 
+              onChange={e => setShopifyToken(e.target.value)} 
+              placeholder="Storefront Access Token" 
+            />
+          </CardContent>
+        </Card>
+      </div>
+
+      <Button onClick={handleSaveAll} className="w-full h-14 bg-primary text-lg font-bold shadow-xl rounded-2xl">
+        <Save className="mr-2" /> Guardar Todo el Pipeline
       </Button>
     </div>
   );
