@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -91,7 +90,7 @@ export default function AvatarCreationPage() {
 
     setLoading(true);
     try {
-      setLoadingStatus('Razonamiento GPT-4o analizando tu esencia...');
+      setLoadingStatus('FASE 1: Realizando análisis biométrico estricto...');
       const analysis = await analyzeStyleContext({
         facePhotoDataUri: facePhoto,
         figurePhotoDataUri: figurePhoto,
@@ -105,9 +104,9 @@ export default function AvatarCreationPage() {
       };
       setProfile(updatedProfile);
 
-      setLoadingStatus('DALL-E 3 creando tu avatar Pixar...');
+      setLoadingStatus('FASE 2: Generando avatar Pixar con fidelidad de identidad...');
       const result = await generateStylizedAvatar({
-        visualDescription: analysis.visualDescription,
+        biometricData: analysis.biometricData,
         openaiApiKey: openaiKey
       });
       
@@ -116,7 +115,7 @@ export default function AvatarCreationPage() {
       
       toast({
         title: "¡Proceso Completado!",
-        description: "Análisis y Arte por OpenAI finalizado con éxito.",
+        description: "Análisis Biométrico y Arte 3D finalizado con éxito.",
       });
     } catch (error: any) {
       console.error(error);
@@ -140,24 +139,24 @@ export default function AvatarCreationPage() {
   return (
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">
       <div className="space-y-2 text-center pt-8">
-        <h1 className="text-3xl font-headline font-bold text-primary">Esencia Estilizada</h1>
-        <p className="text-muted-foreground text-sm">OpenAI analiza tu esencia y crea tu imagen Pixar.</p>
+        <h1 className="text-3xl font-headline font-bold text-primary">Esencia Biométrica</h1>
+        <p className="text-muted-foreground text-sm">FASE 1: Análisis • FASE 2: Arte Pixar</p>
       </div>
 
       {!generatedAvatar ? (
         <div className="space-y-6 animate-in fade-in duration-500">
           <Alert className="bg-primary/5 border-primary/20">
             <Sparkles className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-primary font-bold">Pure OpenAI Architecture</AlertTitle>
+            <AlertTitle className="text-primary font-bold">Pipeline de Identidad Real</AlertTitle>
             <AlertDescription className="text-xs">
-              Sube tus fotos para que GPT-4o y DALL-E 3 trabajen juntos en tu perfil.
+              Sube tus fotos para que GPT-4o extraiga tu biometría y DALL-E 3 la renderice en 3D.
               <Link href="/settings" className="block mt-1 font-bold underline">Configurar OpenAI Key</Link>
             </AlertDescription>
           </Alert>
 
           <Card className="border-dashed border-2 bg-white/50">
                 <CardHeader className="text-center p-4">
-                    <CardTitle className="text-lg">Tus Fotos de Referencia</CardTitle>
+                    <CardTitle className="text-lg">Fotos Reales de Referencia</CardTitle>
                 </CardHeader>
                 <CardContent className="flex justify-center gap-6">
                     <div className="space-y-2 text-center">
@@ -200,14 +199,14 @@ export default function AvatarCreationPage() {
             {loading ? (
               <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> {loadingStatus}</>
             ) : (
-              <><Brain className="mr-3 h-6 w-6" /> Iniciar Análisis GPT-4o</>
+              <><Brain className="mr-3 h-6 w-6" /> Iniciar Pipeline Maestro</>
             )}
           </Button>
         </div>
       ) : (
         <div className="space-y-6 animate-in fade-in zoom-in duration-500">
           <Card className="overflow-hidden shadow-2xl bg-white ring-[12px] ring-primary/5 rounded-[2rem]">
-            <div className="relative aspect-[3/4] w-full bg-muted">
+            <div className="relative aspect-[1/1] w-full bg-muted">
               <Image 
                 src={generatedAvatar} 
                 alt="3D Avatar Pixar Style" 
@@ -217,17 +216,17 @@ export default function AvatarCreationPage() {
               />
             </div>
             <CardContent className="p-8 text-center space-y-3">
-              <CardTitle className="text-2xl text-primary font-headline font-bold">¡Tu Avatar Pixar!</CardTitle>
+              <CardTitle className="text-2xl text-primary font-headline font-bold">¡Tu Avatar de Identidad!</CardTitle>
               <div className="flex justify-center gap-2">
-                <span className="text-[10px] bg-secondary/10 text-secondary px-3 py-1 rounded-full font-bold uppercase tracking-wider">Figura: {profile.figureAnalysis}</span>
-                <span className="text-[10px] bg-primary/10 text-primary px-3 py-1 rounded-full font-bold uppercase tracking-wider">Color: {profile.colorimetryAnalysis}</span>
+                <span className="text-[10px] bg-secondary/10 text-secondary px-3 py-1 rounded-full font-bold uppercase tracking-wider">Silueta: {profile.figureAnalysis}</span>
+                <span className="text-[10px] bg-primary/10 text-primary px-3 py-1 rounded-full font-bold uppercase tracking-wider">Piel: {profile.colorimetryAnalysis}</span>
               </div>
             </CardContent>
           </Card>
           
           <div className="flex gap-4">
             <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={() => setGeneratedAvatar(null)}>
-              <RefreshCw className="mr-2 w-4 h-4" /> Nuevo Avatar
+              <RefreshCw className="mr-2 w-4 h-4" /> Re-analizar
             </Button>
             <Button className="flex-1 bg-primary font-bold shadow-md h-12 rounded-xl" onClick={handleProceed}>
               Ir al Dashboard

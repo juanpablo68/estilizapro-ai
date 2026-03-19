@@ -1,22 +1,57 @@
 'use server';
 /**
- * @fileOverview Análisis de colorimetría y figura corporal utilizando OpenAI GPT-4o.
- * Refinado para extracción técnica de rasgos faciales y físicos con precisión quirúrgica.
+ * @fileOverview FASE 1: Análisis Estructurado Biométrico utilizando OpenAI GPT-4o.
  */
 
 import { z } from 'genkit';
 import OpenAI from 'openai';
 
+const BiometricDataSchema = z.object({
+  genero: z.string(),
+  edad_aproximada: z.string(),
+  tono_piel: z.object({
+    categoria: z.string(),
+    hex_aproximado: z.string()
+  }),
+  rostro: z.object({
+    forma: z.string(),
+    ojos: z.object({
+      color: z.string(),
+      forma: z.string(),
+      tamaño: z.string()
+    }),
+    nariz: z.string(),
+    labios: z.string(),
+    cejas: z.string()
+  }),
+  cabello: z.object({
+    color: z.string(),
+    tipo: z.string(),
+    largo: z.string(),
+    peinado: z.string()
+  }),
+  cuerpo: z.object({
+    complexion: z.string(),
+    proporcion_hombros: z.string(),
+    proporcion_cintura: z.string(),
+    proporcion_cadera: z.string(),
+    altura_aproximada: z.string(),
+    postura: z.string()
+  }),
+  rasgos_distintivos: z.array(z.string()),
+  nivel_confianza: z.string()
+});
+
 const AnalyzeStyleInputSchema = z.object({
-  facePhotoDataUri: z.string().describe("Foto del rostro como data URI base64."),
-  figurePhotoDataUri: z.string().describe("Foto del cuerpo como data URI base64."),
+  facePhotoDataUri: z.string(),
+  figurePhotoDataUri: z.string(),
   openaiApiKey: z.string().optional(),
 });
 
 const AnalyzeStyleOutputSchema = z.object({
-  figureAnalysis: z.string().describe('Tipo de figura corporal identificada.'),
-  colorimetryAnalysis: z.string().describe('Paleta de colorimetría estacional.'),
-  visualDescription: z.string().describe('Descripción técnica ultra-detallada para DALL-E 3.'),
+  biometricData: BiometricDataSchema,
+  figureAnalysis: z.string(),
+  colorimetryAnalysis: z.string(),
 });
 
 export type AnalyzeStyleInput = z.infer<typeof AnalyzeStyleInputSchema>;
@@ -24,7 +59,7 @@ export type AnalyzeStyleOutput = z.infer<typeof AnalyzeStyleOutputSchema>;
 
 export async function analyzeStyleContext(input: AnalyzeStyleInput): Promise<AnalyzeStyleOutput> {
   const apiKey = input.openaiApiKey || process.env.OPENAI_API_KEY;
-  if (!apiKey) throw new Error("API Key de OpenAI requerida para el análisis maestro.");
+  if (!apiKey) throw new Error("API Key de OpenAI requerida.");
 
   const openai = new OpenAI({ apiKey });
 
@@ -33,26 +68,24 @@ export async function analyzeStyleContext(input: AnalyzeStyleInput): Promise<Ana
     messages: [
       {
         role: "system",
-        content: `Eres un experto Master Stylist e Ingeniero de Personajes para Pixar Animation Studios. 
-        Tu misión es analizar las fotos reales del usuario para crear una descripción técnica exacta para un generador de imágenes 3D.
+        content: `Actúa como un sistema de análisis biométrico experto.
+        FASE 1 — ANÁLISIS ESTRUCTURADO (OBLIGATORIO):
+        Analiza ambas imágenes (rostro y cuerpo) y extrae únicamente atributos físicos reales observables. 
+        No inventes información. No estilices. No embellezcas. 
+        Si algún atributo no es claro, márcalo como "no determinable". Mantén coherencia entre rostro y cuerpo.
         
-        PROHIBICIÓN: No uses rasgos genéricos de biblioteca. DEBES interpretar y describir ÚNICAMENTE lo que ves en las fotos.
+        Reglas críticas:
+        - No cambiar género bajo ninguna circunstancia.
+        - No asumir datos no visibles.
+        - No promediar rasgos.
+        - Precisión > estética.
         
-        DEBES EXTRAER CON PRECISIÓN ABSOLUTA:
-        1. ROSTRO: Forma exacta de ojos (almendrados, redondos, etc.), color de iris detallado, forma de nariz, volumen de labios y estructura ósea (pómulos, mandíbula).
-        2. CABELLO: Textura real (liso, ondulado, rizado), longitud exacta, peinado visible y color con matices (ej: castaño oscuro con reflejos cobrizos).
-        3. PIEL: Tono real (ej: porcelana, oliva dorado, ébano) y subtono (cálido/frío/neutro).
-        4. CUERPO: Silueta dominante, proporciones visibles de hombros, cintura y cadera.
-        
-        Devuelve un JSON con:
-        - figureAnalysis: Nombre de la silueta real.
-        - colorimetryAnalysis: Estación de color real.
-        - visualDescription: Un prompt narrativo ultra-detallado centrado en los rasgos físicos únicos extraídos de las fotos para crear un avatar 3D fiel.`
+        Devuelve el análisis en el formato JSON solicitado.`
       },
       {
         role: "user",
         content: [
-          { type: "text", text: "Analiza mi esencia física real en estas fotos para crear mi avatar 3D cinematográfico personalizado." },
+          { type: "text", text: "Realiza el análisis biométrico completo de estas fotos." },
           { type: "image_url", image_url: { url: input.facePhotoDataUri } },
           { type: "image_url", image_url: { url: input.figurePhotoDataUri } }
         ],
@@ -64,8 +97,8 @@ export async function analyzeStyleContext(input: AnalyzeStyleInput): Promise<Ana
   const content = JSON.parse(response.choices[0].message.content || "{}");
   
   return {
-    figureAnalysis: content.figureAnalysis || "No identificada",
-    colorimetryAnalysis: content.colorimetryAnalysis || "No identificada",
-    visualDescription: content.visualDescription || "Persona con rasgos únicos"
+    biometricData: content as z.infer<typeof BiometricDataSchema>,
+    figureAnalysis: content.cuerpo?.complexion || "No identificada",
+    colorimetryAnalysis: content.tono_piel?.categoria || "No identificada"
   };
 }
