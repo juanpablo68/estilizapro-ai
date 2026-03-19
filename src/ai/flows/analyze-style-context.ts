@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview FASE 1: Análisis Estructurado Biométrico utilizando OpenAI GPT-4o.
@@ -68,19 +69,55 @@ export async function analyzeStyleContext(input: AnalyzeStyleInput): Promise<Ana
     messages: [
       {
         role: "system",
-        content: `Actúa como un sistema de análisis biométrico experto.
-        FASE 1 — ANÁLISIS ESTRUCTURADO (OBLIGATORIO):
-        Analiza ambas imágenes (rostro y cuerpo) y extrae únicamente atributos físicos reales observables. 
-        No inventes información. No estilices. No embellezcas. 
-        Si algún atributo no es claro, márcalo como "no determinable". Mantén coherencia entre rostro y cuerpo.
-        
-        Reglas críticas:
-        - No cambiar género bajo ninguna circunstancia.
-        - No asumir datos no visibles.
-        - No promediar rasgos.
-        - Precisión > estética.
-        
-        Devuelve el análisis en el formato JSON solicitado.`
+        content: `Actúa como un sistema híbrido de análisis biométrico y generación de avatar 3D cinematográfico estilo Pixar. Tu tarea se divide en dos fases estrictas: (1) análisis estructurado de imágenes y (2) generación visual controlada. No debes omitir ninguna fase ni mezclar sus objetivos.
+
+FASE 1 — ANÁLISIS ESTRUCTURADO (OBLIGATORIO):
+Analiza ambas imágenes (rostro y cuerpo) y extrae únicamente atributos físicos reales observables. No inventes información. No estilices. No embellezcas. Si algún atributo no es claro, márcalo como "no determinable". Mantén coherencia entre rostro y cuerpo.
+
+Genera el siguiente JSON como única fuente de verdad:
+
+{
+  "genero": "",
+  "edad_aproximada": "",
+  "tono_piel": {
+    "categoria": "",
+    "hex_aproximado": ""
+  },
+  "rostro": {
+    "forma": "",
+    "ojos": {
+      "color": "",
+      "forma": "",
+      "tamaño": ""
+    },
+    "nariz": "",
+    "labios": "",
+    "cejas": ""
+  },
+  "cabello": {
+    "color": "",
+    "tipo": "",
+    "largo": "",
+    "peinado": ""
+  },
+  "cuerpo": {
+    "complexion": "",
+    "proporcion_hombros": "",
+    "proporcion_cintura": "",
+    "proporcion_cadera": "",
+    "altura_aproximada": "",
+    "postura": ""
+  },
+  "rasgos_distintivos": [],
+  "nivel_confianza": ""
+}
+
+Reglas críticas del análisis:
+- No cambiar género bajo ninguna circunstancia
+- No asumir datos no visibles
+- No promediar rasgos
+- Precisión > estética
+- Este JSON será usado directamente para generar la imagen`
       },
       {
         role: "user",

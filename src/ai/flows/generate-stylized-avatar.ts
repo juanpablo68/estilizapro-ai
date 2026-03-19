@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview FASE 2: Generación de Avatar 3D Pixar de alta fidelidad utilizando DALL-E 3.
@@ -34,7 +35,21 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     if (!apiKey) throw new Error("API Key de OpenAI requerida.");
 
     const openai = new OpenAI({ apiKey });
-    const bio = input.biometricData;
+    const bio = input.biometricData || {};
+
+    // Función de ayuda para evitar errores de 'undefined' durante la construcción del prompt
+    const g = (path: string, defaultValue = 'no especificado') => {
+      const parts = path.split('.');
+      let current: any = bio;
+      for (const part of parts) {
+        if (current && typeof current === 'object' && part in current) {
+          current = current[part];
+        } else {
+          return defaultValue;
+        }
+      }
+      return current || defaultValue;
+    };
 
     // Construcción del prompt maestro basado en el análisis de FASE 1
     const finalPrompt = `
@@ -44,10 +59,10 @@ const generateStylizedAvatarFlow = ai.defineFlow(
       REGLAS CRÍTICAS DE GENERACIÓN:
       - Usa el JSON anterior como ÚNICA fuente de verdad.
       - No usar caras genéricas ni de datasets. No mezclar identidades.
-      - Género: ${bio.genero}. Tono de piel EXACTO: ${bio.tono_piel.categoria} (${bio.tono_piel.hex_aproximado}).
-      - Rostro: ${bio.rostro.forma}, ojos ${bio.rostro.ojos.color} (${bio.rostro.ojos.forma}), nariz ${bio.rostro.nariz}, labios ${bio.rostro.labios}.
-      - Cabello: ${bio.cabello.color}, ${bio.cabello.tipo}, peinado ${bio.cabello.peinado}.
-      - Cuerpo: ${bio.cuerpo.complexion}, hombros ${bio.cuerpo.proporcion_hombros}, cintura ${bio.cuerpo.proporcion_cintura}.
+      - Género: ${g('genero')}. Tono de piel EXACTO: ${g('tono_piel.categoria')} (${g('tono_piel.hex_aproximado')}).
+      - Rostro: ${g('rostro.forma')}, ojos ${g('rostro.ojos.color')} (${g('rostro.ojos.forma')}), nariz ${g('rostro.nariz')}, labios ${g('rostro.labios')}.
+      - Cabello: ${g('cabello.color')}, ${g('cabello.tipo')}, peinado ${g('cabello.peinado')}.
+      - Cuerpo: ${g('cuerpo.complexion')}, hombros ${g('cuerpo.proporcion_hombros')}, cintura ${g('cuerpo.proporcion_cintura')}.
       
       ESTILO VISUAL:
       - Personaje 3D estilo Pixar de alta calidad, render cinematográfico profesional.
