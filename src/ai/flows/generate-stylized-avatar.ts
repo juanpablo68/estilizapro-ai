@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Generación de Avatar Pixar de alta fidelidad utilizando DALL-E 3.
- * Optimizado para realismo cinematográfico 3D y rasgos específicos.
+ * Optimizado para realismo cinematográfico 3D y fidelidad a los rasgos reales analizados.
  */
 
 import { ai } from '@/ai/genkit';
@@ -39,14 +39,14 @@ const generateStylizedAvatarFlow = ai.defineFlow(
 
     const openai = new OpenAI({ apiKey });
 
-    // Prompt optimizado para realismo 3D Disney/Pixar moderno
-    const finalPrompt = `A stunning, high-quality 3D animated character in the modern Disney/Pixar "Turning Red" or "Luca" style. 
-    CHARACTER FEATURES: ${input.visualDescription}. 
-    ARTISTIC STYLE: Ultra-detailed 3D render, subsurface scattering on skin, incredibly realistic eye reflections, individual hair strand rendering, vibrant cinematic colors. 
-    COMPOSITION: Full body shot, character in a neutral but confident fashion pose. 
-    LIGHTING: Professional studio lighting with rim light to pop from background. 
-    BACKGROUND: PURE SOLID WHITE. 
-    Masterpiece, 8k resolution, trendy fashion aesthetic.`;
+    // Prompt optimizado para realismo 3D cinematográfico Pixar
+    const finalPrompt = `A stunning, high-fidelity 3D animated character in the modern Disney/Pixar cinematic style (like "Turning Red" or "Inside Out 2"). 
+    CHARACTER FEATURES (BASED ONLY ON REFERENCE): ${input.visualDescription}. 
+    ARTISTIC DIRECTION: Professional 3D render, realistic skin subsurface scattering, incredibly expressive and detailed eye reflections, individual hair strand simulation, vibrant but natural cinematic colors. 
+    COMPOSITION: Medium-full body shot, confident and fashionable pose. 
+    LIGHTING: Three-point studio lighting with a soft rim light for depth. 
+    ENVIRONMENT: Solid minimalist light grey background. 
+    QUALITY: 8k resolution, photorealistic textures for fabric and skin, masterpiece fashion aesthetic.`;
 
     const response = await openai.images.generate({
       model: "dall-e-3",

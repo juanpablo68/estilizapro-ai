@@ -1,10 +1,9 @@
 'use server';
 /**
  * @fileOverview Análisis de colorimetría y figura corporal utilizando OpenAI GPT-4o.
- * Se ha refinado para extraer rasgos faciales específicos (ojos, cabello, piel).
+ * Refinado para extracción técnica de rasgos faciales y físicos con precisión quirúrgica.
  */
 
-import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import OpenAI from 'openai';
 
@@ -34,24 +33,26 @@ export async function analyzeStyleContext(input: AnalyzeStyleInput): Promise<Ana
     messages: [
       {
         role: "system",
-        content: `Eres un experto Master Stylist e Ingeniero de Prompts para Pixar. 
-        Tu misión es analizar las fotos del usuario para crear una descripción técnica perfecta para un generador de imágenes 3D.
+        content: `Eres un experto Master Stylist e Ingeniero de Personajes para Pixar Animation Studios. 
+        Tu misión es analizar las fotos reales del usuario para crear una descripción técnica exacta para un generador de imágenes 3D.
         
-        DEBES EXTRAER CON PRECISIÓN:
-        1. ROSTRO: Forma de ojos y color exacto (iris), forma de nariz, labios y estructura ósea.
-        2. CABELLO: Textura (liso, rizado), longitud, corte y color exacto con matices.
-        3. PIEL: Tono exacto (ej: marfil, oliva, canela) y subtono (cálido/frío).
-        4. CUERPO: Proporciones reales, altura aparente y silueta dominante.
+        PROHIBICIÓN: No uses rasgos genéricos de biblioteca. DEBES interpretar y describir ÚNICAMENTE lo que ves en las fotos.
+        
+        DEBES EXTRAER CON PRECISIÓN ABSOLUTA:
+        1. ROSTRO: Forma exacta de ojos (almendrados, redondos, etc.), color de iris detallado, forma de nariz, volumen de labios y estructura ósea (pómulos, mandíbula).
+        2. CABELLO: Textura real (liso, ondulado, rizado), longitud exacta, peinado visible y color con matices (ej: castaño oscuro con reflejos cobrizos).
+        3. PIEL: Tono real (ej: porcelana, oliva dorado, ébano) y subtono (cálido/frío/neutro).
+        4. CUERPO: Silueta dominante, proporciones visibles de hombros, cintura y cadera.
         
         Devuelve un JSON con:
-        - figureAnalysis: Nombre de la silueta (ej: Reloj de Arena).
-        - colorimetryAnalysis: Estación de color (ej: Verano Suave).
-        - visualDescription: Un prompt narrativo detallado que describa al personaje en estilo Pixar 3D, mencionando todos los rasgos faciales y físicos extraídos.`
+        - figureAnalysis: Nombre de la silueta real.
+        - colorimetryAnalysis: Estación de color real.
+        - visualDescription: Un prompt narrativo ultra-detallado centrado en los rasgos físicos únicos extraídos de las fotos para crear un avatar 3D fiel.`
       },
       {
         role: "user",
         content: [
-          { type: "text", text: "Analiza mi esencia física para crear mi avatar 3D cinematográfico." },
+          { type: "text", text: "Analiza mi esencia física real en estas fotos para crear mi avatar 3D cinematográfico personalizado." },
           { type: "image_url", image_url: { url: input.facePhotoDataUri } },
           { type: "image_url", image_url: { url: input.figurePhotoDataUri } }
         ],
@@ -65,6 +66,6 @@ export async function analyzeStyleContext(input: AnalyzeStyleInput): Promise<Ana
   return {
     figureAnalysis: content.figureAnalysis || "No identificada",
     colorimetryAnalysis: content.colorimetryAnalysis || "No identificada",
-    visualDescription: content.visualDescription || "Persona con estilo elegante"
+    visualDescription: content.visualDescription || "Persona con rasgos únicos"
   };
 }
