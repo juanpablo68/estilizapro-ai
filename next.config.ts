@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   serverActions: {
+    // Límite ampliado a 20MB para permitir la transferencia de imágenes generadas por IA y fotos de alta resolución
     bodySizeLimit: '20mb',
   },
   images: {
