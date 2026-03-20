@@ -33,7 +33,8 @@ export default function CapsulesPage() {
     weather: 'Templado'
   });
 
-  // Lógica de límites: Base 10 + 6 por cada cápsula adicional comprada
+  // Lógica de límites recurrente: Base 10 + 6 por cada cápsula adicional comprada
+  // purchasedCapsulesCount inicia en 1 (perfil inicial)
   const MAX_OUTFITS = 10 + ((profile.purchasedCapsulesCount || 1) - 1) * 6;
   const isLimitReached = savedCapsules.length >= MAX_OUTFITS;
 
@@ -80,13 +81,18 @@ export default function CapsulesPage() {
       });
       
       if (result.capsules.length > 0) {
+        // Solo añadimos los que quepan hasta el límite actual
         const availableSlots = MAX_OUTFITS - savedCapsules.length;
-        const toAdd = result.capsules.slice(0, availableSlots);
+        const toAdd = result.capsules.slice(0, Math.min(availableSlots, result.capsules.length));
         
-        const newCapsules = [...toAdd, ...savedCapsules];
-        setSavedCapsules(newCapsules);
-        setSelectedCapsuleId(toAdd[0].id);
-        toast({ title: "¡Nuevos Outfits!", description: `Se han generado ${toAdd.length} propuestas únicas.` });
+        if (toAdd.length > 0) {
+          const newCapsules = [...toAdd, ...savedCapsules];
+          setSavedCapsules(newCapsules);
+          setSelectedCapsuleId(toAdd[0].id);
+          toast({ title: "¡Nuevos Outfits!", description: `Se han generado ${toAdd.length} propuestas únicas.` });
+        } else {
+          toast({ variant: "destructive", title: "Límite alcanzado", description: "No hay espacio para más outfits." });
+        }
       }
     } catch (err: any) {
       toast({ variant: "destructive", title: "Error en Generación", description: err.message });
