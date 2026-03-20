@@ -16,8 +16,10 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useRouter } from 'next/navigation';
 
 export default function CapsulesPage() {
+  const router = useRouter();
   const [profile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
   const [wardrobe] = useLocalStorage<LocalWardrobeItem[]>('estiliza_wardrobe', []);
   const [savedCapsules, setSavedCapsules] = useLocalStorage<Capsule[]>('estiliza_saved_capsules', []);
@@ -32,7 +34,6 @@ export default function CapsulesPage() {
   });
 
   // Lógica de límites: Base 10 + 6 por cada cápsula adicional comprada
-  // El perfil inicial tiene purchasedCapsulesCount = 1 (base), por lo que restamos 1.
   const MAX_OUTFITS = 10 + ((profile.purchasedCapsulesCount || 1) - 1) * 6;
   const isLimitReached = savedCapsules.length >= MAX_OUTFITS;
 
@@ -45,11 +46,7 @@ export default function CapsulesPage() {
 
   const generateCapsules = async () => {
     if (isLimitReached) {
-      toast({ 
-        variant: "destructive", 
-        title: "Límite alcanzado", 
-        description: "Llegaste a tu límite de generaciones del mes. Solicita una Cápsula Adicional." 
-      });
+      router.push('/purchase');
       return;
     }
 
@@ -83,7 +80,6 @@ export default function CapsulesPage() {
       });
       
       if (result.capsules.length > 0) {
-        // Calcular cuántos outfits podemos añadir realmente antes de llegar al límite
         const availableSlots = MAX_OUTFITS - savedCapsules.length;
         const toAdd = result.capsules.slice(0, availableSlots);
         
@@ -184,11 +180,17 @@ export default function CapsulesPage() {
             )}
           >
             {loading ? (
-              <><Loader2 className="mr-3 animate-spin" /> GPT-4o analizando tu armario...</>
+              <span className="flex items-center justify-center">
+                <Loader2 className="mr-3 animate-spin" /> GPT-4o analizando tu armario...
+              </span>
             ) : isLimitReached ? (
-              <><Link href="/purchase" className="flex items-center"><ShoppingCart className="mr-3 w-5 h-5" /> Adquiere Capsula Adicional para generar</></Link>
+              <span className="flex items-center justify-center">
+                <ShoppingCart className="mr-3 w-5 h-5" /> Adquiere Capsula Adicional para generar
+              </span>
             ) : (
-              <><Sparkles className="mr-3" /> Generar 2 Outfit</>
+              <span className="flex items-center justify-center">
+                <Sparkles className="mr-3" /> Generar 2 Outfit
+              </span>
             )}
           </Button>
         </CardContent>
