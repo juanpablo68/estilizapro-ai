@@ -34,7 +34,7 @@ export default function CapsulesPage() {
   });
 
   // Lógica de límites recurrente: Base 10 + 6 por cada cápsula adicional comprada
-  // Usamos Number() para asegurar precisión matemática total
+  // Usamos Number() para asegurar precisión matemática total y evitar el error 16/82
   const purchases = Number(profile.purchasedCapsulesCount || 1);
   const MAX_OUTFITS = 10 + (purchases - 1) * 6;
   const isLimitReached = savedCapsules.length >= MAX_OUTFITS;
@@ -179,7 +179,7 @@ export default function CapsulesPage() {
             </div>
           </div>
           <Button 
-            onClick={generateCapsules} 
+            onClick={isLimitReached ? () => router.push('/purchase') : generateCapsules} 
             disabled={loading} 
             className={cn(
               "w-full h-14 text-white font-bold rounded-2xl shadow-lg text-lg transition-all",

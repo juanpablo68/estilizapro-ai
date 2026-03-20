@@ -29,9 +29,11 @@ export default function PaymentPage() {
     setProcessing(true);
     // Simulación de procesamiento de pago
     setTimeout(() => {
+      // Aseguramos que el incremento sea numérico
+      const currentPurchases = Number(profile.purchasedCapsulesCount || 1);
       setProfile({ 
         ...profile, 
-        purchasedCapsulesCount: (profile.purchasedCapsulesCount || 1) + 1 
+        purchasedCapsulesCount: currentPurchases + 1 
       });
       setProcessing(false);
       setCompleted(true);
