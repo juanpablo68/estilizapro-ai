@@ -31,9 +31,16 @@ export default function PaymentPage() {
       setProcessing(false);
       setCompleted(true);
       
+      // Actualizar el perfil con la nueva cápsula
+      const currentPurchased = profile.purchasedCapsules || 0;
+      setProfile({
+        ...profile,
+        purchasedCapsules: currentPurchased + 1
+      });
+
       toast({
         title: "¡Pago Confirmado!",
-        description: "Gracias por apoyar el desarrollo de EstilizaPro AI.",
+        description: "Gracias por apoyar el desarrollo de EstilizaPro AI. Ahora tienes 6 outfits adicionales.",
       });
 
       setTimeout(() => {
@@ -71,7 +78,7 @@ export default function PaymentPage() {
                <ShieldCheck className="w-6 h-6 text-primary" />
             </div>
             <div className="flex justify-between items-end border-b border-primary/10 pb-4">
-              <span className="text-sm font-medium text-muted-foreground">Cápsula Adicional AI</span>
+              <span className="text-sm font-medium text-muted-foreground">Cápsula Adicional AI (+6 Outfits)</span>
               <span className="text-2xl font-black text-primary">$3.00 USD</span>
             </div>
           </CardHeader>

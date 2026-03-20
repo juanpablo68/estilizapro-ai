@@ -33,8 +33,9 @@ export default function CapsulesPage() {
     weather: 'Templado'
   });
 
-  // Regla de negocio: Límite de 10 outfits
-  const MAX_OUTFITS = 10;
+  // Lógica de límites: 10 base + 6 por cada cápsula comprada
+  const purchasedCount = profile.purchasedCapsules || 0;
+  const MAX_OUTFITS = 10 + (purchasedCount * 6);
   const isLimitReached = savedCapsules.length >= MAX_OUTFITS;
 
   useEffect(() => {
@@ -131,7 +132,7 @@ export default function CapsulesPage() {
           <Info className="h-4 w-4 text-orange-600" />
           <AlertTitle className="font-bold">Límite de Outfits Alcanzado</AlertTitle>
           <AlertDescription className="text-xs leading-relaxed">
-            Llegaste a tu límite de generaciones del mes (10 outfits). Solicita una Cápsula Adicional para continuar siendo la envidia de tus amigos y familiares por el buen vestir.
+            Llegaste a tu límite de generaciones del mes ({MAX_OUTFITS} outfits). Solicita una Cápsula Adicional para continuar siendo la envidia de tus amigos y familiares por el buen vestir.
             <Link href="/purchase" className="block mt-2 font-black underline flex items-center gap-1">
               <ShoppingCart className="w-3 h-3" /> Adquirir Cápsula Adicional →
             </Link>

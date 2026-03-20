@@ -54,6 +54,7 @@ export interface UserProfile {
   avatarDataUri?: string;
   onboardingComplete: boolean;
   passcode: string;
+  purchasedCapsules?: number;
 }
 
 export const INITIAL_USER_PROFILE: UserProfile = {
@@ -69,4 +70,5 @@ export const INITIAL_USER_PROFILE: UserProfile = {
   knowledgeBase: '',
   onboardingComplete: false,
   passcode: '1,2,3,4',
+  purchasedCapsules: 0,
 };
