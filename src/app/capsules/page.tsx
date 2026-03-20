@@ -7,18 +7,21 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, ArrowLeft, Sparkles, MapPin, CloudSun, Pin, FolderHeart, AlertCircle } from "lucide-react";
+import { Loader2, ArrowLeft, Sparkles, MapPin, CloudSun, Pin, FolderHeart, Trash2, Calendar, LayoutGrid } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
 import { useToast } from "@/hooks/use-toast";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { cn } from '@/lib/utils';
 
 export default function CapsulesPage() {
   const [profile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
   const [wardrobe] = useLocalStorage<LocalWardrobeItem[]>('estiliza_wardrobe', []);
+  const [savedCapsules, setSavedCapsules] = useLocalStorage<Capsule[]>('estiliza_saved_capsules', []);
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [capsules, setCapsules] = useState<Capsule[]>([]);
+  const [selectedCapsuleId, setSelectedCapsuleId] = useState<string | null>(null);
   const { toast } = useToast();
   
   const [params, setParams] = useState({
@@ -28,7 +31,10 @@ export default function CapsulesPage() {
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (savedCapsules.length > 0 && !selectedCapsuleId) {
+      setSelectedCapsuleId(savedCapsules[0].id);
+    }
+  }, [savedCapsules, selectedCapsuleId]);
 
   const generateCapsules = async () => {
     const openaiKey = localStorage.getItem('openai_api_key');
@@ -37,11 +43,11 @@ export default function CapsulesPage() {
       return;
     }
 
-    if (wardrobe.length === 0) {
+    if (wardrobe.length < 3) {
       toast({ 
         variant: "destructive", 
-        title: "Armario Vacío", 
-        description: "Sube fotos de tu ropa para que la IA pueda crear tus cápsulas." 
+        title: "Armario Insuficiente", 
+        description: "Sube al menos 3 o 4 fotos de tu ropa para que la IA pueda crear combinaciones variadas." 
       });
       return;
     }
@@ -60,14 +66,30 @@ export default function CapsulesPage() {
         pinterestToken: localStorage.getItem('pinterest_token') || undefined,
       });
       
-      setCapsules(result.capsules);
-      toast({ title: "¡Cápsulas Personalizadas!", description: "GPT-4o ha combinado tus prendas reales con inspiración visual." });
+      if (result.capsules.length > 0) {
+        const newCapsules = [...result.capsules, ...savedCapsules].slice(0, 20); // Guardar últimas 20
+        setSavedCapsules(newCapsules);
+        setSelectedCapsuleId(result.capsules[0].id);
+        toast({ title: "¡Nuevas Cápsulas!", description: "Se han generado 2 opciones únicas basadas en tu armario." });
+      }
     } catch (err: any) {
       toast({ variant: "destructive", title: "Error en Generación", description: err.message });
     } finally {
       setLoading(false);
     }
   };
+
+  const deleteCapsule = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const filtered = savedCapsules.filter(c => c.id !== id);
+    setSavedCapsules(filtered);
+    if (selectedCapsuleId === id) {
+      setSelectedCapsuleId(filtered.length > 0 ? filtered[0].id : null);
+    }
+    toast({ title: "Cápsula eliminada" });
+  };
+
+  const currentCapsule = savedCapsules.find(c => c.id === selectedCapsuleId);
 
   const getItemImage = (item: CapsuleItem) => {
     if (item.source === 'wardrobe' && item.wardrobeItemId) {
@@ -80,17 +102,18 @@ export default function CapsulesPage() {
   if (!mounted) return null;
 
   return (
-    <div className="flex-1 max-w-4xl mx-auto w-full p-6 space-y-6 pb-20">
+    <div className="flex-1 max-w-5xl mx-auto w-full p-6 space-y-6 pb-20">
       <header className="flex items-center gap-4 pt-4">
         <Link href="/dashboard">
           <Button variant="ghost" size="icon" className="rounded-full"><ArrowLeft /></Button>
         </Link>
         <div>
           <h1 className="text-2xl font-headline font-bold">Capsulizador AI</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Priorizando tu Armario Real</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Máxima Variedad • Mínima Repetición</p>
         </div>
       </header>
 
+      {/* Selector de Parámetros */}
       <Card className="border-none shadow-xl bg-white/80 backdrop-blur-sm rounded-[2rem]">
         <CardContent className="p-8 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -121,55 +144,105 @@ export default function CapsulesPage() {
             </div>
           </div>
           <Button onClick={generateCapsules} disabled={loading} className="w-full bg-primary h-14 text-white font-bold rounded-2xl shadow-lg text-lg">
-            {loading ? <><Loader2 className="mr-3 animate-spin" /> GPT-4o escaneando tu armario...</> : <><Sparkles className="mr-3" /> Generar Look con mis Prendas</>}
+            {loading ? <><Loader2 className="mr-3 animate-spin" /> GPT-4o escaneando combinaciones...</> : <><Sparkles className="mr-3" /> Generar 2 Propuestas</>}
           </Button>
         </CardContent>
       </Card>
 
-      {capsules.length === 0 && !loading && (
-        <div className="flex flex-col items-center justify-center py-20 text-center opacity-40">
-           <AlertCircle className="w-12 h-12 mb-4" />
-           <p className="text-sm font-medium">Configura el evento y pulsa Generar</p>
+      {/* Carrusel de Historial */}
+      {savedCapsules.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between px-2">
+             <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2"><LayoutGrid className="w-4 h-4 text-primary" /> Mis Cápsulas</h3>
+             <span className="text-[10px] font-bold text-muted-foreground">{savedCapsules.length} guardadas</span>
+          </div>
+          <ScrollArea className="w-full whitespace-nowrap pb-4">
+            <div className="flex space-x-4">
+              {savedCapsules.map((capsule) => (
+                <div 
+                  key={capsule.id} 
+                  onClick={() => setSelectedCapsuleId(capsule.id)}
+                  className={cn(
+                    "relative group w-48 shrink-0 cursor-pointer transition-all duration-300",
+                    selectedCapsuleId === capsule.id ? "scale-100" : "scale-95 opacity-70"
+                  )}
+                >
+                  <Card className={cn(
+                    "overflow-hidden border-2 rounded-2xl",
+                    selectedCapsuleId === capsule.id ? "border-primary shadow-lg ring-4 ring-primary/5" : "border-transparent shadow-sm"
+                  )}>
+                    <div className="relative aspect-[4/3] bg-muted">
+                       {/* Miniatura compuesta */}
+                       <div className="grid grid-cols-2 h-full">
+                          {capsule.items.slice(0, 2).map((item, idx) => (
+                             <div key={idx} className="relative w-full h-full">
+                                <Image src={getItemImage(item)} alt="" fill className="object-cover" unoptimized />
+                             </div>
+                          ))}
+                       </div>
+                       <Button 
+                          variant="destructive" 
+                          size="icon" 
+                          className="absolute top-1 right-1 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-20"
+                          onClick={(e) => deleteCapsule(capsule.id, e)}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                        <div className="absolute bottom-0 inset-x-0 bg-black/60 p-2 text-white">
+                          <p className="text-[9px] font-black truncate uppercase">{capsule.name}</p>
+                          <p className="text-[7px] flex items-center gap-1 opacity-80"><Calendar className="w-2 h-2" /> {new Date(capsule.date).toLocaleDateString()}</p>
+                        </div>
+                    </div>
+                  </Card>
+                </div>
+              ))}
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
         </div>
       )}
 
-      <div className="space-y-12 mt-8">
-        {capsules.map((capsule, idx) => (
-          <div key={idx} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center gap-4">
-              <div className="h-10 w-1.5 bg-primary rounded-full" />
-              <div>
-                <h2 className="text-2xl font-headline font-bold">{capsule.name}</h2>
-                <p className="text-xs text-muted-foreground">{capsule.description}</p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {capsule.items.map((item, itemIdx) => (
-                <Card key={itemIdx} className="overflow-hidden border-none shadow-md relative group rounded-2xl bg-white">
-                  <div className="absolute top-2 left-2 z-10">
-                    {item.source === 'wardrobe' ? (
-                      <div className="text-[8px] font-black text-white px-2 py-1 rounded-full flex items-center shadow-md bg-green-500 gap-1"><FolderHeart className="w-2.5 h-2.5" /> Mi Armario</div>
-                    ) : (
-                      <div className="text-[8px] font-black text-white px-2 py-1 rounded-full flex items-center shadow-md bg-red-500 gap-1"><Pin className="w-2.5 h-2.5" /> Sugerencia</div>
-                    )}
-                  </div>
-                  <div className="relative aspect-[3/4]">
-                    <Image src={getItemImage(item)} alt={item.name || "Prenda de vestir"} fill className="object-cover" unoptimized />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity p-3 flex items-end">
-                      <p className="text-[9px] text-white font-medium leading-tight">{item.styleHint}</p>
-                    </div>
-                  </div>
-                  <CardContent className="p-3">
-                    <p className="font-bold text-[11px] truncate uppercase">{item.name || "Sin nombre"}</p>
-                    <p className="text-[9px] text-muted-foreground mt-0.5">{item.type}</p>
-                  </CardContent>
-                </Card>
-              ))}
+      {/* Detalle de la Cápsula Seleccionada */}
+      {currentCapsule ? (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="flex items-center gap-4 bg-white p-6 rounded-3xl shadow-md border border-primary/10">
+            <div className="h-12 w-2 bg-primary rounded-full" />
+            <div className="flex-1">
+              <h2 className="text-2xl font-headline font-bold">{currentCapsule.name}</h2>
+              <p className="text-xs text-muted-foreground">{currentCapsule.description}</p>
             </div>
           </div>
-        ))}
-      </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {currentCapsule.items.map((item, itemIdx) => (
+              <Card key={itemIdx} className="overflow-hidden border-none shadow-md relative group rounded-2xl bg-white transition-transform hover:scale-[1.02]">
+                <div className="absolute top-2 left-2 z-10">
+                  {item.source === 'wardrobe' ? (
+                    <div className="text-[8px] font-black text-white px-2 py-1 rounded-full flex items-center shadow-md bg-green-500 gap-1"><FolderHeart className="w-2.5 h-2.5" /> Mi Armario</div>
+                  ) : (
+                    <div className="text-[8px] font-black text-white px-2 py-1 rounded-full flex items-center shadow-md bg-red-500 gap-1"><Pin className="w-2.5 h-2.5" /> Sugerencia</div>
+                  )}
+                </div>
+                <div className="relative aspect-[3/4]">
+                  <Image src={getItemImage(item)} alt={item.name || "Prenda"} fill className="object-cover" unoptimized />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity p-4 flex flex-col justify-end">
+                    <p className="text-[10px] text-white font-bold leading-tight bg-primary/80 p-2 rounded-lg">{item.styleHint}</p>
+                  </div>
+                </div>
+                <CardContent className="p-3">
+                  <p className="font-bold text-[11px] truncate uppercase">{item.name || "Sin nombre"}</p>
+                  <p className="text-[9px] text-muted-foreground mt-0.5 font-black uppercase tracking-tighter text-primary/70">{item.type}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      ) : !loading && (
+        <div className="flex flex-col items-center justify-center py-20 text-center opacity-30 grayscale">
+           <Sparkles className="w-16 h-16 mb-4 text-primary" />
+           <p className="text-sm font-black uppercase tracking-widest">Genera tu primera cápsula maestra</p>
+        </div>
+      )}
     </div>
   );
 }
