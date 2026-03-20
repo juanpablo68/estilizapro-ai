@@ -31,6 +31,8 @@ const CapsuleSchema = z.object({
   name: z.string(),
   description: z.string(),
   date: z.string(),
+  eventType: z.string(),
+  weatherConditions: z.string(),
   items: z.array(z.object({
     name: z.string(),
     type: z.enum(['top', 'bottom', 'dress', 'outerwear', 'shoe', 'accessory']),
@@ -98,7 +100,12 @@ Responde ÚNICAMENTE con un JSON válido con la propiedad "capsules" que sea un 
     const content = JSON.parse(responseText);
     const date = new Date().toISOString();
     return {
-      capsules: (content.capsules || []).map((c: any) => ({ ...c, date }))
+      capsules: (content.capsules || []).map((c: any) => ({ 
+        ...c, 
+        date,
+        eventType: input.eventType,
+        weatherConditions: input.weatherConditions
+      }))
     };
   } catch (e) {
     console.error("Error parsing AI response", e);

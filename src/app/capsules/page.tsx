@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -211,7 +210,7 @@ export default function CapsulesPage() {
                   key={capsule.id} 
                   onClick={() => setSelectedCapsuleId(capsule.id)}
                   className={cn(
-                    "relative group w-48 shrink-0 cursor-pointer transition-all duration-300",
+                    "relative group w-52 shrink-0 cursor-pointer transition-all duration-300",
                     selectedCapsuleId === capsule.id ? "scale-100" : "scale-95 opacity-70"
                   )}
                 >
@@ -237,7 +236,10 @@ export default function CapsulesPage() {
                         </Button>
                         <div className="absolute bottom-0 inset-x-0 bg-black/60 p-2 text-white">
                           <p className="text-[9px] font-black truncate uppercase">{capsule.name}</p>
-                          <p className="text-[7px] flex items-center gap-1 opacity-80"><Calendar className="w-2 h-2" /> {new Date(capsule.date).toLocaleDateString()}</p>
+                          <p className="text-[7px] flex items-center gap-1 opacity-90 truncate font-bold">
+                            <MapPin className="w-2.5 h-2.5" /> {capsule.eventType || 'Evento'} • <CloudSun className="w-2.5 h-2.5" /> {capsule.weatherConditions || 'Clima'}
+                          </p>
+                          <p className="text-[6px] flex items-center gap-1 opacity-60"><Calendar className="w-2 h-2" /> {new Date(capsule.date).toLocaleDateString()}</p>
                         </div>
                     </div>
                   </Card>
@@ -256,6 +258,10 @@ export default function CapsulesPage() {
             <div className="flex-1">
               <h2 className="text-2xl font-headline font-bold">{currentCapsule.name}</h2>
               <p className="text-xs text-muted-foreground">{currentCapsule.description}</p>
+              <div className="flex gap-2 mt-2">
+                <span className="text-[8px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-black uppercase">{currentCapsule.eventType}</span>
+                <span className="text-[8px] bg-secondary/10 text-secondary px-2 py-0.5 rounded-full font-black uppercase">{currentCapsule.weatherConditions}</span>
+              </div>
             </div>
           </div>
           
