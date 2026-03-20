@@ -29,12 +29,15 @@ export default function PaymentPage() {
     setProcessing(true);
     // Simulación de procesamiento de pago
     setTimeout(() => {
-      // Aseguramos que el incremento sea numérico
-      const currentPurchases = Number(profile.purchasedCapsulesCount || 1);
+      // Incremento estrictamente numérico de +1 por cada cápsula adquirida
+      const currentPurchases = Math.max(1, Number(profile.purchasedCapsulesCount) || 1);
+      const nextPurchaseLevel = currentPurchases + 1;
+      
       setProfile({ 
         ...profile, 
-        purchasedCapsulesCount: currentPurchases + 1 
+        purchasedCapsulesCount: nextPurchaseLevel 
       });
+      
       setProcessing(false);
       setCompleted(true);
       

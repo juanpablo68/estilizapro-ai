@@ -33,7 +33,7 @@ export default function CapsulesPage() {
     weather: 'Templado'
   });
 
-  // Lógica de límites REVISADA: 10 base + 6 por cada cápsula comprada.
+  // Lógica de límites ESTRICTA: 10 base + 6 por cada compra adicional.
   // purchasedCapsulesCount inicia en 1 (nivel base).
   const purchasedCount = Math.max(1, Number(profile.purchasedCapsulesCount) || 1);
   const MAX_OUTFITS = 10 + (purchasedCount - 1) * 6;
@@ -82,7 +82,7 @@ export default function CapsulesPage() {
       });
       
       if (result.capsules.length > 0) {
-        // Solo añadimos los que quepan hasta el límite actual
+        // Solo añadimos los que quepan hasta el límite actual (MAX_OUTFITS)
         const availableSlots = Math.max(0, MAX_OUTFITS - savedCapsules.length);
         const toAdd = result.capsules.slice(0, Math.min(availableSlots, result.capsules.length));
         
