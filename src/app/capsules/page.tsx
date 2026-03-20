@@ -7,13 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, ArrowLeft, Sparkles, MapPin, CloudSun, Pin, FolderHeart, Trash2, Calendar, LayoutGrid } from "lucide-react";
+import { Loader2, ArrowLeft, Sparkles, MapPin, CloudSun, Pin, FolderHeart, Trash2, Calendar, LayoutGrid, Info, ShoppingCart } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
 import { useToast } from "@/hooks/use-toast";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from '@/lib/utils';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function CapsulesPage() {
   const [profile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
@@ -29,6 +30,9 @@ export default function CapsulesPage() {
     weather: 'Templado'
   });
 
+  const MAX_OUTFITS = 10;
+  const isLimitReached = savedCapsules.length >= MAX_OUTFITS;
+
   useEffect(() => {
     setMounted(true);
     if (savedCapsules.length > 0 && !selectedCapsuleId) {
@@ -37,6 +41,15 @@ export default function CapsulesPage() {
   }, [savedCapsules, selectedCapsuleId]);
 
   const generateCapsules = async () => {
+    if (isLimitReached) {
+      toast({ 
+        variant: "destructive", 
+        title: "Límite alcanzado", 
+        description: "Llegaste a tu límite de generaciones del mes. Elimina outfits o solicita cápsulas adicionales." 
+      });
+      return;
+    }
+
     const openaiKey = localStorage.getItem('openai_api_key');
     if (!openaiKey) {
       toast({ variant: "destructive", title: "Configura tu OpenAI Key en Ajustes" });
@@ -67,10 +80,14 @@ export default function CapsulesPage() {
       });
       
       if (result.capsules.length > 0) {
-        const newCapsules = [...result.capsules, ...savedCapsules].slice(0, 20); // Guardar últimas 20
+        // Solo guardamos hasta el límite, aunque la IA devuelva 2 (si ya tiene 9, solo guarda el primero)
+        const availableSlots = MAX_OUTFITS - savedCapsules.length;
+        const toAdd = result.capsules.slice(0, availableSlots);
+        
+        const newCapsules = [...toAdd, ...savedCapsules];
         setSavedCapsules(newCapsules);
-        setSelectedCapsuleId(result.capsules[0].id);
-        toast({ title: "¡Nuevas Cápsulas!", description: "Se han generado 2 opciones únicas basadas en tu armario." });
+        setSelectedCapsuleId(toAdd[0].id);
+        toast({ title: "¡Nuevos Outfits!", description: `Se han generado ${toAdd.length} propuestas únicas.` });
       }
     } catch (err: any) {
       toast({ variant: "destructive", title: "Error en Generación", description: err.message });
@@ -86,7 +103,7 @@ export default function CapsulesPage() {
     if (selectedCapsuleId === id) {
       setSelectedCapsuleId(filtered.length > 0 ? filtered[0].id : null);
     }
-    toast({ title: "Cápsula eliminada" });
+    toast({ title: "Outfit eliminado" });
   };
 
   const currentCapsule = savedCapsules.find(c => c.id === selectedCapsuleId);
@@ -112,6 +129,20 @@ export default function CapsulesPage() {
           <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Máxima Variedad • Mínima Repetición</p>
         </div>
       </header>
+
+      {/* Alerta de Límite */}
+      {isLimitReached && (
+        <Alert className="bg-orange-50 border-orange-200 text-orange-800 animate-in fade-in slide-in-from-top-4">
+          <Info className="h-4 w-4 text-orange-600" />
+          <AlertTitle className="font-bold">Límite de Outfits Alcanzado</AlertTitle>
+          <AlertDescription className="text-xs flex flex-col gap-2">
+            Llegaste a tu límite de generaciones del mes (10 outfits). Elimina algunos de tus outfits antiguos para generar nuevos o solicita una cápsula premium.
+            <Link href="/purchase" className="inline-flex items-center gap-2 font-black underline text-orange-900">
+              <ShoppingCart className="w-3 h-3" /> Requerir Cápsula Adicional
+            </Link>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Selector de Parámetros */}
       <Card className="border-none shadow-xl bg-white/80 backdrop-blur-sm rounded-[2rem]">
@@ -143,8 +174,21 @@ export default function CapsulesPage() {
               </Select>
             </div>
           </div>
-          <Button onClick={generateCapsules} disabled={loading} className="w-full bg-primary h-14 text-white font-bold rounded-2xl shadow-lg text-lg">
-            {loading ? <><Loader2 className="mr-3 animate-spin" /> GPT-4o escaneando combinaciones...</> : <><Sparkles className="mr-3" /> Generar 2 Propuestas</>}
+          <Button 
+            onClick={generateCapsules} 
+            disabled={loading || isLimitReached} 
+            className={cn(
+              "w-full h-14 text-white font-bold rounded-2xl shadow-lg text-lg transition-all",
+              isLimitReached ? "bg-muted cursor-not-allowed grayscale" : "bg-primary hover:scale-[1.01]"
+            )}
+          >
+            {loading ? (
+              <><Loader2 className="mr-3 animate-spin" /> GPT-4o analizando tu armario...</>
+            ) : isLimitReached ? (
+              <><Trash2 className="mr-3 w-5 h-5" /> Libera espacio para generar</>
+            ) : (
+              <><Sparkles className="mr-3" /> Generar 2 Outfit</>
+            )}
           </Button>
         </CardContent>
       </Card>
@@ -153,8 +197,15 @@ export default function CapsulesPage() {
       {savedCapsules.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between px-2">
-             <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2"><LayoutGrid className="w-4 h-4 text-primary" /> Mis Cápsulas</h3>
-             <span className="text-[10px] font-bold text-muted-foreground">{savedCapsules.length} guardadas</span>
+             <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2 text-primary">
+                <LayoutGrid className="w-4 h-4" /> MIS OUTFITs
+             </h3>
+             <span className={cn(
+               "text-[10px] font-bold px-2 py-1 rounded-full",
+               isLimitReached ? "bg-orange-100 text-orange-700" : "bg-muted text-muted-foreground"
+             )}>
+                {savedCapsules.length} / {MAX_OUTFITS} usados
+             </span>
           </div>
           <ScrollArea className="w-full whitespace-nowrap pb-4">
             <div className="flex space-x-4">
@@ -172,7 +223,6 @@ export default function CapsulesPage() {
                     selectedCapsuleId === capsule.id ? "border-primary shadow-lg ring-4 ring-primary/5" : "border-transparent shadow-sm"
                   )}>
                     <div className="relative aspect-[4/3] bg-muted">
-                       {/* Miniatura compuesta */}
                        <div className="grid grid-cols-2 h-full">
                           {capsule.items.slice(0, 2).map((item, idx) => (
                              <div key={idx} className="relative w-full h-full">
@@ -183,10 +233,10 @@ export default function CapsulesPage() {
                        <Button 
                           variant="destructive" 
                           size="icon" 
-                          className="absolute top-1 right-1 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-20"
+                          className="absolute top-1 right-1 h-7 w-7 rounded-full opacity-100 shadow-xl z-20 hover:scale-110 transition-transform"
                           onClick={(e) => deleteCapsule(capsule.id, e)}
                         >
-                          <Trash2 className="w-3 h-3" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </Button>
                         <div className="absolute bottom-0 inset-x-0 bg-black/60 p-2 text-white">
                           <p className="text-[9px] font-black truncate uppercase">{capsule.name}</p>
@@ -202,7 +252,7 @@ export default function CapsulesPage() {
         </div>
       )}
 
-      {/* Detalle de la Cápsula Seleccionada */}
+      {/* Detalle de Outfit Seleccionado */}
       {currentCapsule ? (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="flex items-center gap-4 bg-white p-6 rounded-3xl shadow-md border border-primary/10">
@@ -240,7 +290,7 @@ export default function CapsulesPage() {
       ) : !loading && (
         <div className="flex flex-col items-center justify-center py-20 text-center opacity-30 grayscale">
            <Sparkles className="w-16 h-16 mb-4 text-primary" />
-           <p className="text-sm font-black uppercase tracking-widest">Genera tu primera cápsula maestra</p>
+           <p className="text-sm font-black uppercase tracking-widest">Genera tus primeros outfits maestros</p>
         </div>
       )}
     </div>
