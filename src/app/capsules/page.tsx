@@ -33,9 +33,8 @@ export default function CapsulesPage() {
     weather: 'Templado'
   });
 
-  // Lógica de límites ESTRICTA: 10 base + 6 por cada compra adicional.
-  // purchasedCapsulesCount inicia en 1 (nivel base).
-  const purchasedCount = Math.max(1, Number(profile.purchasedCapsulesCount) || 1);
+  // Lógica de límites simplificada: 10 base + 6 por cada compra (purchasedCapsulesCount inicia en 1)
+  const purchasedCount = Number(profile.purchasedCapsulesCount) || 1;
   const MAX_OUTFITS = 10 + (purchasedCount - 1) * 6;
   const isLimitReached = savedCapsules.length >= MAX_OUTFITS;
 
@@ -82,7 +81,7 @@ export default function CapsulesPage() {
       });
       
       if (result.capsules.length > 0) {
-        // Solo añadimos los que quepan hasta el límite actual (MAX_OUTFITS)
+        // Solo añadimos los que quepan hasta el límite exacto
         const availableSlots = Math.max(0, MAX_OUTFITS - savedCapsules.length);
         const toAdd = result.capsules.slice(0, Math.min(availableSlots, result.capsules.length));
         
@@ -140,11 +139,13 @@ export default function CapsulesPage() {
         <Alert className="bg-orange-50 border-orange-200 text-orange-800 animate-in fade-in slide-in-from-top-4">
           <Info className="h-4 w-4 text-orange-600" />
           <AlertTitle className="font-bold">Límite de Outfits Alcanzado</AlertTitle>
-          <AlertDescription className="text-xs flex flex-col gap-2">
+          <AlertDescription className="text-xs">
             Llegaste a tu límite de generaciones del mes ({MAX_OUTFITS} outfits). Solicita una Cápsula Adicional para continuar siendo la envidia de tus amigos y familiares por el buen vestir.
-            <Link href="/purchase" className="inline-flex items-center gap-2 font-black underline text-orange-900 mt-1">
-              <ShoppingCart className="w-3 h-3" /> Requerir Cápsula Adicional
-            </Link>
+            <div className="mt-3">
+              <Button size="sm" variant="outline" className="h-8 border-orange-300 text-orange-900 bg-white" onClick={() => router.push('/purchase')}>
+                <ShoppingCart className="w-3 h-3 mr-2" /> Requerir Cápsula Adicional
+              </Button>
+            </div>
           </AlertDescription>
         </Alert>
       )}
@@ -252,7 +253,6 @@ export default function CapsulesPage() {
                           <p className="text-[7px] flex items-center gap-1 opacity-90 truncate font-bold">
                             <MapPin className="w-2.5 h-2.5" /> {capsule.eventType || 'Evento'} • <CloudSun className="w-2.5 h-2.5" /> {capsule.weatherConditions || 'Clima'}
                           </p>
-                          <p className="text-[6px] flex items-center gap-1 opacity-60"><Calendar className="w-2 h-2" /> {new Date(capsule.date).toLocaleDateString()}</p>
                         </div>
                     </div>
                   </Card>
@@ -271,10 +271,6 @@ export default function CapsulesPage() {
             <div className="flex-1">
               <h2 className="text-2xl font-headline font-bold">{currentCapsule.name}</h2>
               <p className="text-xs text-muted-foreground">{currentCapsule.description}</p>
-              <div className="flex gap-2 mt-2">
-                <span className="text-[8px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-black uppercase">{currentCapsule.eventType}</span>
-                <span className="text-[8px] bg-secondary/10 text-secondary px-2 py-0.5 rounded-full font-black uppercase">{currentCapsule.weatherConditions}</span>
-              </div>
             </div>
           </div>
           
@@ -290,9 +286,6 @@ export default function CapsulesPage() {
                 </div>
                 <div className="relative aspect-[3/4]">
                   <Image src={getItemImage(item)} alt={item.name || "Outfit Item"} fill className="object-cover" unoptimized />
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity p-4 flex flex-col justify-end">
-                    <p className="text-[10px] text-white font-bold leading-tight bg-primary/80 p-2 rounded-lg">{item.styleHint}</p>
-                  </div>
                 </div>
                 <CardContent className="p-3">
                   <p className="font-bold text-[11px] truncate uppercase">{item.name || "Sin nombre"}</p>

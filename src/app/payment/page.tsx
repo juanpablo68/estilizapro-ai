@@ -29,13 +29,14 @@ export default function PaymentPage() {
     setProcessing(true);
     // Simulación de procesamiento de pago
     setTimeout(() => {
-      // Incremento estrictamente numérico de +1 por cada cápsula adquirida
-      const currentPurchases = Math.max(1, Number(profile.purchasedCapsulesCount) || 1);
-      const nextPurchaseLevel = currentPurchases + 1;
+      // Incremento estrictamente numérico de +1. 
+      // Si antes era nivel 1 (10 outfits), ahora es nivel 2 (16 outfits).
+      const currentLevel = Number(profile.purchasedCapsulesCount) || 1;
+      const nextLevel = currentLevel + 1;
       
       setProfile({ 
         ...profile, 
-        purchasedCapsulesCount: nextPurchaseLevel 
+        purchasedCapsulesCount: nextLevel 
       });
       
       setProcessing(false);

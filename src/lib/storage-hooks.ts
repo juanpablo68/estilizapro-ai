@@ -48,7 +48,7 @@ export interface UserProfile {
     bodyPartsToMinimize: string[];
     occasionPreferences: string[];
   };
-  knowledgeBase: string; // Nueva Área de Conocimiento
+  knowledgeBase: string;
   colorimetryAnalysis?: string;
   figureAnalysis?: string;
   avatarDataUri?: string;
@@ -70,5 +70,5 @@ export const INITIAL_USER_PROFILE: UserProfile = {
   knowledgeBase: '',
   onboardingComplete: false,
   passcode: '1,2,3,4',
-  purchasedCapsulesCount: 1,
+  purchasedCapsulesCount: 1, // Nivel base 1 = 10 outfits
 };
