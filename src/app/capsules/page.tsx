@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -45,7 +46,7 @@ export default function CapsulesPage() {
       toast({ 
         variant: "destructive", 
         title: "Límite alcanzado", 
-        description: "Llegaste a tu límite de generaciones del mes. Elimina outfits o solicita cápsulas adicionales." 
+        description: "Llegaste a tu límite de generaciones del mes. Solicita una Cápsula Adicional." 
       });
       return;
     }
@@ -80,7 +81,6 @@ export default function CapsulesPage() {
       });
       
       if (result.capsules.length > 0) {
-        // Solo guardamos hasta el límite, aunque la IA devuelva 2 (si ya tiene 9, solo guarda el primero)
         const availableSlots = MAX_OUTFITS - savedCapsules.length;
         const toAdd = result.capsules.slice(0, availableSlots);
         
@@ -130,21 +130,19 @@ export default function CapsulesPage() {
         </div>
       </header>
 
-      {/* Alerta de Límite */}
       {isLimitReached && (
         <Alert className="bg-orange-50 border-orange-200 text-orange-800 animate-in fade-in slide-in-from-top-4">
           <Info className="h-4 w-4 text-orange-600" />
           <AlertTitle className="font-bold">Límite de Outfits Alcanzado</AlertTitle>
           <AlertDescription className="text-xs flex flex-col gap-2">
-            Llegaste a tu límite de generaciones del mes (10 outfits). Elimina algunos de tus outfits antiguos para generar nuevos o solicita una cápsula premium.
-            <Link href="/purchase" className="inline-flex items-center gap-2 font-black underline text-orange-900">
+            Llegaste a tu límite de generaciones del mes (10 outfits). Solicita una Cápsula Adicional para continuar siendo la envidia de tus amigos y familiares por el buen vestir.
+            <Link href="/purchase" className="inline-flex items-center gap-2 font-black underline text-orange-900 mt-1">
               <ShoppingCart className="w-3 h-3" /> Requerir Cápsula Adicional
             </Link>
           </AlertDescription>
         </Alert>
       )}
 
-      {/* Selector de Parámetros */}
       <Card className="border-none shadow-xl bg-white/80 backdrop-blur-sm rounded-[2rem]">
         <CardContent className="p-8 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -179,13 +177,13 @@ export default function CapsulesPage() {
             disabled={loading || isLimitReached} 
             className={cn(
               "w-full h-14 text-white font-bold rounded-2xl shadow-lg text-lg transition-all",
-              isLimitReached ? "bg-muted cursor-not-allowed grayscale" : "bg-primary hover:scale-[1.01]"
+              isLimitReached ? "bg-orange-600 hover:bg-orange-700 hover:scale-[1.01]" : "bg-primary hover:scale-[1.01]"
             )}
           >
             {loading ? (
               <><Loader2 className="mr-3 animate-spin" /> GPT-4o analizando tu armario...</>
             ) : isLimitReached ? (
-              <><Trash2 className="mr-3 w-5 h-5" /> Libera espacio para generar</>
+              <><ShoppingCart className="mr-3 w-5 h-5" /> Adquiere Capsula Adicional para generar</>
             ) : (
               <><Sparkles className="mr-3" /> Generar 2 Outfit</>
             )}
@@ -193,7 +191,6 @@ export default function CapsulesPage() {
         </CardContent>
       </Card>
 
-      {/* Carrusel de Historial */}
       {savedCapsules.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between px-2">
@@ -252,7 +249,6 @@ export default function CapsulesPage() {
         </div>
       )}
 
-      {/* Detalle de Outfit Seleccionado */}
       {currentCapsule ? (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="flex items-center gap-4 bg-white p-6 rounded-3xl shadow-md border border-primary/10">
@@ -274,7 +270,7 @@ export default function CapsulesPage() {
                   )}
                 </div>
                 <div className="relative aspect-[3/4]">
-                  <Image src={getItemImage(item)} alt={item.name || "Prenda"} fill className="object-cover" unoptimized />
+                  <Image src={getItemImage(item)} alt={item.name || "Outfit Item"} fill className="object-cover" unoptimized />
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity p-4 flex flex-col justify-end">
                     <p className="text-[10px] text-white font-bold leading-tight bg-primary/80 p-2 rounded-lg">{item.styleHint}</p>
                   </div>
