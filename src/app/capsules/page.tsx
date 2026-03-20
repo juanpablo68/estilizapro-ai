@@ -34,8 +34,9 @@ export default function CapsulesPage() {
   });
 
   // Lógica de límites recurrente: Base 10 + 6 por cada cápsula adicional comprada
-  // purchasedCapsulesCount inicia en 1 (perfil inicial)
-  const MAX_OUTFITS = 10 + ((profile.purchasedCapsulesCount || 1) - 1) * 6;
+  // Usamos Number() para asegurar precisión matemática total
+  const purchases = Number(profile.purchasedCapsulesCount || 1);
+  const MAX_OUTFITS = 10 + (purchases - 1) * 6;
   const isLimitReached = savedCapsules.length >= MAX_OUTFITS;
 
   useEffect(() => {
@@ -82,7 +83,7 @@ export default function CapsulesPage() {
       
       if (result.capsules.length > 0) {
         // Solo añadimos los que quepan hasta el límite actual
-        const availableSlots = MAX_OUTFITS - savedCapsules.length;
+        const availableSlots = Math.max(0, MAX_OUTFITS - savedCapsules.length);
         const toAdd = result.capsules.slice(0, Math.min(availableSlots, result.capsules.length));
         
         if (toAdd.length > 0) {
@@ -91,7 +92,7 @@ export default function CapsulesPage() {
           setSelectedCapsuleId(toAdd[0].id);
           toast({ title: "¡Nuevos Outfits!", description: `Se han generado ${toAdd.length} propuestas únicas.` });
         } else {
-          toast({ variant: "destructive", title: "Límite alcanzado", description: "No hay espacio para más outfits." });
+          toast({ variant: "destructive", title: "Límite alcanzado", description: "Adquiere una cápsula adicional para generar más outfits." });
         }
       }
     } catch (err: any) {
