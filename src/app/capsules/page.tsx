@@ -8,18 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, ArrowLeft, Sparkles, MapPin, CloudSun, Pin, FolderHeart, Trash2, Calendar, LayoutGrid, Info, ShoppingCart } from "lucide-react";
+import { Loader2, ArrowLeft, Sparkles, MapPin, CloudSun, Pin, FolderHeart, Trash2, LayoutGrid } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
 import { useToast } from "@/hooks/use-toast";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from '@/lib/utils';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useRouter } from 'next/navigation';
 
 export default function CapsulesPage() {
-  const router = useRouter();
   const [profile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
   const [wardrobe] = useLocalStorage<LocalWardrobeItem[]>('estiliza_wardrobe', []);
   const [savedCapsules, setSavedCapsules] = useLocalStorage<Capsule[]>('estiliza_saved_capsules', []);
@@ -33,11 +30,6 @@ export default function CapsulesPage() {
     weather: 'Templado'
   });
 
-  // Lógica de límites simplificada: 10 base + 6 por cada compra (purchasedCapsulesCount inicia en 1)
-  const purchasedCount = Number(profile.purchasedCapsulesCount) || 1;
-  const MAX_OUTFITS = 10 + (purchasedCount - 1) * 6;
-  const isLimitReached = savedCapsules.length >= MAX_OUTFITS;
-
   useEffect(() => {
     setMounted(true);
     if (savedCapsules.length > 0 && !selectedCapsuleId) {
@@ -46,11 +38,6 @@ export default function CapsulesPage() {
   }, [savedCapsules, selectedCapsuleId]);
 
   const generateCapsules = async () => {
-    if (isLimitReached) {
-      router.push('/purchase');
-      return;
-    }
-
     const openaiKey = localStorage.getItem('openai_api_key');
     if (!openaiKey) {
       toast({ variant: "destructive", title: "Configura tu OpenAI Key en Ajustes" });
@@ -81,18 +68,10 @@ export default function CapsulesPage() {
       });
       
       if (result.capsules.length > 0) {
-        // Solo añadimos los que quepan hasta el límite exacto
-        const availableSlots = Math.max(0, MAX_OUTFITS - savedCapsules.length);
-        const toAdd = result.capsules.slice(0, Math.min(availableSlots, result.capsules.length));
-        
-        if (toAdd.length > 0) {
-          const newCapsules = [...toAdd, ...savedCapsules];
-          setSavedCapsules(newCapsules);
-          setSelectedCapsuleId(toAdd[0].id);
-          toast({ title: "¡Nuevos Outfits!", description: `Se han generado ${toAdd.length} propuestas únicas.` });
-        } else {
-          toast({ variant: "destructive", title: "Límite alcanzado", description: "Adquiere una cápsula adicional para generar más outfits." });
-        }
+        const newCapsules = [...result.capsules, ...savedCapsules];
+        setSavedCapsules(newCapsules);
+        setSelectedCapsuleId(result.capsules[0].id);
+        toast({ title: "¡Nuevos Outfits!", description: `Se han generado ${result.capsules.length} propuestas únicas.` });
       }
     } catch (err: any) {
       toast({ variant: "destructive", title: "Error en Generación", description: err.message });
@@ -135,21 +114,6 @@ export default function CapsulesPage() {
         </div>
       </header>
 
-      {isLimitReached && (
-        <Alert className="bg-orange-50 border-orange-200 text-orange-800 animate-in fade-in slide-in-from-top-4">
-          <Info className="h-4 w-4 text-orange-600" />
-          <AlertTitle className="font-bold">Límite de Outfits Alcanzado</AlertTitle>
-          <AlertDescription className="text-xs">
-            Llegaste a tu límite de generaciones del mes ({MAX_OUTFITS} outfits). Solicita una Cápsula Adicional para continuar siendo la envidia de tus amigos y familiares por el buen vestir.
-            <div className="mt-3">
-              <Button size="sm" variant="outline" className="h-8 border-orange-300 text-orange-900 bg-white" onClick={() => router.push('/purchase')}>
-                <ShoppingCart className="w-3 h-3 mr-2" /> Requerir Cápsula Adicional
-              </Button>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
-
       <Card className="border-none shadow-xl bg-white/80 backdrop-blur-sm rounded-[2rem]">
         <CardContent className="p-8 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -180,20 +144,13 @@ export default function CapsulesPage() {
             </div>
           </div>
           <Button 
-            onClick={isLimitReached ? () => router.push('/purchase') : generateCapsules} 
+            onClick={generateCapsules} 
             disabled={loading} 
-            className={cn(
-              "w-full h-14 text-white font-bold rounded-2xl shadow-lg text-lg transition-all",
-              isLimitReached ? "bg-orange-600 hover:bg-orange-700 hover:scale-[1.01]" : "bg-primary hover:scale-[1.01]"
-            )}
+            className="w-full h-14 bg-primary text-white font-bold rounded-2xl shadow-lg text-lg transition-all hover:scale-[1.01]"
           >
             {loading ? (
               <span className="flex items-center justify-center">
                 <Loader2 className="mr-3 animate-spin" /> GPT-4o analizando tu armario...
-              </span>
-            ) : isLimitReached ? (
-              <span className="flex items-center justify-center">
-                <ShoppingCart className="mr-3 w-5 h-5" /> Adquiere Capsula Adicional para generar
               </span>
             ) : (
               <span className="flex items-center justify-center">
@@ -210,11 +167,8 @@ export default function CapsulesPage() {
              <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2 text-primary">
                 <LayoutGrid className="w-4 h-4" /> MIS OUTFITs
              </h3>
-             <span className={cn(
-               "text-[10px] font-bold px-2 py-1 rounded-full",
-               isLimitReached ? "bg-orange-100 text-orange-700" : "bg-muted text-muted-foreground"
-             )}>
-                {savedCapsules.length} / {MAX_OUTFITS} usados
+             <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-muted text-muted-foreground">
+                {savedCapsules.length} Guardados
              </span>
           </div>
           <ScrollArea className="w-full whitespace-nowrap pb-4">

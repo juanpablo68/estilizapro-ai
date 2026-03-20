@@ -5,9 +5,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, CreditCard, Loader2, CheckCircle2, ShieldCheck, Wallet } from "lucide-react";
-import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -29,25 +28,14 @@ export default function PaymentPage() {
     setProcessing(true);
     // Simulación de procesamiento de pago
     setTimeout(() => {
-      // Incremento estrictamente numérico de +1. 
-      // Si antes era nivel 1 (10 outfits), ahora es nivel 2 (16 outfits).
-      const currentLevel = Number(profile.purchasedCapsulesCount) || 1;
-      const nextLevel = currentLevel + 1;
-      
-      setProfile({ 
-        ...profile, 
-        purchasedCapsulesCount: nextLevel 
-      });
-      
       setProcessing(false);
       setCompleted(true);
       
       toast({
         title: "¡Pago Confirmado!",
-        description: "Se han añadido 6 outfits adicionales a tu cuenta.",
+        description: "Gracias por apoyar el desarrollo de EstilizaPro AI.",
       });
 
-      // Redirigir después de un momento de éxito
       setTimeout(() => {
         router.push('/capsules');
       }, 2000);
@@ -83,7 +71,7 @@ export default function PaymentPage() {
                <ShieldCheck className="w-6 h-6 text-primary" />
             </div>
             <div className="flex justify-between items-end border-b border-primary/10 pb-4">
-              <span className="text-sm font-medium text-muted-foreground">Cápsula Adicional AI (6 Outfits)</span>
+              <span className="text-sm font-medium text-muted-foreground">Cápsula Adicional AI</span>
               <span className="text-2xl font-black text-primary">$3.00 USD</span>
             </div>
           </CardHeader>

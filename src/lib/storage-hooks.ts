@@ -54,7 +54,6 @@ export interface UserProfile {
   avatarDataUri?: string;
   onboardingComplete: boolean;
   passcode: string;
-  purchasedCapsulesCount: number;
 }
 
 export const INITIAL_USER_PROFILE: UserProfile = {
@@ -70,5 +69,4 @@ export const INITIAL_USER_PROFILE: UserProfile = {
   knowledgeBase: '',
   onboardingComplete: false,
   passcode: '1,2,3,4',
-  purchasedCapsulesCount: 1, // Nivel base 1 = 10 outfits
 };
