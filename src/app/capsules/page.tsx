@@ -33,10 +33,10 @@ export default function CapsulesPage() {
     weather: 'Templado'
   });
 
-  // Lógica de límites recurrente: Base 10 + 6 por cada cápsula adicional comprada
-  // Usamos Number() para asegurar precisión matemática total y evitar el error 16/82
-  const purchases = Number(profile.purchasedCapsulesCount || 1);
-  const MAX_OUTFITS = 10 + (purchases - 1) * 6;
+  // Lógica de límites REVISADA: 10 base + 6 por cada cápsula comprada.
+  // purchasedCapsulesCount inicia en 1 (nivel base).
+  const purchasedCount = Math.max(1, Number(profile.purchasedCapsulesCount) || 1);
+  const MAX_OUTFITS = 10 + (purchasedCount - 1) * 6;
   const isLimitReached = savedCapsules.length >= MAX_OUTFITS;
 
   useEffect(() => {
