@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -30,7 +31,9 @@ export default function CapsulesPage() {
     weather: 'Templado'
   });
 
-  const MAX_OUTFITS = 10;
+  // Lógica de límites: Base 10 + 6 por cada cápsula adicional comprada
+  // El perfil inicial tiene purchasedCapsulesCount = 1 (base), por lo que restamos 1.
+  const MAX_OUTFITS = 10 + ((profile.purchasedCapsulesCount || 1) - 1) * 6;
   const isLimitReached = savedCapsules.length >= MAX_OUTFITS;
 
   useEffect(() => {
@@ -80,6 +83,7 @@ export default function CapsulesPage() {
       });
       
       if (result.capsules.length > 0) {
+        // Calcular cuántos outfits podemos añadir realmente antes de llegar al límite
         const availableSlots = MAX_OUTFITS - savedCapsules.length;
         const toAdd = result.capsules.slice(0, availableSlots);
         
@@ -134,7 +138,7 @@ export default function CapsulesPage() {
           <Info className="h-4 w-4 text-orange-600" />
           <AlertTitle className="font-bold">Límite de Outfits Alcanzado</AlertTitle>
           <AlertDescription className="text-xs flex flex-col gap-2">
-            Llegaste a tu límite de generaciones del mes (10 outfits). Solicita una Cápsula Adicional para continuar siendo la envidia de tus amigos y familiares por el buen vestir.
+            Llegaste a tu límite de generaciones del mes ({MAX_OUTFITS} outfits). Solicita una Cápsula Adicional para continuar siendo la envidia de tus amigos y familiares por el buen vestir.
             <Link href="/purchase" className="inline-flex items-center gap-2 font-black underline text-orange-900 mt-1">
               <ShoppingCart className="w-3 h-3" /> Requerir Cápsula Adicional
             </Link>
@@ -173,7 +177,7 @@ export default function CapsulesPage() {
           </div>
           <Button 
             onClick={generateCapsules} 
-            disabled={loading || isLimitReached} 
+            disabled={loading} 
             className={cn(
               "w-full h-14 text-white font-bold rounded-2xl shadow-lg text-lg transition-all",
               isLimitReached ? "bg-orange-600 hover:bg-orange-700 hover:scale-[1.01]" : "bg-primary hover:scale-[1.01]"
@@ -182,7 +186,7 @@ export default function CapsulesPage() {
             {loading ? (
               <><Loader2 className="mr-3 animate-spin" /> GPT-4o analizando tu armario...</>
             ) : isLimitReached ? (
-              <><ShoppingCart className="mr-3 w-5 h-5" /> Adquiere Capsula Adicional para generar</>
+              <><Link href="/purchase" className="flex items-center"><ShoppingCart className="mr-3 w-5 h-5" /> Adquiere Capsula Adicional para generar</></Link>
             ) : (
               <><Sparkles className="mr-3" /> Generar 2 Outfit</>
             )}
