@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -83,10 +82,10 @@ export default function CapsulesPage() {
       });
       
       if (result.capsules.length > 0) {
-        // Garantizamos IDs únicos para evitar errores de Hydration o de Key duplicada
-        const uniqueCapsules = result.capsules.map(c => ({
+        // Garantizamos IDs únicos incluyendo el índice y un random robusto para evitar colisiones de keys
+        const uniqueCapsules = result.capsules.map((c, index) => ({
           ...c,
-          id: `capsule-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+          id: `capsule-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 9)}`
         }));
         
         const newCapsules = [...uniqueCapsules, ...savedCapsules];
@@ -228,7 +227,7 @@ export default function CapsulesPage() {
                     <div className="relative aspect-[4/3] bg-muted">
                        <div className="grid grid-cols-2 h-full">
                           {capsule.items.slice(0, 2).map((item, idx) => (
-                             <div key={`${capsule.id}-item-preview-${idx}`} className="relative w-full h-full">
+                             <div key={`${capsule.id}-preview-${idx}`} className="relative w-full h-full">
                                 <Image src={getItemImage(item)} alt="" fill className="object-cover" unoptimized />
                              </div>
                           ))}
@@ -269,7 +268,7 @@ export default function CapsulesPage() {
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {currentCapsule.items.map((item, itemIdx) => (
-              <Card key={`${currentCapsule.id}-item-detail-${itemIdx}`} className="overflow-hidden border-none shadow-md relative group rounded-2xl bg-white transition-transform hover:scale-[1.02]">
+              <Card key={`${currentCapsule.id}-detail-${itemIdx}`} className="overflow-hidden border-none shadow-md relative group rounded-2xl bg-white transition-transform hover:scale-[1.02]">
                 <div className="absolute top-2 left-2 z-10">
                   {item.source === 'wardrobe' ? (
                     <div className="text-[8px] font-black text-white px-2 py-1 rounded-full flex items-center shadow-md bg-green-500 gap-1"><FolderHeart className="w-2.5 h-2.5" /> Mi Armario</div>
