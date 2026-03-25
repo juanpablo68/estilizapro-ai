@@ -32,7 +32,6 @@ export default function CapsulesPage() {
     weather: 'Templado'
   });
 
-  // Lógica de límites simplificada: 10 base + 6 por cada compra (purchasedCapsules)
   const purchasedCount = Number(profile.purchasedCapsules) || 0;
   const MAX_OUTFITS = 10 + (purchasedCount * 6);
   const isLimitReached = savedCapsules.length >= MAX_OUTFITS;
@@ -82,14 +81,8 @@ export default function CapsulesPage() {
       });
       
       if (result.capsules.length > 0) {
-        // Aseguramos unicidad de IDs antes de guardar
-        const uniqueNewCapsules = result.capsules.map((c, index) => ({
-          ...c,
-          id: `cap-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 7)}`
-        }));
-        
         const remainingSpace = MAX_OUTFITS - savedCapsules.length;
-        const capsulesToAdd = uniqueNewCapsules.slice(0, remainingSpace);
+        const capsulesToAdd = result.capsules.slice(0, remainingSpace);
 
         const newCapsules = [...capsulesToAdd, ...savedCapsules];
         setSavedCapsules(newCapsules);
