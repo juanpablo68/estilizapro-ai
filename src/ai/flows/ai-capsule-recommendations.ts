@@ -61,15 +61,11 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
 TU MISIÓN: Crear exactamente 2 cápsulas de moda HÍBRIDAS (4 prendas cada una) que sean TOTALMENTE DIFERENTES entre sí.
 
 REGLAS CRÍTICAS DE ESTILO:
-1. PRIORIDAD TOTAL AL ARMARIO: Debes usar el máximo de prendas posibles del armario real proporcionado. SOLO usa 'external' si falta una prenda clave (ej: zapatos) o para accesorios.
-2. DIFERENCIACIÓN: Las 2 cápsulas deben ser estilos opuestos (ej: una casual y una formal, o colores contrastantes).
-3. PRENDAS DEL ARMARIO: Para ítems de 'wardrobe', DEBES devolver el 'wardrobeItemId' EXACTO que se te proporciona. NO inventes IDs.
-4. PRENDAS EXTERNAS: Máximo 2 por cápsula. Genera 'searchKeywords' en inglés para fotos de producto (ej: "black leather sneakers flat lay product shot").
-
-DATOS DEL USUARIO:
-- Figura: ${input.figureAnalysis}
-- Colorimetría: ${input.colorimetryAnalysis}
-- Evento: ${input.eventType}, Clima: ${input.weatherConditions}
+1. PRIORIDAD TOTAL AL ARMARIO: Debes usar el máximo de prendas posibles del ARMARIO REAL proporcionado abajo. 
+2. PRENDAS EXTERNAS: SOLO usa 'external' si falta una prenda clave (ej: zapatos o accesorios) que no esté en el armario. MÁXIMO 2 prendas externas por cápsula.
+3. DIFERENCIACIÓN: Las 2 cápsulas deben representar estilos opuestos (ej: una casual y una formal).
+4. IDENTIFICADORES: Para ítems de 'wardrobe', DEBES devolver el 'wardrobeItemId' EXACTO que se te proporciona. NO inventes IDs.
+5. BÚSQUEDA VISUAL: Si usas 'external', genera 'searchKeywords' en inglés para fotos de PRODUCTO (ej: "black leather sneakers flat lay product shot").
 
 ARMARIO REAL DISPONIBLE (ID y Nombre):
 ${JSON.stringify(input.wardrobeItems)}
@@ -79,7 +75,7 @@ Responde ÚNICAMENTE con un JSON válido con la propiedad "capsules" (array de 2
   const finalResponse = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
-      { role: "system", content: "Eres un experto en moda que genera respuestas JSON. Priorizas el armario del usuario y limitas prendas externas a 2 por conjunto con keywords de producto." },
+      { role: "system", content: "Eres un experto en moda que genera respuestas JSON. Priorizas el armario real del usuario y limitas prendas externas a 2 por conjunto con keywords de producto." },
       { role: "user", content: prompt }
     ],
     response_format: { type: "json_object" }
@@ -98,6 +94,10 @@ Responde ÚNICAMENTE con un JSON válido con la propiedad "capsules" (array de 2
             ...item,
             imageUrl: images.length > 0 ? images[0].url : item.imageUrl
           };
+        }
+        // Para ítems de armario, nos aseguramos de no asignar ninguna URL externa
+        if (item.source === 'wardrobe') {
+          return { ...item, imageUrl: undefined };
         }
         return item;
       }));

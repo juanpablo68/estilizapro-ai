@@ -13,24 +13,23 @@ export interface UnsplashImage {
 
 /**
  * Busca imágenes de moda en Unsplash basadas en palabras clave de la IA.
- * Se han añadido filtros drásticos para asegurar que solo se vean prendas de ropa.
+ * Filtra estrictamente para obtener fotos de producto (flat lay).
  */
 export async function searchUnsplashImages(query: string, accessKey?: string, itemType?: string): Promise<UnsplashImage[]> {
   const key = accessKey || process.env.UNSPLASH_ACCESS_KEY;
   
-  // Reforzamos el query para evitar modelos, caras y personas. 
-  // Buscamos específicamente "flat lay product shot" para una estética limpia.
-  const productFocusedQuery = `${query} clothing garment flat lay product shot -person -model -face -mannequin -landscape`;
-
-  // Fallback a nuestros placeholders de moda si no hay key
-  if (!key || key === 'undefined') {
+  // Si no hay API KEY, usamos el placeholder de moda correspondiente
+  if (!key || key === 'undefined' || key.trim() === '') {
     const fallback = PlaceHolderImages.find(img => img.id === `fashion-${itemType}`) || PlaceHolderImages[0];
     return [{
-      id: `fallback-${Date.now()}`,
+      id: `no-key-${Date.now()}`,
       url: fallback.imageUrl,
-      description: `Sugerencia: ${query}`
+      description: `Configure su API KEY de Unsplash para ver prendas reales.`
     }];
   }
+
+  // Query optimizado: Busca el producto aislado, evitando modelos, personas y rostros.
+  const productFocusedQuery = `${query} clothing garment flat lay product shot -person -model -face -mannequin`;
 
   try {
     const response = await fetch(
@@ -42,7 +41,7 @@ export async function searchUnsplashImages(query: string, accessKey?: string, it
       }
     );
 
-    if (!response.ok) throw new Error('Error al conectar con Unsplash');
+    if (!response.ok) throw new Error('Error al conectar con Unsplash API');
     
     const data = await response.json();
     
@@ -55,27 +54,12 @@ export async function searchUnsplashImages(query: string, accessKey?: string, it
       }];
     }
 
-    // Intento relajado si el estricto falla
-    const relaxedResponse = await fetch(
-      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query + ' clothing product shot')}&per_page=1&orientation=portrait`,
-      { headers: { Authorization: `Client-ID ${key}` } }
-    );
-    const relaxedData = await relaxedResponse.json();
-    if (relaxedData.results && relaxedData.results.length > 0) {
-      const img = relaxedData.results[0];
-      return [{
-        id: img.id,
-        url: img.urls.regular,
-        description: img.alt_description || query
-      }];
-    }
-
-    // Si todo falla, usar placeholder de moda
+    // Si Unsplash no encuentra nada específico, devolvemos el placeholder de moda para no mostrar imágenes aleatorias
     const fallback = PlaceHolderImages.find(img => img.id === `fashion-${itemType}`) || PlaceHolderImages[0];
     return [{
-      id: `fallback-final-${Date.now()}`,
+      id: `fallback-${Date.now()}`,
       url: fallback.imageUrl,
-      description: query
+      description: `Sugerencia: ${query}`
     }];
   } catch (error) {
     console.error('Unsplash API Error:', error);

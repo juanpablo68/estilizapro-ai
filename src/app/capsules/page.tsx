@@ -81,15 +81,13 @@ export default function CapsulesPage() {
       });
       
       if (result.capsules && result.capsules.length > 0) {
-        const remainingSpace = MAX_OUTFITS - savedCapsules.length;
-        const capsulesToAdd = result.capsules.slice(0, remainingSpace);
-
-        const uniqueCapsulesToAdd = capsulesToAdd.map((cap, idx) => ({
+        // Garantizamos IDs únicos en el cliente para evitar errores de hidratación y keys duplicadas
+        const uniqueCapsulesToAdd = result.capsules.map((cap, idx) => ({
           ...cap,
           id: `capsule-${Date.now()}-${idx}-${Math.random().toString(36).substr(2, 5)}`
         }));
 
-        const newCapsules = [...uniqueCapsulesToAdd, ...savedCapsules];
+        const newCapsules = [...uniqueCapsulesToAdd, ...savedCapsules].slice(0, MAX_OUTFITS);
         setSavedCapsules(newCapsules);
         if (uniqueCapsulesToAdd.length > 0) setSelectedCapsuleId(uniqueCapsulesToAdd[0].id);
         
@@ -113,20 +111,26 @@ export default function CapsulesPage() {
   };
 
   const getItemImage = (item: CapsuleItem) => {
-    // PRIORIDAD 1: Buscar en el armario real por ID exacto
+    // RUTA ESTRICTA: Si es de armario, buscamos la foto real localmente
     if (item.source === 'wardrobe' && item.wardrobeItemId) {
       const local = wardrobe.find(wi => wi.id === item.wardrobeItemId);
       if (local?.imageDataUri) return local.imageDataUri;
       
-      // PRIORIDAD 2: Buscar en el armario real por nombre (respaldo si el ID falla)
+      // Respaldo secundario por nombre (solo si el ID fallara)
       const fallbackLocal = wardrobe.find(wi => wi.name.toLowerCase().includes(item.name.toLowerCase()));
       if (fallbackLocal?.imageDataUri) return fallbackLocal.imageDataUri;
+      
+      // Si es de armario y NO encontramos foto, usamos un placeholder de moda pero NO asumimos imagen externa
+      const fashionPlaceholder = PlaceHolderImages.find(p => p.id === `fashion-${item.type}`) || PlaceHolderImages[0];
+      return fashionPlaceholder.imageUrl;
     }
     
-    // PRIORIDAD 3: URL externa (Unsplash)
-    if (item.imageUrl) return item.imageUrl;
+    // RUTA EXTERNA: Si es una sugerencia, usamos la URL obtenida de Unsplash
+    if (item.source === 'external' && item.imageUrl) {
+      return item.imageUrl;
+    }
     
-    // PRIORIDAD 4: Placeholder de moda específico
+    // Fallback final: Placeholder de moda profesional
     const fashionPlaceholder = PlaceHolderImages.find(p => p.id === `fashion-${item.type}`) || PlaceHolderImages[0];
     return fashionPlaceholder.imageUrl;
   };
@@ -148,11 +152,11 @@ export default function CapsulesPage() {
       </header>
 
       {isLimitReached && (
-        <Alert variant="destructive" className="bg-orange-50 border-orange-200 text-orange-800 animate-in fade-in slide-in-from-top-4 duration-500">
+        <Alert variant="destructive" className="bg-orange-50 border-orange-200 text-orange-800">
           <Info className="h-4 w-4 text-orange-600" />
           <AlertTitle className="font-bold">Límite de Generaciones Alcanzado</AlertTitle>
           <AlertDescription className="text-xs">
-            Llegaste a tu límite de {MAX_OUTFITS} outfits. Solicita una Cápsula Adicional para continuar siendo la envidia de tus amigos y familiares por el buen vestir.
+            Llegaste a tu límite de {MAX_OUTFITS} outfits. Solicita una Cápsula Adicional para continuar siendo la envidia de tus amigos y familiares.
             <Link href="/purchase" className="block mt-2 font-black underline">Adquirir Cápsula Adicional (+6 espacios) →</Link>
           </AlertDescription>
         </Alert>
@@ -191,17 +195,17 @@ export default function CapsulesPage() {
             onClick={isLimitReached ? () => router.push('/purchase') : generateCapsules} 
             disabled={loading} 
             className={cn(
-              "w-full h-14 font-bold rounded-2xl shadow-lg text-lg transition-all hover:scale-[1.01]",
+              "w-full h-14 font-bold rounded-2xl shadow-lg text-lg transition-all",
               isLimitReached ? "bg-orange-600 hover:bg-orange-700 text-white" : "bg-primary text-white"
             )}
           >
             {loading ? (
               <span className="flex items-center justify-center">
-                <Loader2 className="mr-3 animate-spin" /> Sincronizando tu armario...
+                <Loader2 className="mr-3 animate-spin" /> Buscando en tu armario...
               </span>
             ) : isLimitReached ? (
               <span className="flex items-center justify-center">
-                <ShoppingCart className="mr-3" /> Adquiere Capsula Adicional para generar
+                <ShoppingCart className="mr-3" /> Adquiere Capsula Adicional
               </span>
             ) : (
               <span className="flex items-center justify-center">
@@ -243,7 +247,7 @@ export default function CapsulesPage() {
                              <div key={`${capsule.id}-thumb-${idx}`} className="relative w-full h-full">
                                 <Image 
                                   src={getItemImage(item)} 
-                                  alt={item.name || "Miniatura de outfit"} 
+                                  alt={item.name || "Miniatura"} 
                                   fill 
                                   className="object-cover" 
                                   unoptimized 
@@ -254,7 +258,7 @@ export default function CapsulesPage() {
                        <Button 
                           variant="destructive" 
                           size="icon" 
-                          className="absolute top-1 right-1 h-7 w-7 rounded-full opacity-100 shadow-xl z-20 hover:scale-110 transition-transform"
+                          className="absolute top-1 right-1 h-7 w-7 rounded-full opacity-100 shadow-xl z-20"
                           onClick={(e) => deleteCapsule(capsule.id, e)}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -296,13 +300,7 @@ export default function CapsulesPage() {
                   )}
                 </div>
                 <div className="relative aspect-[3/4]">
-                  <Image 
-                    src={getItemImage(item)} 
-                    alt={item.name || "Prenda de moda"} 
-                    fill 
-                    className="object-cover" 
-                    unoptimized 
-                  />
+                  <Image src={getItemImage(item)} alt={item.name || "Prenda"} fill className="object-cover" unoptimized />
                 </div>
                 <CardContent className="p-3">
                   <p className="font-bold text-[11px] truncate uppercase">{item.name}</p>
