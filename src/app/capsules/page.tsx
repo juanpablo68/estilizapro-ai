@@ -57,11 +57,11 @@ export default function CapsulesPage() {
       return;
     }
 
-    if (wardrobe.length < 3) {
+    if (wardrobe.length < 1) {
       toast({ 
         variant: "destructive", 
-        title: "Armario Insuficiente", 
-        description: "Sube al menos 3 prendas para que la IA pueda crear combinaciones." 
+        title: "Armario Vacío", 
+        description: "Sube al menos 1 prenda para que la IA pueda crear combinaciones." 
       });
       return;
     }
@@ -84,11 +84,17 @@ export default function CapsulesPage() {
         const remainingSpace = MAX_OUTFITS - savedCapsules.length;
         const capsulesToAdd = result.capsules.slice(0, remainingSpace);
 
-        const newCapsules = [...capsulesToAdd, ...savedCapsules];
+        // Asegurar IDs únicos antes de guardar
+        const uniqueCapsulesToAdd = capsulesToAdd.map((cap, idx) => ({
+          ...cap,
+          id: `capsule-${Date.now()}-${idx}-${Math.random().toString(36).substr(2, 5)}`
+        }));
+
+        const newCapsules = [...uniqueCapsulesToAdd, ...savedCapsules];
         setSavedCapsules(newCapsules);
-        if (capsulesToAdd.length > 0) setSelectedCapsuleId(capsulesToAdd[0].id);
+        if (uniqueCapsulesToAdd.length > 0) setSelectedCapsuleId(uniqueCapsulesToAdd[0].id);
         
-        toast({ title: "¡Outfits Generados!", description: `Se han añadido nuevas propuestas a tu lista.` });
+        toast({ title: "¡Outfits Generados!", description: `Se han añadido nuevas propuestas priorizando tu armario.` });
       }
     } catch (err: any) {
       toast({ variant: "destructive", title: "Error en Generación", description: err.message });
@@ -108,17 +114,20 @@ export default function CapsulesPage() {
   };
 
   const getItemImage = (item: CapsuleItem) => {
-    if (item.source === 'wardrobe') {
-      // Prioridad 1: Match por ID exacto
-      let local = wardrobe.find(wi => wi.id === item.wardrobeItemId);
-      // Prioridad 2: Match por Nombre (Respaldo si la IA alucina el ID pero mantiene el nombre)
-      if (!local && item.name) {
-        local = wardrobe.find(wi => wi.name.toLowerCase().includes(item.name.toLowerCase()));
-      }
-      
+    if (item.source === 'wardrobe' && item.wardrobeItemId) {
+      // Búsqueda exhaustiva por ID exacto
+      const local = wardrobe.find(wi => wi.id === item.wardrobeItemId);
       if (local?.imageDataUri) return local.imageDataUri;
+      
+      // Búsqueda de respaldo por nombre aproximado si el ID falla
+      const fallbackLocal = wardrobe.find(wi => wi.name.toLowerCase().includes(item.name.toLowerCase()));
+      if (fallbackLocal?.imageDataUri) return fallbackLocal.imageDataUri;
     }
-    return item.imageUrl || PlaceHolderImages[0].imageUrl;
+    
+    // Si es externo o no se encontró en el armario, usar la URL de Unsplash o el placeholder de moda
+    if (item.imageUrl) return item.imageUrl;
+    const fashionPlaceholder = PlaceHolderImages.find(p => p.id === `fashion-${item.type}`) || PlaceHolderImages[0];
+    return fashionPlaceholder.imageUrl;
   };
 
   const currentCapsule = savedCapsules.find(c => c.id === selectedCapsuleId);
@@ -133,7 +142,7 @@ export default function CapsulesPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-headline font-bold">Capsulizador AI</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Armario Híbrido • Límite {MAX_OUTFITS}</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Armario Real • Máx 2 Sugerencias • Límite {MAX_OUTFITS}</p>
         </div>
       </header>
 
@@ -187,7 +196,7 @@ export default function CapsulesPage() {
           >
             {loading ? (
               <span className="flex items-center justify-center">
-                <Loader2 className="mr-3 animate-spin" /> Buscando prendas maestras...
+                <Loader2 className="mr-3 animate-spin" /> Sincronizando tu armario...
               </span>
             ) : isLimitReached ? (
               <span className="flex items-center justify-center">
@@ -288,7 +297,7 @@ export default function CapsulesPage() {
                 <div className="relative aspect-[3/4]">
                   <Image 
                     src={getItemImage(item)} 
-                    alt={item.name || "Prenda de outfit"} 
+                    alt={item.name || "Prenda de moda"} 
                     fill 
                     className="object-cover" 
                     unoptimized 

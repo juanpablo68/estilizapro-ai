@@ -3,6 +3,8 @@
  * @fileOverview Servicio de búsqueda de imágenes de moda en Unsplash optimizado para productos sin modelos.
  */
 
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+
 export interface UnsplashImage {
   id: string;
   url: string;
@@ -13,18 +15,18 @@ export interface UnsplashImage {
  * Busca imágenes de moda en Unsplash basadas en palabras clave de la IA.
  * Se han añadido filtros drásticos para asegurar que solo se vean prendas de ropa.
  */
-export async function searchUnsplashImages(query: string, accessKey?: string): Promise<UnsplashImage[]> {
+export async function searchUnsplashImages(query: string, accessKey?: string, itemType?: string): Promise<UnsplashImage[]> {
   const key = accessKey || process.env.UNSPLASH_ACCESS_KEY;
   
   // Reforzamos el query para evitar modelos, caras y personas. 
-  // Añadimos términos de moda específicos.
   const productFocusedQuery = `${query} clothing product shot flat lay -person -model -face -mannequin`;
 
+  // Fallback a nuestros placeholders de moda si no hay key, para evitar paisajes aleatorios
   if (!key) {
-    // Fallback estético si no hay llave
+    const fallback = PlaceHolderImages.find(img => img.id === `fashion-${itemType}`) || PlaceHolderImages[0];
     return [{
-      id: `mock-${Date.now()}`,
-      url: `https://picsum.photos/seed/${encodeURIComponent(query)}/600/800`,
+      id: `fallback-${Date.now()}`,
+      url: fallback.imageUrl,
       description: `Sugerencia: ${query}`
     }];
   }
@@ -67,9 +69,20 @@ export async function searchUnsplashImages(query: string, accessKey?: string): P
       }];
     }
 
-    return [];
+    // Si todo falla, usar placeholder de moda
+    const fallback = PlaceHolderImages.find(img => img.id === `fashion-${itemType}`) || PlaceHolderImages[0];
+    return [{
+      id: `fallback-final-${Date.now()}`,
+      url: fallback.imageUrl,
+      description: query
+    }];
   } catch (error) {
     console.error('Unsplash API Error:', error);
-    return [];
+    const fallback = PlaceHolderImages.find(img => img.id === `fashion-${itemType}`) || PlaceHolderImages[0];
+    return [{
+      id: `error-fallback-${Date.now()}`,
+      url: fallback.imageUrl,
+      description: query
+    }];
   }
 }

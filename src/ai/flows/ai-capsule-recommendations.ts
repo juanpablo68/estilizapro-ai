@@ -61,26 +61,25 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
 TU MISIÓN: Crear exactamente 2 cápsulas de moda HÍBRIDAS (4 prendas cada una) que sean TOTALMENTE DIFERENTES entre sí.
 
 REGLAS CRÍTICAS DE ESTILO:
-1. DIFERENCIACIÓN TOTAL: Las 2 cápsulas deben proponer estilos, colores o combinaciones distintas. Si una es casual, la otra debe ser más formal o de un color contrastante.
-2. PRIORIDAD ARMARIO: Usa el armario del usuario como base principal.
-3. PRENDAS DEL ARMARIO: Para ítems de 'wardrobe', DEBES devolver el 'wardrobeItemId' EXACTO que se te proporciona en la lista. NO inventes IDs.
-4. PRENDAS EXTERNAS (MÁXIMO 2 POR CÁPSULA): Si el armario no tiene la prenda ideal para completar el look, sugiere HASTA 2 prendas externas (source: 'external').
-5. PRODUCTO SOLAMENTE: Para prendas externas, genera 'searchKeywords' en inglés enfocados ÚNICAMENTE en fotografía de producto sin personas ni modelos (ej: "navy blue blazer flat lay", "white sneakers product shot").
+1. PRIORIDAD TOTAL AL ARMARIO: Debes usar el máximo de prendas posibles del armario real proporcionado. SOLO usa 'external' si falta una prenda clave (ej: zapatos) o para accesorios.
+2. DIFERENCIACIÓN: Las 2 cápsulas deben ser estilos opuestos (ej: una casual y una formal, o colores contrastantes).
+3. PRENDAS DEL ARMARIO: Para ítems de 'wardrobe', DEBES devolver el 'wardrobeItemId' EXACTO que se te proporciona. NO inventes IDs.
+4. PRENDAS EXTERNAS: Máximo 2 por cápsula. Genera 'searchKeywords' en inglés para fotos de producto (ej: "black leather sneakers flat lay product shot").
 
 DATOS DEL USUARIO:
 - Figura: ${input.figureAnalysis}
 - Colorimetría: ${input.colorimetryAnalysis}
 - Evento: ${input.eventType}, Clima: ${input.weatherConditions}
 
-ARMARIO REAL DEL USUARIO (ID y Nombre):
+ARMARIO REAL DISPONIBLE (ID y Nombre):
 ${JSON.stringify(input.wardrobeItems)}
 
-Responde ÚNICAMENTE con un JSON válido con la propiedad "capsules" que sea un array de 2 objetos según el esquema definido.`;
+Responde ÚNICAMENTE con un JSON válido con la propiedad "capsules" (array de 2 objetos).`;
 
   const finalResponse = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
-      { role: "system", content: "Eres un experto en moda que genera respuestas JSON. Creas outfits variados, priorizas el armario usando IDs exactos y limitas prendas externas a 2 por conjunto." },
+      { role: "system", content: "Eres un experto en moda que genera respuestas JSON. Priorizas el armario del usuario y limitas prendas externas a 2 por conjunto con keywords de producto." },
       { role: "user", content: prompt }
     ],
     response_format: { type: "json_object" }
@@ -94,7 +93,7 @@ Responde ÚNICAMENTE con un JSON válido con la propiedad "capsules" que sea un 
     const processedCapsules = await Promise.all((content.capsules || []).map(async (capsule: any, cIdx: number) => {
       const processedItems = await Promise.all((capsule.items || []).map(async (item: any) => {
         if (item.source === 'external' && item.searchKeywords) {
-          const images = await searchUnsplashImages(item.searchKeywords, input.unsplashAccessKey);
+          const images = await searchUnsplashImages(item.searchKeywords, input.unsplashAccessKey, item.type);
           return {
             ...item,
             imageUrl: images.length > 0 ? images[0].url : item.imageUrl
