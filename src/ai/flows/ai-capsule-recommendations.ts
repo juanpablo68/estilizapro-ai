@@ -1,6 +1,7 @@
 'use server';
 /**
  * @fileOverview Generación de cápsulas de moda con búsqueda inteligente de prendas externas en Unsplash.
+ * Prioriza el armario del usuario y permite hasta 2 prendas externas por cápsula si es necesario.
  */
 
 import { z } from 'genkit';
@@ -38,7 +39,7 @@ const CapsuleSchema = z.object({
     source: z.enum(['wardrobe', 'external']),
     wardrobeItemId: z.string().optional(),
     imageUrl: z.string().optional(),
-    searchKeywords: z.string().describe('Palabras clave para buscar esta prenda en una base de datos de imágenes (ej: "navy blue tailored blazer flat lay")'),
+    searchKeywords: z.string().describe('Keywords en inglés para buscar solo el PRODUCTO de ropa (ej: "minimalist white cotton t-shirt flat lay")'),
     styleHint: z.string(),
   })),
 });
@@ -60,9 +61,9 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
 TU MISIÓN: Crear exactamente 2 cápsulas de moda HÍBRIDAS (4 prendas cada una).
 
 REGLAS DE SELECCIÓN:
-1. PRIORIDAD ARMARIO: Al menos 3 prendas de cada cápsula DEBEN ser del armario real del usuario.
-2. REGLA DE REPETICIÓN: Entre las 2 cápsulas generadas, SOLO PUEDES REPETIR 1 PRENDA DEL ARMARIO como máximo.
-3. PRENDAS EXTERNAS (PRODUCT ONLY): Si sugieres una prenda que el usuario NO TIENE (source: 'external'), genera 'searchKeywords' precisos en inglés para buscar una imagen de PRODUCTO ÚNICAMENTE, sin modelos ni maniquíes (ej: "minimalist camel wool coat flat lay isolated").
+1. PRIORIDAD ARMARIO: Debes usar el armario del usuario como base principal.
+2. PRENDAS EXTERNAS (MÁXIMO 2 POR CÁPSULA): Si el armario no tiene la prenda ideal para completar el look (combinación o accesorio), puedes sugerir hasta 2 prendas externas (source: 'external').
+3. PRODUCTO SOLAMENTE: Para prendas externas, genera 'searchKeywords' precisos en inglés enfocados ÚNICAMENTE en fotografía de producto (ej: "navy blue blazer flat lay", "white sneakers isolated"). PROHIBIDO modelos o personas.
 
 DATOS DEL USUARIO:
 - Figura: ${input.figureAnalysis}

@@ -32,9 +32,9 @@ export default function CapsulesPage() {
     weather: 'Templado'
   });
 
-  // Lógica de límites dinámica: 10 base + 6 por cada compra
-  const purchasedCount = Number(profile.purchasedCapsules) || 0;
-  const MAX_OUTFITS = 10 + (purchasedCount * 6);
+  // Lógica de límites reconstruida y simple: 10 base + 6 si tiene cápsula comprada
+  const hasExtraCapsule = (Number(profile.purchasedCapsules) || 0) > 0;
+  const MAX_OUTFITS = hasExtraCapsule ? 16 : 10;
   const isLimitReached = savedCapsules.length >= MAX_OUTFITS;
 
   useEffect(() => {
@@ -82,16 +82,21 @@ export default function CapsulesPage() {
       });
       
       if (result.capsules.length > 0) {
-        // Garantizamos IDs únicos incluyendo el índice y un random robusto para evitar colisiones de keys
+        // Generar IDs robustos para evitar colisiones de keys
         const uniqueCapsules = result.capsules.map((c, index) => ({
           ...c,
-          id: `capsule-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 9)}`
+          id: `cap-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 5)}`
         }));
         
-        const newCapsules = [...uniqueCapsules, ...savedCapsules];
+        // Guardar solo el número necesario para no exceder el límite inmediatamente
+        const remainingSpace = MAX_OUTFITS - savedCapsules.length;
+        const capsulesToAdd = uniqueCapsules.slice(0, remainingSpace);
+
+        const newCapsules = [...capsulesToAdd, ...savedCapsules];
         setSavedCapsules(newCapsules);
-        setSelectedCapsuleId(uniqueCapsules[0].id);
-        toast({ title: "¡Outfits Generados!", description: `Se han creado nuevas propuestas híbridas.` });
+        if (capsulesToAdd.length > 0) setSelectedCapsuleId(capsulesToAdd[0].id);
+        
+        toast({ title: "¡Outfits Generados!", description: `Se han añadido nuevas propuestas a tu lista.` });
       }
     } catch (err: any) {
       toast({ variant: "destructive", title: "Error en Generación", description: err.message });
@@ -130,14 +135,14 @@ export default function CapsulesPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-headline font-bold">Capsulizador AI</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Búsqueda Inteligente • Armario Híbrido</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Armario Híbrido • Máx {MAX_OUTFITS}</p>
         </div>
       </header>
 
       {isLimitReached && (
         <Alert variant="destructive" className="bg-orange-50 border-orange-200 text-orange-800 animate-in fade-in slide-in-from-top-4 duration-500">
           <Info className="h-4 w-4 text-orange-600" />
-          <AlertTitle className="font-bold">Límite de Outfits Alcanzado</AlertTitle>
+          <AlertTitle className="font-bold">Límite de Generaciones Alcanzado</AlertTitle>
           <AlertDescription className="text-xs">
             Llegaste a tu límite de {MAX_OUTFITS} outfits. Solicita una Cápsula Adicional para continuar siendo la envidia de tus amigos y familiares por el buen vestir.
             <Link href="/purchase" className="block mt-2 font-black underline">Adquirir Cápsula Adicional (+6 espacios) →</Link>
@@ -184,7 +189,7 @@ export default function CapsulesPage() {
           >
             {loading ? (
               <span className="flex items-center justify-center">
-                <Loader2 className="mr-3 animate-spin" /> GPT-4o analizando tu armario...
+                <Loader2 className="mr-3 animate-spin" /> Buscando prendas perfectas...
               </span>
             ) : isLimitReached ? (
               <span className="flex items-center justify-center">
@@ -206,7 +211,7 @@ export default function CapsulesPage() {
                 <LayoutGrid className="w-4 h-4" /> MIS OUTFITs
              </h3>
              <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-muted text-muted-foreground">
-                {savedCapsules.length} / {MAX_OUTFITS} Guardados
+                {savedCapsules.length} / {MAX_OUTFITS}
              </span>
           </div>
           <ScrollArea className="w-full whitespace-nowrap pb-4">
@@ -227,7 +232,7 @@ export default function CapsulesPage() {
                     <div className="relative aspect-[4/3] bg-muted">
                        <div className="grid grid-cols-2 h-full">
                           {capsule.items.slice(0, 2).map((item, idx) => (
-                             <div key={`${capsule.id}-preview-${idx}`} className="relative w-full h-full">
+                             <div key={`${capsule.id}-prev-${idx}`} className="relative w-full h-full">
                                 <Image src={getItemImage(item)} alt="" fill className="object-cover" unoptimized />
                              </div>
                           ))}
@@ -268,7 +273,7 @@ export default function CapsulesPage() {
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {currentCapsule.items.map((item, itemIdx) => (
-              <Card key={`${currentCapsule.id}-detail-${itemIdx}`} className="overflow-hidden border-none shadow-md relative group rounded-2xl bg-white transition-transform hover:scale-[1.02]">
+              <Card key={`${currentCapsule.id}-item-${itemIdx}`} className="overflow-hidden border-none shadow-md relative group rounded-2xl bg-white transition-transform hover:scale-[1.02]">
                 <div className="absolute top-2 left-2 z-10">
                   {item.source === 'wardrobe' ? (
                     <div className="text-[8px] font-black text-white px-2 py-1 rounded-full flex items-center shadow-md bg-green-500 gap-1"><FolderHeart className="w-2.5 h-2.5" /> Mi Armario</div>
