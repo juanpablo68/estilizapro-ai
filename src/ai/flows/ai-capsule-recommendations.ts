@@ -37,7 +37,7 @@ const CapsuleSchema = z.object({
     name: z.string(),
     type: z.enum(['top', 'bottom', 'dress', 'outerwear', 'shoe', 'accessory']),
     source: z.enum(['wardrobe', 'external']),
-    wardrobeItemId: z.string().optional(),
+    wardrobeItemId: z.string().optional().describe('El ID exacto de la prenda en el armario del usuario'),
     imageUrl: z.string().optional(),
     searchKeywords: z.string().describe('Keywords en inglés para buscar solo el PRODUCTO de ropa (ej: "minimalist white cotton t-shirt flat lay")'),
     styleHint: z.string(),
@@ -60,18 +60,19 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
   const prompt = `Eres el Stylist Maestro de Pilar Cifuentes Catalán.
 TU MISIÓN: Crear exactamente 2 cápsulas de moda HÍBRIDAS (4 prendas cada una) que sean TOTALMENTE DIFERENTES entre sí.
 
-REGLAS CRÍTICAS:
-1. DIFERENCIACIÓN: Las 2 cápsulas deben proponer estilos, colores o combinaciones distintas. No repitas el mismo look.
+REGLAS CRÍTICAS DE ESTILO:
+1. DIFERENCIACIÓN TOTAL: Las 2 cápsulas deben proponer estilos, colores o combinaciones distintas. Si una es casual, la otra debe ser más formal o de un color contrastante.
 2. PRIORIDAD ARMARIO: Usa el armario del usuario como base principal.
-3. PRENDAS EXTERNAS (MÁXIMO 2 POR CÁPSULA): Si el armario no tiene la prenda ideal para completar el look, puedes sugerir HASTA 2 prendas externas (source: 'external').
-4. PRODUCTO SOLAMENTE: Para prendas externas, genera 'searchKeywords' en inglés enfocados ÚNICAMENTE en fotografía de producto sin personas ni modelos ni maniquíes (ej: "navy blue blazer flat lay", "white sneakers isolated").
+3. PRENDAS DEL ARMARIO: Para ítems de 'wardrobe', DEBES devolver el 'wardrobeItemId' EXACTO que se te proporciona en la lista. NO inventes IDs.
+4. PRENDAS EXTERNAS (MÁXIMO 2 POR CÁPSULA): Si el armario no tiene la prenda ideal para completar el look, sugiere HASTA 2 prendas externas (source: 'external').
+5. PRODUCTO SOLAMENTE: Para prendas externas, genera 'searchKeywords' en inglés enfocados ÚNICAMENTE en fotografía de producto sin personas ni modelos (ej: "navy blue blazer flat lay", "white sneakers product shot").
 
 DATOS DEL USUARIO:
 - Figura: ${input.figureAnalysis}
 - Colorimetría: ${input.colorimetryAnalysis}
 - Evento: ${input.eventType}, Clima: ${input.weatherConditions}
 
-ARMARIO REAL DEL USUARIO:
+ARMARIO REAL DEL USUARIO (ID y Nombre):
 ${JSON.stringify(input.wardrobeItems)}
 
 Responde ÚNICAMENTE con un JSON válido con la propiedad "capsules" que sea un array de 2 objetos según el esquema definido.`;
@@ -79,7 +80,7 @@ Responde ÚNICAMENTE con un JSON válido con la propiedad "capsules" que sea un 
   const finalResponse = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
-      { role: "system", content: "Eres un experto en moda que genera respuestas JSON. Creas outfits variados, priorizas el armario y limitas prendas externas a 2 por conjunto." },
+      { role: "system", content: "Eres un experto en moda que genera respuestas JSON. Creas outfits variados, priorizas el armario usando IDs exactos y limitas prendas externas a 2 por conjunto." },
       { role: "user", content: prompt }
     ],
     response_format: { type: "json_object" }
@@ -90,7 +91,6 @@ Responde ÚNICAMENTE con un JSON válido con la propiedad "capsules" que sea un 
     const content = JSON.parse(responseText);
     const date = new Date().toISOString();
     
-    // FASE DE BÚSQUEDA VISUAL PARA PRENDAS EXTERNAS
     const processedCapsules = await Promise.all((content.capsules || []).map(async (capsule: any, cIdx: number) => {
       const processedItems = await Promise.all((capsule.items || []).map(async (item: any) => {
         if (item.source === 'external' && item.searchKeywords) {
@@ -103,7 +103,6 @@ Responde ÚNICAMENTE con un JSON válido con la propiedad "capsules" que sea un 
         return item;
       }));
       
-      // Generar ID único para evitar errores de duplicidad en el cliente
       const uniqueId = `cap-${Date.now()}-${cIdx}-${Math.random().toString(36).substring(2, 7)}`;
       
       return {

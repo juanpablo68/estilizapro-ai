@@ -82,7 +82,6 @@ export default function CapsulesPage() {
       
       if (result.capsules.length > 0) {
         const remainingSpace = MAX_OUTFITS - savedCapsules.length;
-        // Solo añadimos las que quepan en el espacio disponible
         const capsulesToAdd = result.capsules.slice(0, remainingSpace);
 
         const newCapsules = [...capsulesToAdd, ...savedCapsules];
@@ -99,7 +98,7 @@ export default function CapsulesPage() {
   };
 
   const deleteCapsule = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Evita que se seleccione la cápsula al eliminarla
+    e.stopPropagation();
     const filtered = savedCapsules.filter(c => c.id !== id);
     setSavedCapsules(filtered);
     if (selectedCapsuleId === id) {
@@ -108,17 +107,21 @@ export default function CapsulesPage() {
     toast({ title: "Outfit eliminado" });
   };
 
-  const currentCapsule = savedCapsules.find(c => c.id === selectedCapsuleId);
-
   const getItemImage = (item: CapsuleItem) => {
-    // Si la prenda viene del armario, buscamos su foto local real
-    if (item.source === 'wardrobe' && item.wardrobeItemId) {
-      const local = wardrobe.find(wi => wi.id === item.wardrobeItemId);
+    if (item.source === 'wardrobe') {
+      // Prioridad 1: Match por ID exacto
+      let local = wardrobe.find(wi => wi.id === item.wardrobeItemId);
+      // Prioridad 2: Match por Nombre (Respaldo si la IA alucina el ID pero mantiene el nombre)
+      if (!local && item.name) {
+        local = wardrobe.find(wi => wi.name.toLowerCase().includes(item.name.toLowerCase()));
+      }
+      
       if (local?.imageDataUri) return local.imageDataUri;
     }
-    // Si es externa o no se encontró la local, devolvemos la URL de Unsplash o placeholder
     return item.imageUrl || PlaceHolderImages[0].imageUrl;
   };
+
+  const currentCapsule = savedCapsules.find(c => c.id === selectedCapsuleId);
 
   if (!mounted) return null;
 
