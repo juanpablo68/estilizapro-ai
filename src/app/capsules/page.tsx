@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, ArrowLeft, Sparkles, MapPin, CloudSun, Pin, FolderHeart, Trash2, LayoutGrid, Info, ShoppingCart } from "lucide-react";
+import { Loader2, ArrowLeft, Sparkles, MapPin, CloudSun, FolderHeart, Trash2, LayoutGrid, Info, ShoppingCart } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -32,7 +32,9 @@ export default function CapsulesPage() {
     weather: 'Templado'
   });
 
-  const MAX_OUTFITS = 10;
+  // Lógica de límites dinámica: 10 base + 6 por cada compra
+  const purchasedCount = Number(profile.purchasedCapsules) || 0;
+  const MAX_OUTFITS = 10 + (purchasedCount * 6);
   const isLimitReached = savedCapsules.length >= MAX_OUTFITS;
 
   useEffect(() => {
@@ -127,12 +129,12 @@ export default function CapsulesPage() {
       </header>
 
       {isLimitReached && (
-        <Alert variant="destructive" className="bg-orange-50 border-orange-200 text-orange-800">
+        <Alert variant="destructive" className="bg-orange-50 border-orange-200 text-orange-800 animate-in fade-in slide-in-from-top-4 duration-500">
           <Info className="h-4 w-4 text-orange-600" />
           <AlertTitle className="font-bold">Límite de Outfits Alcanzado</AlertTitle>
           <AlertDescription className="text-xs">
-            Llegaste a tu límite de generaciones del mes (10 outfits). Solicita una Cápsula Adicional para continuar siendo la envidia de tus amigos y familiares por el buen vestir.
-            <Link href="/purchase" className="block mt-2 font-black underline">Adquirir Cápsula Adicional →</Link>
+            Llegaste a tu límite de {MAX_OUTFITS} outfits. Solicita una Cápsula Adicional para continuar siendo la envidia de tus amigos y familiares por el buen vestir.
+            <Link href="/purchase" className="block mt-2 font-black underline">Adquirir Cápsula Adicional (+6 espacios) →</Link>
           </AlertDescription>
         </Alert>
       )}
@@ -176,7 +178,7 @@ export default function CapsulesPage() {
           >
             {loading ? (
               <span className="flex items-center justify-center">
-                <Loader2 className="mr-3 animate-spin" /> Buscando prendas perfectas...
+                <Loader2 className="mr-3 animate-spin" /> GPT-4o analizando tu armario...
               </span>
             ) : isLimitReached ? (
               <span className="flex items-center justify-center">

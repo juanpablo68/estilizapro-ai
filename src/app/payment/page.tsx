@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -32,7 +31,7 @@ export default function PaymentPage() {
       setCompleted(true);
       
       // Actualizar el perfil con la nueva cápsula
-      // Aseguramos que sea un incremento numérico estricto
+      // Aseguramos que sea un incremento numérico estricto (+1 cápsula comprada)
       const currentPurchased = Number(profile.purchasedCapsules) || 0;
       setProfile({
         ...profile,
@@ -79,7 +78,10 @@ export default function PaymentPage() {
                <ShieldCheck className="w-6 h-6 text-primary" />
             </div>
             <div className="flex justify-between items-end border-b border-primary/10 pb-4">
-              <span className="text-sm font-medium text-muted-foreground">Cápsula Adicional AI (+6 Outfits)</span>
+              <div className="space-y-1">
+                <span className="block text-sm font-medium text-muted-foreground">Cápsula Adicional AI (+6 Outfits)</span>
+                <span className="block text-[10px] text-primary font-bold">NUEVA CAPACIDAD: {10 + (Number(profile.purchasedCapsules || 0) + 1) * 6} TOTAL</span>
+              </div>
               <span className="text-2xl font-black text-primary">$3.00 USD</span>
             </div>
           </CardHeader>
