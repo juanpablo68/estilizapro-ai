@@ -38,7 +38,7 @@ const CapsuleSchema = z.object({
     source: z.enum(['wardrobe', 'external']),
     wardrobeItemId: z.string().optional(),
     imageUrl: z.string().optional(),
-    searchKeywords: z.string().describe('Palabras clave para buscar esta prenda en una base de datos de imágenes (ej: "navy blue tailored blazer")'),
+    searchKeywords: z.string().describe('Palabras clave para buscar esta prenda en una base de datos de imágenes (ej: "navy blue tailored blazer flat lay")'),
     styleHint: z.string(),
   })),
 });
@@ -62,7 +62,7 @@ TU MISIÓN: Crear exactamente 2 cápsulas de moda HÍBRIDAS (4 prendas cada una)
 REGLAS DE SELECCIÓN:
 1. PRIORIDAD ARMARIO: Al menos 3 prendas de cada cápsula DEBEN ser del armario real del usuario.
 2. REGLA DE REPETICIÓN: Entre las 2 cápsulas generadas, SOLO PUEDES REPETIR 1 PRENDA DEL ARMARIO como máximo.
-3. PRENDAS EXTERNAS: Si sugieres una prenda que el usuario NO TIENE (source: 'external'), genera 'searchKeywords' precisos (3-5 palabras en inglés) para buscar una imagen real (ej: "minimalist camel wool coat").
+3. PRENDAS EXTERNAS (PRODUCT ONLY): Si sugieres una prenda que el usuario NO TIENE (source: 'external'), genera 'searchKeywords' precisos en inglés para buscar una imagen de PRODUCTO ÚNICAMENTE, sin modelos ni maniquíes (ej: "minimalist camel wool coat flat lay isolated").
 
 DATOS DEL USUARIO:
 - Figura: ${input.figureAnalysis}
@@ -77,7 +77,7 @@ Responde ÚNICAMENTE con un JSON válido con la propiedad "capsules" que sea un 
   const finalResponse = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
-      { role: "system", content: "Eres un experto en moda que genera respuestas JSON. Priorizas el armario del usuario y generas keywords de búsqueda para prendas externas." },
+      { role: "system", content: "Eres un experto en moda que genera respuestas JSON. Priorizas el armario del usuario y generas keywords de búsqueda para prendas externas centradas en el producto sin personas." },
       { role: "user", content: prompt }
     ],
     response_format: { type: "json_object" }
