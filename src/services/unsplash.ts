@@ -19,10 +19,11 @@ export async function searchUnsplashImages(query: string, accessKey?: string, it
   const key = accessKey || process.env.UNSPLASH_ACCESS_KEY;
   
   // Reforzamos el query para evitar modelos, caras y personas. 
-  const productFocusedQuery = `${query} clothing product shot flat lay -person -model -face -mannequin`;
+  // Buscamos específicamente "flat lay product shot" para una estética limpia.
+  const productFocusedQuery = `${query} clothing garment flat lay product shot -person -model -face -mannequin -landscape`;
 
-  // Fallback a nuestros placeholders de moda si no hay key, para evitar paisajes aleatorios
-  if (!key) {
+  // Fallback a nuestros placeholders de moda si no hay key
+  if (!key || key === 'undefined') {
     const fallback = PlaceHolderImages.find(img => img.id === `fashion-${itemType}`) || PlaceHolderImages[0];
     return [{
       id: `fallback-${Date.now()}`,
@@ -56,7 +57,7 @@ export async function searchUnsplashImages(query: string, accessKey?: string, it
 
     // Intento relajado si el estricto falla
     const relaxedResponse = await fetch(
-      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query + ' fashion product')}&per_page=1&orientation=portrait`,
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query + ' clothing product shot')}&per_page=1&orientation=portrait`,
       { headers: { Authorization: `Client-ID ${key}` } }
     );
     const relaxedData = await relaxedResponse.json();

@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Save, Key, ImageIcon, Loader2, BookOpen, Sparkles } from "lucide-react";
+import { ArrowLeft, Save, Key, ImageIcon, Loader2, BookOpen, Sparkles, CheckCircle, XCircle } from "lucide-react";
 import Link from 'next/link';
 import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
 import { useToast } from "@/hooks/use-toast";
@@ -20,7 +20,8 @@ export default function SettingsPage() {
   const [openaiKey, setOpenaiKey] = useState('');
   const [unsplashKey, setUnsplashKey] = useState('');
   const [knowledge, setKnowledge] = useState('');
-  const [testStatus, setTestStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [testStatusOpenAI, setTestStatusOpenAI] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [testStatusUnsplash, setTestStatusUnsplash] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   useEffect(() => {
     setMounted(true);
@@ -44,24 +45,28 @@ export default function SettingsPage() {
     });
   };
 
-  const handleTest = async () => {
-    if (!openaiKey) {
-      toast({ variant: "destructive", title: "OpenAI Key Requerida" });
-      return;
-    }
-    setTestStatus('loading');
-    try {
-      const result = await testAPIConnection({ provider: 'openai', apiKey: openaiKey });
-      setTestStatus(result.success ? 'success' : 'error');
-      toast({ 
-        title: result.success ? "¡Conexión Exitosa!" : "Error de Conexión", 
-        description: result.message,
-        variant: result.success ? "default" : "destructive"
-      });
-    } catch (e) {
-      setTestStatus('error');
-      toast({ variant: "destructive", title: "Error crítico", description: "No se pudo contactar con el servidor de IA." });
-    }
+  const handleTestOpenAI = async () => {
+    if (!openaiKey) return;
+    setTestStatusOpenAI('loading');
+    const result = await testAPIConnection({ provider: 'openai', apiKey: openaiKey });
+    setTestStatusOpenAI(result.success ? 'success' : 'error');
+    toast({ 
+      title: result.success ? "OpenAI: Conectado" : "OpenAI: Error", 
+      description: result.message,
+      variant: result.success ? "default" : "destructive"
+    });
+  };
+
+  const handleTestUnsplash = async () => {
+    if (!unsplashKey) return;
+    setTestStatusUnsplash('loading');
+    const result = await testAPIConnection({ provider: 'unsplash', apiKey: unsplashKey });
+    setTestStatusUnsplash(result.success ? 'success' : 'error');
+    toast({ 
+      title: result.success ? "Unsplash: Conectado" : "Unsplash: Error", 
+      description: result.message,
+      variant: result.success ? "default" : "destructive"
+    });
   };
 
   if (!mounted) return null;
@@ -79,10 +84,12 @@ export default function SettingsPage() {
       </header>
 
       <div className="space-y-6">
-        <Card className="border-none shadow-md rounded-2xl overflow-hidden">
+        <Card className="border-none shadow-md rounded-2xl overflow-hidden bg-white">
           <CardHeader className="bg-primary/5 p-6">
-            <CardTitle className="text-sm flex items-center gap-2 text-primary font-black uppercase tracking-wider">
-              <Key className="w-4 h-4" /> OpenAI Key (GPT-4o)
+            <CardTitle className="text-sm flex items-center justify-between text-primary font-black uppercase tracking-wider">
+              <span className="flex items-center gap-2"><Key className="w-4 h-4" /> OpenAI Key (GPT-4o)</span>
+              {testStatusOpenAI === 'success' && <CheckCircle className="w-4 h-4 text-green-500" />}
+              {testStatusOpenAI === 'error' && <XCircle className="w-4 h-4 text-destructive" />}
             </CardTitle>
             <CardDescription className="text-xs">Cerebro para análisis visual, razonamiento y estilo.</CardDescription>
           </CardHeader>
@@ -95,33 +102,40 @@ export default function SettingsPage() {
                 placeholder="sk-..." 
                 className="flex-1 rounded-xl h-12"
               />
-              <Button variant="outline" size="lg" onClick={handleTest} className="rounded-xl border-primary text-primary hover:bg-primary/5">
-                {testStatus === 'loading' ? <Loader2 className="animate-spin h-4 w-4" /> : "Probar"}
+              <Button variant="outline" size="sm" onClick={handleTestOpenAI} className="rounded-xl border-primary text-primary hover:bg-primary/5">
+                {testStatusOpenAI === 'loading' ? <Loader2 className="animate-spin h-4 w-4" /> : "Probar"}
               </Button>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-md rounded-2xl overflow-hidden">
+        <Card className="border-none shadow-md rounded-2xl overflow-hidden bg-white">
           <CardHeader className="bg-pink-50 p-6">
-            <CardTitle className="text-sm flex items-center gap-2 text-pink-700 font-black uppercase tracking-wider">
-              <ImageIcon className="w-4 h-4" /> Unsplash Access Key
+            <CardTitle className="text-sm flex items-center justify-between text-pink-700 font-black uppercase tracking-wider">
+              <span className="flex items-center gap-2"><ImageIcon className="w-4 h-4" /> Unsplash Access Key</span>
+              {testStatusUnsplash === 'success' && <CheckCircle className="w-4 h-4 text-green-500" />}
+              {testStatusUnsplash === 'error' && <XCircle className="w-4 h-4 text-destructive" />}
             </CardTitle>
             <CardDescription className="text-xs">Motor para encontrar imágenes reales de prendas sugeridas.</CardDescription>
           </CardHeader>
-          <CardContent className="p-6">
-            <Input 
-              type="password" 
-              value={unsplashKey} 
-              onChange={e => setUnsplashKey(e.target.value)} 
-              placeholder="Tu Unsplash Access Key" 
-              className="rounded-xl h-12"
-            />
-            <p className="text-[9px] text-muted-foreground mt-2 italic">Si está vacía, se usarán imágenes de respaldo genéricas.</p>
+          <CardContent className="p-6 space-y-4">
+            <div className="flex gap-2">
+              <Input 
+                type="password" 
+                value={unsplashKey} 
+                onChange={e => setUnsplashKey(e.target.value)} 
+                placeholder="Tu Unsplash Access Key" 
+                className="flex-1 rounded-xl h-12"
+              />
+              <Button variant="outline" size="sm" onClick={handleTestUnsplash} className="rounded-xl border-pink-600 text-pink-600 hover:bg-pink-50">
+                {testStatusUnsplash === 'loading' ? <Loader2 className="animate-spin h-4 w-4" /> : "Probar"}
+              </Button>
+            </div>
+            <p className="text-[9px] text-muted-foreground italic">Si está vacía, se usarán imágenes de respaldo genéricas de moda.</p>
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-md rounded-2xl overflow-hidden">
+        <Card className="border-none shadow-md rounded-2xl overflow-hidden bg-white">
           <CardHeader className="bg-indigo-50 p-6">
             <CardTitle className="text-sm flex items-center gap-2 text-indigo-700 font-black uppercase tracking-wider">
               <BookOpen className="w-4 h-4" /> Área de Conocimiento

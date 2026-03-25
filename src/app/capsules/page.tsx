@@ -80,11 +80,10 @@ export default function CapsulesPage() {
         unsplashAccessKey: unsplashKey || undefined,
       });
       
-      if (result.capsules.length > 0) {
+      if (result.capsules && result.capsules.length > 0) {
         const remainingSpace = MAX_OUTFITS - savedCapsules.length;
         const capsulesToAdd = result.capsules.slice(0, remainingSpace);
 
-        // Asegurar IDs únicos antes de guardar
         const uniqueCapsulesToAdd = capsulesToAdd.map((cap, idx) => ({
           ...cap,
           id: `capsule-${Date.now()}-${idx}-${Math.random().toString(36).substr(2, 5)}`
@@ -114,18 +113,20 @@ export default function CapsulesPage() {
   };
 
   const getItemImage = (item: CapsuleItem) => {
+    // PRIORIDAD 1: Buscar en el armario real por ID exacto
     if (item.source === 'wardrobe' && item.wardrobeItemId) {
-      // Búsqueda exhaustiva por ID exacto
       const local = wardrobe.find(wi => wi.id === item.wardrobeItemId);
       if (local?.imageDataUri) return local.imageDataUri;
       
-      // Búsqueda de respaldo por nombre aproximado si el ID falla
+      // PRIORIDAD 2: Buscar en el armario real por nombre (respaldo si el ID falla)
       const fallbackLocal = wardrobe.find(wi => wi.name.toLowerCase().includes(item.name.toLowerCase()));
       if (fallbackLocal?.imageDataUri) return fallbackLocal.imageDataUri;
     }
     
-    // Si es externo o no se encontró en el armario, usar la URL de Unsplash o el placeholder de moda
+    // PRIORIDAD 3: URL externa (Unsplash)
     if (item.imageUrl) return item.imageUrl;
+    
+    // PRIORIDAD 4: Placeholder de moda específico
     const fashionPlaceholder = PlaceHolderImages.find(p => p.id === `fashion-${item.type}`) || PlaceHolderImages[0];
     return fashionPlaceholder.imageUrl;
   };
@@ -142,7 +143,7 @@ export default function CapsulesPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-headline font-bold">Capsulizador AI</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Armario Real • Máx 2 Sugerencias • Límite {MAX_OUTFITS}</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Armario Real • Máx 2 Sugerencias • Capacidad {MAX_OUTFITS}</p>
         </div>
       </header>
 
@@ -163,7 +164,7 @@ export default function CapsulesPage() {
             <div className="space-y-2">
               <Label className="flex items-center gap-2 text-[10px] uppercase font-black text-primary"><MapPin className="w-3 h-3" /> Evento</Label>
               <Select value={params.eventType} onValueChange={v => setParams({...params, eventType: v})}>
-                <SelectTrigger className="rounded-2xl h-12"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="rounded-2xl h-12 bg-white"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Trabajo">Oficina / Negocios</SelectItem>
                   <SelectItem value="Casual">Día Casual</SelectItem>
@@ -176,7 +177,7 @@ export default function CapsulesPage() {
             <div className="space-y-2">
               <Label className="flex items-center gap-2 text-[10px] uppercase font-black text-primary"><CloudSun className="w-3 h-3" /> Clima</Label>
               <Select value={params.weather} onValueChange={v => setParams({...params, weather: v})}>
-                <SelectTrigger className="rounded-2xl h-12"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="rounded-2xl h-12 bg-white"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Caluroso">Caluroso</SelectItem>
                   <SelectItem value="Templado">Templado</SelectItem>
@@ -233,7 +234,7 @@ export default function CapsulesPage() {
                   )}
                 >
                   <Card className={cn(
-                    "overflow-hidden border-2 rounded-2xl",
+                    "overflow-hidden border-2 rounded-2xl bg-white",
                     selectedCapsuleId === capsule.id ? "border-primary shadow-lg ring-4 ring-primary/5" : "border-transparent shadow-sm"
                   )}>
                     <div className="relative aspect-[4/3] bg-muted">
@@ -261,7 +262,7 @@ export default function CapsulesPage() {
                         <div className="absolute bottom-0 inset-x-0 bg-black/60 p-2 text-white">
                           <p className="text-[9px] font-black truncate uppercase">{capsule.name}</p>
                           <p className="text-[7px] flex items-center gap-1 opacity-90 truncate font-bold">
-                            <MapPin className="w-2.5 h-2.5" /> {capsule.eventType} • <CloudSun className="w-2.5 h-2.5" /> {capsule.weatherConditions}
+                            <MapPin className="w-2.5 h-2.5" /> {capsule.eventType} • <CloudSun className="w-2.5 h-2.5" /> {params.weather}
                           </p>
                         </div>
                     </div>
