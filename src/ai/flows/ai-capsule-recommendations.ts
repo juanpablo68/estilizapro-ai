@@ -1,12 +1,11 @@
 'use server';
 /**
- * @fileOverview Generación de cápsulas de moda con prioridad absoluta en el armario real.
- * Refuerzo: Máximo 2 cápsulas y límite de 1 prenda repetida entre ellas.
+ * @fileOverview Generación de cápsulas de moda con búsqueda inteligente de prendas externas en Unsplash.
  */
 
 import { z } from 'genkit';
 import OpenAI from 'openai';
-import { searchPinterestPins } from '@/services/pinterest';
+import { searchUnsplashImages } from '@/services/unsplash';
 
 const WardrobeItemSchema = z.object({
   id: z.string(),
@@ -23,7 +22,7 @@ const AICapsuleRecommendationsInputSchema = z.object({
   weatherConditions: z.string(),
   wardrobeItems: z.array(WardrobeItemSchema),
   openaiApiKey: z.string().optional(),
-  pinterestToken: z.string().optional(),
+  unsplashAccessKey: z.string().optional(),
 });
 
 const CapsuleSchema = z.object({
@@ -36,9 +35,10 @@ const CapsuleSchema = z.object({
   items: z.array(z.object({
     name: z.string(),
     type: z.enum(['top', 'bottom', 'dress', 'outerwear', 'shoe', 'accessory']),
-    source: z.enum(['wardrobe', 'pinterest']),
+    source: z.enum(['wardrobe', 'external']),
     wardrobeItemId: z.string().optional(),
     imageUrl: z.string().optional(),
+    searchKeywords: z.string().describe('Palabras clave para buscar esta prenda en una base de datos de imágenes (ej: "navy blue tailored blazer")'),
     styleHint: z.string(),
   })),
 });
@@ -56,40 +56,28 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
 
   const openai = new OpenAI({ apiKey });
 
-  // 1. Obtención de Inspiración de Pinterest (Contexto Visual)
-  const searchQuery = `${input.eventType} ${input.weatherConditions} fashion style ${input.colorimetryAnalysis}`;
-  const pins = await searchPinterestPins(searchQuery, input.pinterestToken);
-
-  // 2. Razonamiento Maestro con GPT-4o
   const prompt = `Eres el Stylist Maestro de Pilar Cifuentes Catalán.
-TU MISIÓN: Crear exactamente 2 cápsulas de moda HÍBRIDAS donde la prioridad ABSOLUTA es la ropa que el usuario YA TIENE en su armario.
+TU MISIÓN: Crear exactamente 2 cápsulas de moda HÍBRIDAS (4 prendas cada una).
+
+REGLAS DE SELECCIÓN:
+1. PRIORIDAD ARMARIO: Al menos 3 prendas de cada cápsula DEBEN ser del armario real del usuario.
+2. REGLA DE REPETICIÓN: Entre las 2 cápsulas generadas, SOLO PUEDES REPETIR 1 PRENDA DEL ARMARIO como máximo.
+3. PRENDAS EXTERNAS: Si sugieres una prenda que el usuario NO TIENE (source: 'external'), genera 'searchKeywords' precisos (3-5 palabras en inglés) para buscar una imagen real (ej: "minimalist camel wool coat").
 
 DATOS DEL USUARIO:
 - Figura: ${input.figureAnalysis}
 - Colorimetría: ${input.colorimetryAnalysis}
-- Conocimiento Maestro: ${input.knowledgeBase || 'Sin guías adicionales'}
+- Evento: ${input.eventType}, Clima: ${input.weatherConditions}
 
-ARMARIO REAL DEL USUARIO (USA ESTOS IDs):
+ARMARIO REAL DEL USUARIO:
 ${JSON.stringify(input.wardrobeItems)}
 
-INSPIRACIÓN PINTEREST (SOLO SI FALTA ALGO):
-${JSON.stringify(pins)}
-
-REGLAS DE ORO:
-1. Genera exactamente 2 cápsulas (ni más, ni menos).
-2. Cada cápsula debe tener 4 prendas.
-3. PRIORIDAD ARMARIO: Al menos 3 prendas de cada cápsula DEBEN ser del armario real.
-4. REGLA DE REPETICIÓN: Entre las 2 cápsulas generadas, SOLO PUEDES REPETIR 1 PRENDA DEL ARMARIO como máximo. Las otras deben ser diferentes.
-5. Para prendas del armario: 'source' debe ser 'wardrobe' y 'wardrobeItemId' debe coincidir EXACTAMENTE con un ID del JSON.
-6. Para prendas externas: 'source' debe ser 'pinterest' y usar 'imageUrl' de los pins proporcionados.
-7. Asigna un ID único aleatorio a cada cápsula.
-
-Responde ÚNICAMENTE con un JSON válido con la propiedad "capsules" que sea un array de 2 objetos.`;
+Responde ÚNICAMENTE con un JSON válido con la propiedad "capsules" que sea un array de 2 objetos según el esquema definido.`;
 
   const finalResponse = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
-      { role: "system", content: "Eres un sistema de respuesta JSON experto en moda. Generas exactamente 2 cápsulas y evitas repetir más de una prenda entre ellas." },
+      { role: "system", content: "Eres un experto en moda que genera respuestas JSON. Priorizas el armario del usuario y generas keywords de búsqueda para prendas externas." },
       { role: "user", content: prompt }
     ],
     response_format: { type: "json_object" }
@@ -99,16 +87,33 @@ Responde ÚNICAMENTE con un JSON válido con la propiedad "capsules" que sea un 
   try {
     const content = JSON.parse(responseText);
     const date = new Date().toISOString();
-    return {
-      capsules: (content.capsules || []).map((c: any) => ({ 
-        ...c, 
+    
+    // FASE DE BÚSQUEDA VISUAL PARA PRENDAS EXTERNAS
+    const processedCapsules = await Promise.all((content.capsules || []).map(async (capsule: any) => {
+      const processedItems = await Promise.all((capsule.items || []).map(async (item: any) => {
+        if (item.source === 'external' && item.searchKeywords) {
+          // Buscamos en Unsplash usando las palabras clave de la IA
+          const images = await searchUnsplashImages(item.searchKeywords, input.unsplashAccessKey);
+          return {
+            ...item,
+            imageUrl: images.length > 0 ? images[0].url : item.imageUrl
+          };
+        }
+        return item;
+      }));
+      
+      return {
+        ...capsule,
         date,
         eventType: input.eventType,
-        weatherConditions: input.weatherConditions
-      }))
-    };
+        weatherConditions: input.weatherConditions,
+        items: processedItems
+      };
+    }));
+
+    return { capsules: processedCapsules };
   } catch (e) {
-    console.error("Error parsing AI response", e);
+    console.error("Error processing AI response", e);
     return { capsules: [] };
   }
 }

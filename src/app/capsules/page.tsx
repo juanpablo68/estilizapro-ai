@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -33,9 +32,7 @@ export default function CapsulesPage() {
     weather: 'Templado'
   });
 
-  // Lógica de límites simplificada y robusta: 10 base + 6 por cada cápsula adicional
-  const purchasedCount = Number(profile.purchasedCapsules) || 0;
-  const MAX_OUTFITS = 10 + (purchasedCount * 6);
+  const MAX_OUTFITS = 10;
   const isLimitReached = savedCapsules.length >= MAX_OUTFITS;
 
   useEffect(() => {
@@ -47,11 +44,13 @@ export default function CapsulesPage() {
 
   const generateCapsules = async () => {
     if (isLimitReached) {
-      router.push('/purchase');
+      toast({ variant: "destructive", title: "Límite alcanzado" });
       return;
     }
 
     const openaiKey = localStorage.getItem('openai_api_key');
+    const unsplashKey = localStorage.getItem('unsplash_access_key');
+    
     if (!openaiKey) {
       toast({ variant: "destructive", title: "Configura tu OpenAI Key en Ajustes" });
       return;
@@ -61,7 +60,7 @@ export default function CapsulesPage() {
       toast({ 
         variant: "destructive", 
         title: "Armario Insuficiente", 
-        description: "Sube al menos 3 o 4 fotos de tu ropa para que la IA pueda crear combinaciones variadas." 
+        description: "Sube al menos 3 prendas para que la IA pueda crear combinaciones." 
       });
       return;
     }
@@ -77,15 +76,14 @@ export default function CapsulesPage() {
         weatherConditions: params.weather,
         wardrobeItems: wardrobe.map(i => ({ id: i.id, name: i.name, type: i.type })),
         openaiApiKey: openaiKey,
-        pinterestToken: localStorage.getItem('pinterest_token') || undefined,
+        unsplashAccessKey: unsplashKey || undefined,
       });
       
       if (result.capsules.length > 0) {
-        // Añadir solo 2 outfits (1 generación)
         const newCapsules = [...result.capsules.slice(0, 2), ...savedCapsules];
         setSavedCapsules(newCapsules);
         setSelectedCapsuleId(result.capsules[0].id);
-        toast({ title: "¡Nuevos Outfits!", description: `Se han generado propuetas únicas.` });
+        toast({ title: "¡Outfits Generados!", description: `Se han creado nuevas propuestas híbridas.` });
       }
     } catch (err: any) {
       toast({ variant: "destructive", title: "Error en Generación", description: err.message });
@@ -124,19 +122,17 @@ export default function CapsulesPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-headline font-bold">Capsulizador AI</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Variedad • Fidelidad de Identidad</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Búsqueda Inteligente • Armario Híbrido</p>
         </div>
       </header>
 
       {isLimitReached && (
-        <Alert variant="destructive" className="bg-orange-50 border-orange-200 text-orange-800 animate-in slide-in-from-top-2 duration-300">
+        <Alert variant="destructive" className="bg-orange-50 border-orange-200 text-orange-800">
           <Info className="h-4 w-4 text-orange-600" />
           <AlertTitle className="font-bold">Límite de Outfits Alcanzado</AlertTitle>
-          <AlertDescription className="text-xs leading-relaxed">
-            Llegaste a tu límite de generaciones del mes ({MAX_OUTFITS} outfits). Solicita una Cápsula Adicional para continuar siendo la envidia de tus amigos y familiares por el buen vestir.
-            <Link href="/purchase" className="block mt-2 font-black underline flex items-center gap-1">
-              <ShoppingCart className="w-3 h-3" /> Adquirir Cápsula Adicional →
-            </Link>
+          <AlertDescription className="text-xs">
+            Llegaste a tu límite de generaciones del mes (10 outfits). Solicita una Cápsula Adicional para continuar siendo la envidia de tus amigos y familiares por el buen vestir.
+            <Link href="/purchase" className="block mt-2 font-black underline">Adquirir Cápsula Adicional →</Link>
           </AlertDescription>
         </Alert>
       )}
@@ -180,7 +176,7 @@ export default function CapsulesPage() {
           >
             {loading ? (
               <span className="flex items-center justify-center">
-                <Loader2 className="mr-3 animate-spin" /> GPT-4o analizando tu armario...
+                <Loader2 className="mr-3 animate-spin" /> Buscando prendas perfectas...
               </span>
             ) : isLimitReached ? (
               <span className="flex items-center justify-center">
@@ -239,7 +235,7 @@ export default function CapsulesPage() {
                         <div className="absolute bottom-0 inset-x-0 bg-black/60 p-2 text-white">
                           <p className="text-[9px] font-black truncate uppercase">{capsule.name}</p>
                           <p className="text-[7px] flex items-center gap-1 opacity-90 truncate font-bold">
-                            <MapPin className="w-2.5 h-2.5" /> {capsule.eventType || 'Evento'} • <CloudSun className="w-2.5 h-2.5" /> {capsule.weatherConditions || 'Clima'}
+                            <MapPin className="w-2.5 h-2.5" /> {capsule.eventType} • <CloudSun className="w-2.5 h-2.5" /> {capsule.weatherConditions}
                           </p>
                         </div>
                     </div>
@@ -269,14 +265,14 @@ export default function CapsulesPage() {
                   {item.source === 'wardrobe' ? (
                     <div className="text-[8px] font-black text-white px-2 py-1 rounded-full flex items-center shadow-md bg-green-500 gap-1"><FolderHeart className="w-2.5 h-2.5" /> Mi Armario</div>
                   ) : (
-                    <div className="text-[8px] font-black text-white px-2 py-1 rounded-full flex items-center shadow-md bg-red-500 gap-1"><Pin className="w-2.5 h-2.5" /> Sugerencia</div>
+                    <div className="text-[8px] font-black text-white px-2 py-1 rounded-full flex items-center shadow-md bg-pink-500 gap-1"><Sparkles className="w-2.5 h-2.5" /> Sugerencia IA</div>
                   )}
                 </div>
                 <div className="relative aspect-[3/4]">
-                  <Image src={getItemImage(item)} alt={item.name || "Outfit Item"} fill className="object-cover" unoptimized />
+                  <Image src={getItemImage(item)} alt={item.name} fill className="object-cover" unoptimized />
                 </div>
                 <CardContent className="p-3">
-                  <p className="font-bold text-[11px] truncate uppercase">{item.name || "Sin nombre"}</p>
+                  <p className="font-bold text-[11px] truncate uppercase">{item.name}</p>
                   <p className="text-[9px] text-muted-foreground mt-0.5 font-black uppercase tracking-tighter text-primary/70">{item.type}</p>
                 </CardContent>
               </Card>
