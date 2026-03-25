@@ -58,12 +58,13 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
   const openai = new OpenAI({ apiKey });
 
   const prompt = `Eres el Stylist Maestro de Pilar Cifuentes Catalán.
-TU MISIÓN: Crear exactamente 2 cápsulas de moda HÍBRIDAS (4 prendas cada una).
+TU MISIÓN: Crear exactamente 2 cápsulas de moda HÍBRIDAS (4 prendas cada una) que sean TOTALMENTE DIFERENTES entre sí.
 
-REGLAS DE SELECCIÓN:
-1. PRIORIDAD ARMARIO: Debes usar el armario del usuario como base principal.
-2. PRENDAS EXTERNAS (MÁXIMO 2 POR CÁPSULA): Si el armario no tiene la prenda ideal para completar el look (combinación o accesorio), puedes sugerir hasta 2 prendas externas (source: 'external').
-3. PRODUCTO SOLAMENTE: Para prendas externas, genera 'searchKeywords' precisos en inglés enfocados ÚNICAMENTE en fotografía de producto (ej: "navy blue blazer flat lay", "white sneakers isolated"). PROHIBIDO modelos o personas.
+REGLAS CRÍTICAS:
+1. DIFERENCIACIÓN: Las 2 cápsulas deben proponer estilos, colores o combinaciones distintas. No repitas el mismo look.
+2. PRIORIDAD ARMARIO: Usa el armario del usuario como base principal.
+3. PRENDAS EXTERNAS (MÁXIMO 2 POR CÁPSULA): Si el armario no tiene la prenda ideal para completar el look, puedes sugerir HASTA 2 prendas externas (source: 'external').
+4. PRODUCTO SOLAMENTE: Para prendas externas, genera 'searchKeywords' en inglés enfocados ÚNICAMENTE en fotografía de producto sin personas (ej: "navy blue blazer flat lay", "white sneakers isolated").
 
 DATOS DEL USUARIO:
 - Figura: ${input.figureAnalysis}
@@ -78,7 +79,7 @@ Responde ÚNICAMENTE con un JSON válido con la propiedad "capsules" que sea un 
   const finalResponse = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
-      { role: "system", content: "Eres un experto en moda que genera respuestas JSON. Priorizas el armario del usuario y generas keywords de búsqueda para prendas externas centradas en el producto sin personas." },
+      { role: "system", content: "Eres un experto en moda que genera respuestas JSON. Creas outfits variados, priorizas el armario y limitas prendas externas a 2 por conjunto." },
       { role: "user", content: prompt }
     ],
     response_format: { type: "json_object" }
@@ -90,10 +91,9 @@ Responde ÚNICAMENTE con un JSON válido con la propiedad "capsules" que sea un 
     const date = new Date().toISOString();
     
     // FASE DE BÚSQUEDA VISUAL PARA PRENDAS EXTERNAS
-    const processedCapsules = await Promise.all((content.capsules || []).map(async (capsule: any) => {
+    const processedCapsules = await Promise.all((content.capsules || []).map(async (capsule: any, cIdx: number) => {
       const processedItems = await Promise.all((capsule.items || []).map(async (item: any) => {
         if (item.source === 'external' && item.searchKeywords) {
-          // Buscamos en Unsplash usando las palabras clave de la IA
           const images = await searchUnsplashImages(item.searchKeywords, input.unsplashAccessKey);
           return {
             ...item,
@@ -105,6 +105,7 @@ Responde ÚNICAMENTE con un JSON válido con la propiedad "capsules" que sea un 
       
       return {
         ...capsule,
+        id: `cap-${Date.now()}-${cIdx}-${Math.random().toString(36).substring(2, 7)}`,
         date,
         eventType: input.eventType,
         weatherConditions: input.weatherConditions,

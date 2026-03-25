@@ -32,9 +32,9 @@ export default function CapsulesPage() {
     weather: 'Templado'
   });
 
-  // Lógica de límites reconstruida y simple: 10 base + 6 si tiene cápsula comprada
-  const hasExtraCapsule = (Number(profile.purchasedCapsules) || 0) > 0;
-  const MAX_OUTFITS = hasExtraCapsule ? 16 : 10;
+  // Lógica de límites simplificada: 10 base + 6 por cada compra (purchasedCapsules)
+  const purchasedCount = Number(profile.purchasedCapsules) || 0;
+  const MAX_OUTFITS = 10 + (purchasedCount * 6);
   const isLimitReached = savedCapsules.length >= MAX_OUTFITS;
 
   useEffect(() => {
@@ -82,15 +82,14 @@ export default function CapsulesPage() {
       });
       
       if (result.capsules.length > 0) {
-        // Generar IDs robustos para evitar colisiones de keys
-        const uniqueCapsules = result.capsules.map((c, index) => ({
+        // Aseguramos unicidad de IDs antes de guardar
+        const uniqueNewCapsules = result.capsules.map((c, index) => ({
           ...c,
-          id: `cap-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 5)}`
+          id: `cap-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 7)}`
         }));
         
-        // Guardar solo el número necesario para no exceder el límite inmediatamente
         const remainingSpace = MAX_OUTFITS - savedCapsules.length;
-        const capsulesToAdd = uniqueCapsules.slice(0, remainingSpace);
+        const capsulesToAdd = uniqueNewCapsules.slice(0, remainingSpace);
 
         const newCapsules = [...capsulesToAdd, ...savedCapsules];
         setSavedCapsules(newCapsules);
@@ -135,7 +134,7 @@ export default function CapsulesPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-headline font-bold">Capsulizador AI</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Armario Híbrido • Máx {MAX_OUTFITS}</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Armario Híbrido • Límite {MAX_OUTFITS}</p>
         </div>
       </header>
 
@@ -189,7 +188,7 @@ export default function CapsulesPage() {
           >
             {loading ? (
               <span className="flex items-center justify-center">
-                <Loader2 className="mr-3 animate-spin" /> Buscando prendas perfectas...
+                <Loader2 className="mr-3 animate-spin" /> Buscando prendas maestras...
               </span>
             ) : isLimitReached ? (
               <span className="flex items-center justify-center">
@@ -218,7 +217,7 @@ export default function CapsulesPage() {
             <div className="flex space-x-4">
               {savedCapsules.map((capsule) => (
                 <div 
-                  key={capsule.id} 
+                  key={`capsule-card-${capsule.id}`} 
                   onClick={() => setSelectedCapsuleId(capsule.id)}
                   className={cn(
                     "relative group w-52 shrink-0 cursor-pointer transition-all duration-300",
@@ -232,7 +231,7 @@ export default function CapsulesPage() {
                     <div className="relative aspect-[4/3] bg-muted">
                        <div className="grid grid-cols-2 h-full">
                           {capsule.items.slice(0, 2).map((item, idx) => (
-                             <div key={`${capsule.id}-prev-${idx}`} className="relative w-full h-full">
+                             <div key={`${capsule.id}-thumb-${idx}`} className="relative w-full h-full">
                                 <Image src={getItemImage(item)} alt="" fill className="object-cover" unoptimized />
                              </div>
                           ))}
@@ -295,7 +294,7 @@ export default function CapsulesPage() {
       ) : !loading && (
         <div className="flex flex-col items-center justify-center py-20 text-center opacity-30 grayscale">
            <Sparkles className="w-16 h-16 mb-4 text-primary" />
-           <p className="text-sm font-black uppercase tracking-widest">Genera tus primeros outfits maestros</p>
+           <p className="text-sm font-black uppercase tracking-widest">Genera tus primeros conjuntos maestros</p>
         </div>
       )}
     </div>
