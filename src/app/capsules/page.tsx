@@ -82,6 +82,7 @@ export default function CapsulesPage() {
       
       if (result.capsules.length > 0) {
         const remainingSpace = MAX_OUTFITS - savedCapsules.length;
+        // Solo añadimos las que quepan en el espacio disponible
         const capsulesToAdd = result.capsules.slice(0, remainingSpace);
 
         const newCapsules = [...capsulesToAdd, ...savedCapsules];
@@ -98,7 +99,7 @@ export default function CapsulesPage() {
   };
 
   const deleteCapsule = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Evita que se seleccione la cápsula al eliminarla
     const filtered = savedCapsules.filter(c => c.id !== id);
     setSavedCapsules(filtered);
     if (selectedCapsuleId === id) {
@@ -110,10 +111,12 @@ export default function CapsulesPage() {
   const currentCapsule = savedCapsules.find(c => c.id === selectedCapsuleId);
 
   const getItemImage = (item: CapsuleItem) => {
+    // Si la prenda viene del armario, buscamos su foto local real
     if (item.source === 'wardrobe' && item.wardrobeItemId) {
       const local = wardrobe.find(wi => wi.id === item.wardrobeItemId);
       if (local?.imageDataUri) return local.imageDataUri;
     }
+    // Si es externa o no se encontró la local, devolvemos la URL de Unsplash o placeholder
     return item.imageUrl || PlaceHolderImages[0].imageUrl;
   };
 
@@ -210,7 +213,7 @@ export default function CapsulesPage() {
             <div className="flex space-x-4">
               {savedCapsules.map((capsule) => (
                 <div 
-                  key={`capsule-card-${capsule.id}`} 
+                  key={capsule.id} 
                   onClick={() => setSelectedCapsuleId(capsule.id)}
                   className={cn(
                     "relative group w-52 shrink-0 cursor-pointer transition-all duration-300",
@@ -225,7 +228,13 @@ export default function CapsulesPage() {
                        <div className="grid grid-cols-2 h-full">
                           {capsule.items.slice(0, 2).map((item, idx) => (
                              <div key={`${capsule.id}-thumb-${idx}`} className="relative w-full h-full">
-                                <Image src={getItemImage(item)} alt="" fill className="object-cover" unoptimized />
+                                <Image 
+                                  src={getItemImage(item)} 
+                                  alt={item.name || "Miniatura de outfit"} 
+                                  fill 
+                                  className="object-cover" 
+                                  unoptimized 
+                                />
                              </div>
                           ))}
                        </div>
@@ -274,7 +283,13 @@ export default function CapsulesPage() {
                   )}
                 </div>
                 <div className="relative aspect-[3/4]">
-                  <Image src={getItemImage(item)} alt={item.name} fill className="object-cover" unoptimized />
+                  <Image 
+                    src={getItemImage(item)} 
+                    alt={item.name || "Prenda de outfit"} 
+                    fill 
+                    className="object-cover" 
+                    unoptimized 
+                  />
                 </div>
                 <CardContent className="p-3">
                   <p className="font-bold text-[11px] truncate uppercase">{item.name}</p>

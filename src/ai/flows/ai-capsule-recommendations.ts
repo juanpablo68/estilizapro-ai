@@ -64,7 +64,7 @@ REGLAS CRÍTICAS:
 1. DIFERENCIACIÓN: Las 2 cápsulas deben proponer estilos, colores o combinaciones distintas. No repitas el mismo look.
 2. PRIORIDAD ARMARIO: Usa el armario del usuario como base principal.
 3. PRENDAS EXTERNAS (MÁXIMO 2 POR CÁPSULA): Si el armario no tiene la prenda ideal para completar el look, puedes sugerir HASTA 2 prendas externas (source: 'external').
-4. PRODUCTO SOLAMENTE: Para prendas externas, genera 'searchKeywords' en inglés enfocados ÚNICAMENTE en fotografía de producto sin personas (ej: "navy blue blazer flat lay", "white sneakers isolated").
+4. PRODUCTO SOLAMENTE: Para prendas externas, genera 'searchKeywords' en inglés enfocados ÚNICAMENTE en fotografía de producto sin personas ni modelos ni maniquíes (ej: "navy blue blazer flat lay", "white sneakers isolated").
 
 DATOS DEL USUARIO:
 - Figura: ${input.figureAnalysis}
@@ -103,9 +103,12 @@ Responde ÚNICAMENTE con un JSON válido con la propiedad "capsules" que sea un 
         return item;
       }));
       
+      // Generar ID único para evitar errores de duplicidad en el cliente
+      const uniqueId = `cap-${Date.now()}-${cIdx}-${Math.random().toString(36).substring(2, 7)}`;
+      
       return {
         ...capsule,
-        id: `cap-${Date.now()}-${cIdx}-${Math.random().toString(36).substring(2, 7)}`,
+        id: uniqueId,
         date,
         eventType: input.eventType,
         weatherConditions: input.weatherConditions,
