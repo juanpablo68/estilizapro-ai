@@ -32,7 +32,8 @@ export default function PaymentPage() {
       setCompleted(true);
       
       // Actualizar el perfil con la nueva cápsula
-      const currentPurchased = profile.purchasedCapsules || 0;
+      // Aseguramos que sea un incremento numérico estricto
+      const currentPurchased = Number(profile.purchasedCapsules) || 0;
       setProfile({
         ...profile,
         purchasedCapsules: currentPurchased + 1

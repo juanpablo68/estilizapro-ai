@@ -33,8 +33,8 @@ export default function CapsulesPage() {
     weather: 'Templado'
   });
 
-  // Lógica de límites: 10 base + 6 por cada cápsula comprada
-  const purchasedCount = profile.purchasedCapsules || 0;
+  // Lógica de límites simplificada y robusta: 10 base + 6 por cada cápsula adicional
+  const purchasedCount = Number(profile.purchasedCapsules) || 0;
   const MAX_OUTFITS = 10 + (purchasedCount * 6);
   const isLimitReached = savedCapsules.length >= MAX_OUTFITS;
 
@@ -81,10 +81,11 @@ export default function CapsulesPage() {
       });
       
       if (result.capsules.length > 0) {
-        const newCapsules = [...result.capsules, ...savedCapsules];
+        // Añadir solo 2 outfits (1 generación)
+        const newCapsules = [...result.capsules.slice(0, 2), ...savedCapsules];
         setSavedCapsules(newCapsules);
         setSelectedCapsuleId(result.capsules[0].id);
-        toast({ title: "¡Nuevos Outfits!", description: `Se han generado ${result.capsules.length} propuestas únicas.` });
+        toast({ title: "¡Nuevos Outfits!", description: `Se han generado propuetas únicas.` });
       }
     } catch (err: any) {
       toast({ variant: "destructive", title: "Error en Generación", description: err.message });
@@ -123,7 +124,7 @@ export default function CapsulesPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-headline font-bold">Capsulizador AI</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Máxima Variedad • Mínima Repetición</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Variedad • Fidelidad de Identidad</p>
         </div>
       </header>
 
