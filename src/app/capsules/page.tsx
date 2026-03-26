@@ -7,10 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, ArrowLeft, Sparkles, MapPin, CloudSun, FolderHeart, Trash2, LayoutGrid, Info, ShoppingCart, Shirt } from "lucide-react";
+import { Loader2, ArrowLeft, Sparkles, LayoutGrid, Trash2, Shirt, Info, FolderHeart } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { useToast } from "@/hooks/use-toast";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -25,7 +24,6 @@ export default function CapsulesPage() {
   const [loading, setLoading] = useState(false);
   const [selectedCapsuleId, setSelectedCapsuleId] = useState<string | null>(null);
   const { toast } = useToast();
-  const router = useRouter();
   
   const [params, setParams] = useState({
     eventType: 'Casual',
@@ -72,11 +70,9 @@ export default function CapsulesPage() {
       });
       
       if (result.capsules && result.capsules.length > 0) {
-        // Garantizar IDs únicos para evitar colisiones en React
-        const newItems = result.capsules.map((c, i) => ({ ...c, id: `cap-${Date.now()}-${i}` }));
-        const updatedList = [...newItems, ...savedCapsules].slice(0, MAX_OUTFITS);
+        const updatedList = [...result.capsules, ...savedCapsules].slice(0, MAX_OUTFITS);
         setSavedCapsules(updatedList);
-        setSelectedCapsuleId(newItems[0].id);
+        setSelectedCapsuleId(result.capsules[0].id);
         toast({ title: "¡Outfits Generados!", description: "Se han creado 2 propuestas diferentes priorizando tu armario." });
       }
     } catch (err: any) {
@@ -87,7 +83,7 @@ export default function CapsulesPage() {
   };
 
   const deleteCapsule = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Evitar seleccionar la cápsula al borrar
     const filtered = savedCapsules.filter(c => c.id !== id);
     setSavedCapsules(filtered);
     if (selectedCapsuleId === id) {
@@ -96,20 +92,23 @@ export default function CapsulesPage() {
   };
 
   const getItemImage = (item: CapsuleItem) => {
-    // 1. Si es del armario, BUSCAR OBLIGATORIAMENTE en el almacenamiento local
-    if (item.source === 'wardrobe' && item.wardrobeItemId) {
+    // 1. SI ES DEL ARMARIO: Buscar OBLIGATORIAMENTE en el almacenamiento local
+    if (item.source === 'wardrobe') {
       const found = wardrobe.find(w => w.id === item.wardrobeItemId);
       if (found?.imageDataUri) return found.imageDataUri;
-      // Fallback si por alguna razón no está la imagen: icono de ropa
+      // Fallback si no se encuentra por ID: Buscar por nombre similar
+      const foundByName = wardrobe.find(w => w.name.toLowerCase().includes(item.name.toLowerCase()));
+      if (foundByName?.imageDataUri) return foundByName.imageDataUri;
+      // Si falla todo: Icono de ropa (NUNCA Paisajes)
       return "/placeholder-fashion.png"; 
     }
     
-    // 2. Si es sugerencia externa, usar la URL de Unsplash
+    // 2. SI ES SUGERENCIA IA: Usar URL de Unsplash
     if (item.source === 'external' && item.imageUrl) {
       return item.imageUrl;
     }
     
-    // 3. Fallback final: Placeholder de moda profesional (evita paisajes)
+    // 3. FALLBACK FINAL: Placeholder de moda profesional
     const fashionPlaceholder = PlaceHolderImages.find(p => p.id === `fashion-${item.type}`) || PlaceHolderImages[0];
     return fashionPlaceholder.imageUrl;
   };
@@ -135,13 +134,13 @@ export default function CapsulesPage() {
           <Info className="h-4 w-4 text-orange-600" />
           <AlertTitle className="text-orange-800 font-bold">Límite alcanzado</AlertTitle>
           <AlertDescription className="text-xs text-orange-700">
-            Has llegado al máximo de {MAX_OUTFITS} outfits. Adquiere una cápsula adicional para continuar.
-            <Link href="/purchase" className="block mt-2 font-bold underline">Comprar Espacio Adicional →</Link>
+            Máximo de {MAX_OUTFITS} outfits. Adquiere espacio adicional para continuar.
+            <Link href="/purchase" className="block mt-2 font-bold underline">Comprar Espacio →</Link>
           </AlertDescription>
         </Alert>
       )}
 
-      <Card className="border-none shadow-xl bg-white/80 backdrop-blur-sm rounded-[2rem]">
+      <Card className="border-none shadow-xl bg-white rounded-[2rem]">
         <CardContent className="p-8 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
@@ -149,10 +148,10 @@ export default function CapsulesPage() {
               <Select value={params.eventType} onValueChange={v => setParams({...params, eventType: v})}>
                 <SelectTrigger className="rounded-2xl h-12 bg-white"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Trabajo">Oficina</SelectItem>
-                  <SelectItem value="Casual">Casual</SelectItem>
-                  <SelectItem value="Cena">Cena Social</SelectItem>
-                  <SelectItem value="Gala">Gala</SelectItem>
+                  <SelectItem value="Oficina">Oficina / Trabajo</SelectItem>
+                  <SelectItem value="Casual">Casual / Diario</SelectItem>
+                  <SelectItem value="Cena">Cena / Social</SelectItem>
+                  <SelectItem value="Gala">Evento de Gala</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -201,14 +200,14 @@ export default function CapsulesPage() {
                     <div className="relative aspect-[4/3] bg-muted">
                        <div className="grid grid-cols-2 h-full">
                           {capsule.items.slice(0, 2).map((item, idx) => (
-                             <div key={`${capsule.id}-thumb-${idx}`} className="relative">
-                                <Image src={getItemImage(item)} alt="Preview" fill className="object-cover" unoptimized />
+                             <div key={`${capsule.id}-thumb-${idx}`} className="relative h-full">
+                                <Image src={getItemImage(item)} alt={`Preview ${item.name}`} fill className="object-cover" unoptimized />
                              </div>
                           ))}
                        </div>
                        <Button 
                           variant="destructive" size="icon" 
-                          className="absolute top-1 right-1 h-7 w-7 rounded-full shadow-lg"
+                          className="absolute top-1 right-1 h-7 w-7 rounded-full shadow-lg z-10"
                           onClick={(e) => deleteCapsule(capsule.id, e)}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -237,7 +236,7 @@ export default function CapsulesPage() {
             {currentCapsule.items.map((item, idx) => (
               <Card key={`${currentCapsule.id}-item-${idx}`} className="overflow-hidden border-none shadow-md rounded-2xl bg-white group">
                 <div className="relative aspect-[3/4]">
-                  <Image src={getItemImage(item)} alt={item.name || "Prenda"} fill className="object-cover" unoptimized />
+                  <Image src={getItemImage(item)} alt={`Prenda: ${item.name}`} fill className="object-cover" unoptimized />
                   <div className="absolute top-2 left-2">
                     {item.source === 'wardrobe' ? (
                       <div className="bg-green-500 text-white text-[8px] font-black px-2 py-1 rounded-full flex items-center gap-1 shadow-md">

@@ -1,7 +1,9 @@
 'use server';
 /**
  * @fileOverview Generación de cápsulas de moda con prioridad absoluta al armario local.
- * Si la prenda existe en el armario, DEBE usarse el source 'wardrobe'.
+ * - Prioriza IDs de armario real proporcionados.
+ * - Máximo 2 prendas externas por outfit.
+ * - Outfits garantizadamente diferentes entre sí.
  */
 
 import { z } from 'genkit';
@@ -34,8 +36,8 @@ const CapsuleSchema = z.object({
     name: z.string(),
     type: z.enum(['top', 'bottom', 'dress', 'outerwear', 'shoe', 'accessory']),
     source: z.enum(['wardrobe', 'external']),
-    wardrobeItemId: z.string().optional().describe('El ID exacto del objeto en la lista de armario proporcionada'),
-    searchKeywords: z.string().describe('Keywords en inglés para buscar solo el PRODUCTO de ropa'),
+    wardrobeItemId: z.string().optional().describe('El ID exacto del objeto en la lista de armario'),
+    searchKeywords: z.string().describe('Keywords en inglés para buscar solo el PRODUCTO de ropa, sin modelos'),
   })),
 });
 
@@ -52,24 +54,23 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
 
   const openai = new OpenAI({ apiKey });
 
-  const prompt = `Eres el Stylist Maestro de Pilar Cifuentes Catalán.
-TU MISIÓN: Crear exactamente 2 outfits (cápsulas) HÍBRIDAS de 4 prendas cada una.
+  const prompt = `Eres el Stylist Maestro. Debes crear exactamente 2 outfits (cápsulas) para la ocasión: "${input.eventType}" y clima: "${input.weatherConditions}".
 
-REGLAS DE ORO (INVIOLABLES):
-1. PRIORIDAD TOTAL AL ARMARIO: Si en la lista de ARMARIO REAL hay una prenda que sirva, DEBES usarla. Para estas prendas, pon source: "wardrobe" y el wardrobeItemId EXACTO.
-2. PRENDAS EXTERNAS (SUGERENCIAS): Solo usa source: "external" para completar el look si NO hay nada parecido en el armario. MÁXIMO 2 prendas externas por outfit.
-3. DIFERENCIACIÓN: Los 2 outfits deben ser para ocasiones o estilos totalmente distintos.
-4. NOMBRES: Dale un nombre creativo a cada outfit.
+REGLAS INVIOLABLES:
+1. PRIORIDAD TOTAL AL ARMARIO: Usa los IDs de la lista "ARMARIO REAL". Si usas uno, pon source: "wardrobe" y su ID exacto.
+2. PRENDAS EXTERNAS: Solo usa source: "external" si falta algo esencial. MÁXIMO 2 por outfit.
+3. DIFERENCIACIÓN: Los 2 outfits deben ser para estilos totalmente diferentes (ej: uno Formal y uno Relajado).
+4. FOTOGRAFÍA: Para prendas externas, genera keywords de búsqueda tipo "product flat lay" (sin personas).
 
 ARMARIO REAL DISPONIBLE:
 ${JSON.stringify(input.wardrobeItems)}
 
-Responde ÚNICAMENTE con el JSON de las cápsulas.`;
+Responde ÚNICAMENTE con un objeto JSON con la llave "capsules".`;
 
   const finalResponse = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
-      { role: "system", content: "Eres un experto en moda. Priorizas el armario del usuario. Devuelves JSON puro." },
+      { role: "system", content: "Experto en moda. Prioriza armario real. Devuelve JSON puro." },
       { role: "user", content: prompt }
     ],
     response_format: { type: "json_object" }
@@ -98,7 +99,7 @@ Responde ÚNICAMENTE con el JSON de las cápsulas.`;
       
       return {
         ...capsule,
-        id: `cap-${Date.now()}-${cIdx}`,
+        id: `cap-${Date.now()}-${cIdx}-${Math.random().toString(36).substr(2, 5)}`,
         date,
         eventType: input.eventType,
         weatherConditions: input.weatherConditions,

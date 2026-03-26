@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Servicio de búsqueda de imágenes de moda en Unsplash.
- * Evita paisajes aleatorios devolviendo fallbacks controlados de moda.
+ * Prioriza fotos de producto aisladas (flat lay) y elimina fallbacks de paisajes.
  */
 
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -15,25 +15,26 @@ export interface UnsplashImage {
 export async function searchUnsplashImages(query: string, accessKey?: string, itemType?: string): Promise<UnsplashImage[]> {
   const key = accessKey || process.env.UNSPLASH_ACCESS_KEY;
   
-  // Si no hay API KEY, usamos el placeholder de moda profesional del sistema
+  // Fallback profesional si no hay API KEY: Usar nuestros propios placeholders de moda
+  const fashionFallback = PlaceHolderImages.find(img => img.id === `fashion-${itemType}`) || PlaceHolderImages[0];
+  
   if (!key || key === 'undefined' || key.trim() === '') {
-    const fallback = PlaceHolderImages.find(img => img.id === `fashion-${itemType}`) || PlaceHolderImages[0];
     return [{
       id: `fallback-${Date.now()}`,
-      url: fallback.imageUrl,
+      url: fashionFallback.imageUrl,
       description: `Sugerencia: ${query}`
     }];
   }
 
-  // Filtro estricto para evitar modelos y paisajes: buscamos "ropa aislada"
-  const productFocusedQuery = `${query} clothing garment flat lay isolated -person -model -landscape -nature`;
+  // Filtro estricto para prendas: Producto aislado, flat lay, sin personas
+  const productFocusedQuery = `${query} clothing product flat lay isolated white background -person -model -mannequin`;
 
   try {
     const response = await fetch(
       `https://api.unsplash.com/search/photos?query=${encodeURIComponent(productFocusedQuery)}&per_page=1&orientation=portrait`,
       {
         headers: { Authorization: `Client-ID ${key}` },
-        next: { revalidate: 3600 } // Cache por 1 hora
+        next: { revalidate: 3600 }
       }
     );
 
@@ -49,18 +50,16 @@ export async function searchUnsplashImages(query: string, accessKey?: string, it
       }];
     }
 
-    // Si Unsplash no encuentra nada, usamos el placeholder de moda del sistema
-    const fallback = PlaceHolderImages.find(img => img.id === `fashion-${itemType}`) || PlaceHolderImages[0];
+    // Si Unsplash no devuelve nada de ropa, usar nuestro placeholder de moda, NUNCA paisajes
     return [{
-      id: `fallback-${Date.now()}`,
-      url: fallback.imageUrl,
+      id: `fallback-no-result-${Date.now()}`,
+      url: fashionFallback.imageUrl,
       description: query
     }];
   } catch (error) {
-    const fallback = PlaceHolderImages.find(img => img.id === `fashion-${itemType}`) || PlaceHolderImages[0];
     return [{
       id: `error-${Date.now()}`,
-      url: fallback.imageUrl,
+      url: fashionFallback.imageUrl,
       description: query
     }];
   }
