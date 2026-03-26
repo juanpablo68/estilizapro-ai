@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -23,8 +24,8 @@ const resizeImage = (base64Str: string): Promise<string> => {
     img.src = base64Str;
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      const MAX_WIDTH = 600;
-      const MAX_HEIGHT = 600;
+      const MAX_WIDTH = 800; // Aumentado ligeramente para mejor detalle en cuerpo completo
+      const MAX_HEIGHT = 1200; 
       let width = img.width;
       let height = img.height;
 
@@ -94,7 +95,7 @@ export default function AvatarCreationPage() {
 
     setLoading(true);
     try {
-      setLoadingStatus('FASE 1: Realizando análisis biométrico estricto...');
+      setLoadingStatus('Análisis Biométrico en curso...');
       const analysis = await analyzeStyleContext({
         facePhotoDataUri: facePhoto,
         figurePhotoDataUri: figurePhoto,
@@ -107,14 +108,12 @@ export default function AvatarCreationPage() {
         colorimetryAnalysis: analysis.colorimetryAnalysis 
       };
 
-      setLoadingStatus('FASE 2: Generando avatar Pixar con fidelidad de identidad...');
+      setLoadingStatus('Generando Avatar de Cuerpo Completo...');
       const result = await generateStylizedAvatar({
         biometricData: analysis.biometricData,
         openaiApiKey: openaiKey
       });
       
-      // OPTIMIZACIÓN CRÍTICA: Redimensionar el avatar generado (que es 1024x1024) a 600px
-      // para evitar errores de "Body exceeded 1 MB limit" y saturación de localStorage.
       setLoadingStatus('Finalizando renderizado...');
       const optimizedAvatar = await resizeImage(result.avatarDataUri);
       
@@ -122,15 +121,15 @@ export default function AvatarCreationPage() {
       setProfile({ ...updatedProfile, avatarDataUri: optimizedAvatar });
       
       toast({
-        title: "¡Proceso Completado!",
-        description: "Análisis Biométrico y Arte 3D finalizado con éxito.",
+        title: "¡Avatar Creado!",
+        description: "Tu modelo 3D de cuerpo completo está listo para pruebas de ropa.",
       });
     } catch (error: any) {
       console.error(error);
       toast({
         variant: "destructive",
         title: "Error en Procesamiento",
-        description: error.message || "Revisa tus APIs en Ajustes.",
+        description: error.message || "Revisa tu conexión o API Key.",
       });
     } finally {
       setLoading(false);
@@ -148,23 +147,23 @@ export default function AvatarCreationPage() {
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">
       <div className="space-y-2 text-center pt-8">
         <h1 className="text-3xl font-headline font-bold text-primary">Esencia Biométrica</h1>
-        <p className="text-muted-foreground text-sm">FASE 1: Análisis • FASE 2: Arte Pixar</p>
+        <p className="text-muted-foreground text-sm">Modelado 3D de Cuerpo Completo • Estilo Pixar</p>
       </div>
 
       {!generatedAvatar ? (
         <div className="space-y-6 animate-in fade-in duration-500">
           <Alert className="bg-primary/5 border-primary/20">
             <Sparkles className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-primary font-bold">Pipeline de Identidad Real</AlertTitle>
+            <AlertTitle className="text-primary font-bold">Instrucciones de Captura</AlertTitle>
             <AlertDescription className="text-xs">
-              Sube tus fotos para que GPT-4o extraiga tu biometría y DALL-E 3 la renderice en 3D.
+              Para un avatar perfecto, sube una foto de tu rostro de frente y otra de tu cuerpo completo con ropa ajustada.
               <Link href="/settings" className="block mt-1 font-bold underline">Configurar OpenAI Key</Link>
             </AlertDescription>
           </Alert>
 
           <Card className="border-dashed border-2 bg-white/50">
                 <CardHeader className="text-center p-4">
-                    <CardTitle className="text-lg">Fotos Reales de Referencia</CardTitle>
+                    <CardTitle className="text-lg">Fotos de Referencia</CardTitle>
                 </CardHeader>
                 <CardContent className="flex justify-center gap-6">
                     <div className="space-y-2 text-center">
@@ -176,7 +175,7 @@ export default function AvatarCreationPage() {
                         ) : (
                             <label className="flex flex-col items-center justify-center h-40 w-32 bg-muted/20 rounded-lg cursor-pointer border-2 border-dashed hover:bg-muted/30 transition-colors">
                                 <Camera className="w-8 h-8 text-muted-foreground mb-2" />
-                                <span className="text-[10px] font-bold">ROSTRO</span>
+                                <span className="text-[10px] font-bold uppercase">Rostro</span>
                                 <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'face')} />
                             </label>
                         )}
@@ -191,7 +190,7 @@ export default function AvatarCreationPage() {
                         ) : (
                             <label className="flex flex-col items-center justify-center h-40 w-32 bg-muted/20 rounded-lg cursor-pointer border-2 border-dashed hover:bg-muted/30 transition-colors">
                                 <ImageIcon className="w-8 h-8 text-muted-foreground mb-2" />
-                                <span className="text-[10px] font-bold">CUERPO</span>
+                                <span className="text-[10px] font-bold uppercase">Cuerpo</span>
                                 <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'figure')} />
                             </label>
                         )}
@@ -207,37 +206,38 @@ export default function AvatarCreationPage() {
             {loading ? (
               <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> {loadingStatus}</>
             ) : (
-              <><Brain className="mr-3 h-6 w-6" /> Iniciar Pipeline Maestro</>
+              <><Brain className="mr-3 h-6 w-6" /> Crear Avatar 3D</>
             )}
           </Button>
         </div>
       ) : (
         <div className="space-y-6 animate-in fade-in zoom-in duration-500">
-          <Card className="overflow-hidden shadow-2xl bg-white ring-[12px] ring-primary/5 rounded-[2rem]">
-            <div className="relative aspect-[1/1] w-full bg-muted">
+          <Card className="overflow-hidden shadow-2xl bg-white ring-[12px] ring-primary/5 rounded-[2.5rem]">
+            <div className="relative aspect-[3/4] w-full bg-muted">
               <Image 
                 src={generatedAvatar} 
-                alt="3D Avatar Pixar Style" 
+                alt="Avatar Pixar Full Body" 
                 fill 
-                className="object-cover" 
+                className="object-contain p-4" 
                 unoptimized
               />
             </div>
-            <CardContent className="p-8 text-center space-y-3">
-              <CardTitle className="text-2xl text-primary font-headline font-bold">¡Tu Avatar de Identidad!</CardTitle>
-              <div className="flex justify-center gap-2">
-                <span className="text-[10px] bg-secondary/10 text-secondary px-3 py-1 rounded-full font-bold uppercase tracking-wider">Silueta: {profile.figureAnalysis}</span>
-                <span className="text-[10px] bg-primary/10 text-primary px-3 py-1 rounded-full font-bold uppercase tracking-wider">Piel: {profile.colorimetryAnalysis}</span>
+            <CardContent className="p-6 text-center space-y-2">
+              <CardTitle className="text-xl text-primary font-headline font-bold">¡Avatar Listo!</CardTitle>
+              <p className="text-xs text-muted-foreground">Este modelo se usará para probarte ropa virtualmente.</p>
+              <div className="flex justify-center gap-2 mt-2">
+                <span className="text-[9px] bg-secondary/10 text-secondary px-3 py-1 rounded-full font-bold uppercase tracking-wider">Silueta: {profile.figureAnalysis}</span>
+                <span className="text-[9px] bg-primary/10 text-primary px-3 py-1 rounded-full font-bold uppercase tracking-wider">Color: {profile.colorimetryAnalysis}</span>
               </div>
             </CardContent>
           </Card>
           
           <div className="flex gap-4">
             <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={() => setGeneratedAvatar(null)}>
-              <RefreshCw className="mr-2 w-4 h-4" /> Re-analizar
+              <RefreshCw className="mr-2 w-4 h-4" /> Re-generar
             </Button>
             <Button className="flex-1 bg-primary font-bold shadow-md h-12 rounded-xl" onClick={handleProceed}>
-              Ir al Dashboard
+              Dashboard →
             </Button>
           </div>
         </div>

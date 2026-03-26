@@ -2,6 +2,7 @@
 'use server';
 /**
  * @fileOverview FASE 2: Generación de Avatar 3D Pixar de alta fidelidad utilizando DALL-E 3.
+ * Modificado para asegurar renderizado de CUERPO COMPLETO (Full Body).
  */
 
 import { ai } from '@/ai/genkit';
@@ -52,29 +53,32 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     };
 
     // Construcción del prompt maestro basado en el análisis de FASE 1
+    // REFORZADO PARA CUERPO COMPLETO
     const finalPrompt = `
-      FASE 2 — GENERACIÓN DE AVATAR 3D PIXAR:
+      FASE 2 — GENERACIÓN DE AVATAR 3D PIXAR (CUERPO COMPLETO):
       Usando EXCLUSIVAMENTE estos datos biométricos reales: ${JSON.stringify(bio)}.
       
       REGLAS CRÍTICAS DE GENERACIÓN:
-      - Usa el JSON anterior como ÚNICA fuente de verdad.
-      - No usar caras genéricas ni de datasets. No mezclar identidades.
+      - TOMA DE CUERPO COMPLETO (FULL BODY SHOT): El personaje debe aparecer de cuerpo entero, de pies a cabeza, centrado en la imagen.
+      - POSE: Pose de pie natural, brazos a los lados o ligeramente abiertos.
+      - VESTIMENTA BASE: Ropa interior deportiva neutra o ropa ajustada minimalista (para permitir futuras pruebas de ropa).
       - Género: ${g('genero')}. Tono de piel EXACTO: ${g('tono_piel.categoria')} (${g('tono_piel.hex_aproximado')}).
       - Rostro: ${g('rostro.forma')}, ojos ${g('rostro.ojos.color')} (${g('rostro.ojos.forma')}), nariz ${g('rostro.nariz')}, labios ${g('rostro.labios')}.
       - Cabello: ${g('cabello.color')}, ${g('cabello.tipo')}, peinado ${g('cabello.peinado')}.
-      - Cuerpo: ${g('cuerpo.complexion')}, hombros ${g('cuerpo.proporcion_hombros')}, cintura ${g('cuerpo.proporcion_cintura')}.
+      - Cuerpo: ${g('cuerpo.complexion')}, hombros ${g('cuerpo.proporcion_hombros')}, cintura ${g('cuerpo.proporcion_cintura')}, caderas ${g('cuerpo.proporcion_cadera')}.
       
       ESTILO VISUAL:
-      - Personaje 3D estilo Pixar de alta calidad, render cinematográfico profesional.
+      - Personaje 3D estilo Pixar/Disney de alta calidad, render cinematográfico profesional.
       - Subsurface scattering en piel, iluminación global suave, materiales físicamente realistas.
-      - Estilización leve sin perder identidad (no caricatura).
+      - Estilización leve sin perder identidad real.
       
       CÁMARA E ILUMINACIÓN:
-      - Plano de cuerpo completo, perspectiva cinematográfica tipo lente 50mm.
-      - Esquema de tres puntos (key, fill, rim) con luz cálida cinematográfica.
-      - Fondo: Entorno suave desenfocado (bokeh) sin distracciones.
+      - Plano general (Full Body), perspectiva de frente, lente 50mm.
+      - Se deben ver CLARAMENTE los pies, las piernas y el torso completo.
+      - Esquema de tres puntos con luz cálida.
+      - Fondo: Entorno neutro suave desenfocado (bokeh) para no distraer.
       
-      REFUERZO: Preservación de identidad obligatoria. No uses patrones de entrenamiento genéricos. Solo los datos proporcionados.
+      IMPORTANTE: No cortes la imagen en la cintura ni en las rodillas. Asegúrate de mostrar el calzado y la postura completa.
     `;
 
     const response = await openai.images.generate({
