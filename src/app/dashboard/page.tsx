@@ -29,7 +29,7 @@ export default function DashboardPage() {
   const actions = [
     { name: 'Armario', icon: Shirt, color: 'text-primary', bg: 'bg-primary/10', href: '/wardrobe' },
     { name: 'Cápsulas', icon: Layers, color: 'text-secondary', bg: 'bg-secondary/10', href: '/capsules' },
-    { name: 'Estilista', icon: MessageCircle, color: 'text-pink-600', bg: 'bg-pink-50', href: '/chat' },
+    { name: 'Asistente de Vestuario', icon: MessageCircle, color: 'text-pink-600', bg: 'bg-pink-50', href: '/chat' },
     { name: 'Probador Virtual', icon: UserCircle, color: 'text-indigo-600', bg: 'bg-indigo-50', href: '/preview' },
     { name: 'Más Cápsulas', icon: PlusCircle, color: 'text-orange-600', bg: 'bg-orange-50', href: '/purchase' },
     { name: 'CONFIGURAR APIS', icon: Settings, color: 'text-white', bg: 'bg-primary', href: '/settings', highlight: true },
@@ -56,7 +56,7 @@ export default function DashboardPage() {
       <section className="bg-gradient-to-br from-primary to-primary/80 rounded-3xl p-6 text-white shadow-lg overflow-hidden relative">
         <Sparkles className="absolute top-[-10px] right-[-10px] w-24 h-24 opacity-10 rotate-12" />
         <div className="relative z-10 space-y-2">
-          <h2 className="text-xl font-bold">Asistente de Pilar Cifuentes</h2>
+          <h2 className="text-xl font-bold">Asistente de PILAR CIFUENTES</h2>
           <p className="text-sm opacity-90">Análisis listo: Eres tipo <strong>{profile.figureAnalysis || 'Reloj de Arena'}</strong> con paleta <strong>{profile.colorimetryAnalysis || 'Otoño Cálido'}</strong>.</p>
           <div className="flex gap-2 mt-3">
               <Button variant="secondary" size="sm" onClick={() => router.push('/capsules')}>
@@ -80,7 +80,7 @@ export default function DashboardPage() {
               <div className={`p-4 rounded-2xl ${action.bg}`}>
                 <action.icon className={`w-8 h-8 ${action.color}`} />
               </div>
-              <span className={`font-bold text-sm ${action.highlight ? 'text-primary' : 'text-foreground'}`}>{action.name}</span>
+              <span className={`font-bold text-sm text-center ${action.highlight ? 'text-primary' : 'text-foreground'}`}>{action.name}</span>
             </CardContent>
           </Card>
         ))}

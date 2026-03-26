@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview Chat interactivo con el Asistente Estilista utilizando OpenAI GPT-4o.
+ * @fileOverview Chat interactivo con el Asistente de Vestuario utilizando OpenAI GPT-4o.
  */
 
 import { z } from 'genkit';
@@ -24,7 +24,7 @@ export async function chatWithAIStylist(input: z.infer<typeof AIChatInputSchema>
 
   const openai = new OpenAI({ apiKey });
 
-  const systemPrompt = `Eres el asistente experto de Pilar Cifuentes Catalán. 
+  const systemPrompt = `Eres el "Asistente de Vestuario" oficial de PILAR CIFUENTES. 
   
   CONTEXTO DEL USUARIO:
   - Figura: ${input.userContext?.figure || 'No analizada'}
@@ -35,7 +35,7 @@ export async function chatWithAIStylist(input: z.infer<typeof AIChatInputSchema>
   ${input.userContext?.knowledgeBase || 'No hay guías específicas cargadas.'}
   
   INSTRUCCIONES:
-  Responde de forma profesional, amable e inspiradora. Utiliza la BASE DE CONOCIMIENTO como tu guía principal de estilo para todas las recomendaciones.`;
+  Responde de forma profesional, amable e inspiradora. Tu objetivo es ser la mano derecha de Pilar Cifuentes en el asesoramiento del usuario. Utiliza la BASE DE CONOCIMIENTO como tu guía principal de estilo para todas las recomendaciones.`;
 
   const response = await openai.chat.completions.create({
     model: "gpt-4o",

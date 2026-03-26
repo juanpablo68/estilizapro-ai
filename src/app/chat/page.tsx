@@ -18,7 +18,7 @@ interface Message {
 export default function ChatPage() {
   const [profile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: '¡Hola! Soy el asistente de Pilar Cifuentes Catalán. Estoy aquí para ayudarte a encontrar tu mejor versión utilizando tus datos de figura, colorimetría y tu base de conocimiento maestra. ¿En qué puedo asesorarte hoy?' }
+    { role: 'assistant', content: '¡Hola! Soy tu Asistente de Vestuario de PILAR CIFUENTES. Estoy aquí para ayudarte a encontrar tu mejor versión utilizando tus datos de figura, colorimetría y tu base de conocimiento maestra. ¿En qué puedo asesorarte hoy?' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -83,8 +83,8 @@ export default function ChatPage() {
               <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
             </div>
             <div>
-              <h1 className="font-bold text-sm leading-none">Asistente Estilista</h1>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-tighter">Pilar Cifuentes Catalán</p>
+              <h1 className="font-bold text-sm leading-none uppercase">Asistente de Vestuario</h1>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-tighter font-black">PILAR CIFUENTES</p>
             </div>
           </div>
         </div>
@@ -128,12 +128,15 @@ export default function ChatPage() {
               target="_blank" 
               className="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground hover:text-primary transition-colors"
             >
-              <Instagram className="w-3 h-3" /> Contactar a Pilar Catalán para asesoría premium
+              <Avatar className="w-4 h-4 border border-muted">
+                <AvatarImage src="https://picsum.photos/seed/instagram/50" />
+              </Avatar>
+              Contactar a Pilar Cifuentes para asesoría premium
             </Link>
         </div>
         <div className="flex gap-2">
           <Input 
-            placeholder="Pregunta sobre colorimetría, figuras..." 
+            placeholder="Pregunta sobre tu look de hoy..." 
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && sendMessage()}
