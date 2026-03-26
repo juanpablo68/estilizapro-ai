@@ -1,8 +1,7 @@
-
 'use server';
 /**
  * @fileOverview FASE 2: Generación de Avatar 3D Pixar de alta fidelidad utilizando DALL-E 3.
- * Modificado para asegurar renderizado de CUERPO COMPLETO (Full Body).
+ * Modificado para evitar bloqueos por filtros de contenido y asegurar cuerpo completo.
  */
 
 import { ai } from '@/ai/genkit';
@@ -52,49 +51,48 @@ const generateStylizedAvatarFlow = ai.defineFlow(
       return current || defaultValue;
     };
 
-    // Construcción del prompt maestro basado en el análisis de FASE 1
-    // REFORZADO PARA CUERPO COMPLETO
+    // Construcción del prompt maestro optimizado para pasar filtros de seguridad
     const finalPrompt = `
-      FASE 2 — GENERACIÓN DE AVATAR 3D PIXAR (CUERPO COMPLETO):
-      Usando EXCLUSIVAMENTE estos datos biométricos reales: ${JSON.stringify(bio)}.
+      3D Pixar-style animated character, high-quality cinematic render.
+      GENDER: ${g('genero')}.
+      APPEARANCE: ${g('cabello.color')} ${g('cabello.tipo')} hair, ${g('rostro.ojos.color')} eyes, skin tone category ${g('tono_piel.categoria')}.
+      BODY: ${g('cuerpo.complexion')} build, realistic proportions.
+      OUTFIT: Neutral-colored minimalist athletic sportswear (leggings and technical t-shirt), simple and professional.
       
-      REGLAS CRÍTICAS DE GENERACIÓN:
-      - TOMA DE CUERPO COMPLETO (FULL BODY SHOT): El personaje debe aparecer de cuerpo entero, de pies a cabeza, centrado en la imagen.
-      - POSE: Pose de pie natural, brazos a los lados o ligeramente abiertos.
-      - VESTIMENTA BASE: Ropa interior deportiva neutra o ropa ajustada minimalista (para permitir futuras pruebas de ropa).
-      - Género: ${g('genero')}. Tono de piel EXACTO: ${g('tono_piel.categoria')} (${g('tono_piel.hex_aproximado')}).
-      - Rostro: ${g('rostro.forma')}, ojos ${g('rostro.ojos.color')} (${g('rostro.ojos.forma')}), nariz ${g('rostro.nariz')}, labios ${g('rostro.labios')}.
-      - Cabello: ${g('cabello.color')}, ${g('cabello.tipo')}, peinado ${g('cabello.peinado')}.
-      - Cuerpo: ${g('cuerpo.complexion')}, hombros ${g('cuerpo.proporcion_hombros')}, cintura ${g('cuerpo.proporcion_cintura')}, caderas ${g('cuerpo.proporcion_cadera')}.
+      CAMERA & SHOT:
+      - FULL BODY SHOT (Feet to head visible).
+      - Character standing in a natural neutral pose, facing the camera.
+      - The entire figure including shoes and legs MUST be in the frame.
+      - Soft studio lighting, 50mm lens.
+      - Clean soft-focus background (bokeh).
       
-      ESTILO VISUAL:
-      - Personaje 3D estilo Pixar/Disney de alta calidad, render cinematográfico profesional.
-      - Subsurface scattering en piel, iluminación global suave, materiales físicamente realistas.
-      - Estilización leve sin perder identidad real.
-      
-      CÁMARA E ILUMINACIÓN:
-      - Plano general (Full Body), perspectiva de frente, lente 50mm.
-      - Se deben ver CLARAMENTE los pies, las piernas y el torso completo.
-      - Esquema de tres puntos con luz cálida.
-      - Fondo: Entorno neutro suave desenfocado (bokeh) para no distraer.
-      
-      IMPORTANTE: No cortes la imagen en la cintura ni en las rodillas. Asegúrate de mostrar el calzado y la postura completa.
+      ART STYLE:
+      - Disney/Pixar 3D animation style.
+      - Clean textures, professional digital art, vibrant colors.
+      - NO realistic human photography. NO suggestive content.
     `;
 
-    const response = await openai.images.generate({
-      model: "dall-e-3",
-      prompt: finalPrompt,
-      n: 1,
-      size: "1024x1024",
-      quality: "hd",
-      response_format: "b64_json",
-    });
+    try {
+      const response = await openai.images.generate({
+        model: "dall-e-3",
+        prompt: finalPrompt,
+        n: 1,
+        size: "1024x1024",
+        quality: "hd",
+        response_format: "b64_json",
+      });
 
-    const imageData = response.data[0].b64_json;
-    if (!imageData) throw new Error("Error en la generación visual.");
+      const imageData = response.data[0].b64_json;
+      if (!imageData) throw new Error("Error en la generación visual.");
 
-    return {
-      avatarDataUri: `data:image/png;base64,${imageData}`
-    };
+      return {
+        avatarDataUri: `data:image/png;base64,${imageData}`
+      };
+    } catch (error: any) {
+      if (error.status === 400) {
+        throw new Error("El motor de IA bloqueó la descripción por seguridad. Intenta con fotos más claras o ropa menos ajustada.");
+      }
+      throw error;
+    }
   }
 );
