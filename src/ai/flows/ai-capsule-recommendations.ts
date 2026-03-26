@@ -1,9 +1,9 @@
 'use server';
 /**
  * @fileOverview Generación de cápsulas de moda con prioridad absoluta al armario local.
- * - Prioriza IDs de armario real proporcionados.
+ * - Diferenciación garantizada entre los 2 outfits.
  * - Máximo 2 prendas externas por outfit.
- * - Outfits garantizadamente diferentes entre sí.
+ * - Palabras clave de búsqueda optimizadas para alta fidelidad visual.
  */
 
 import { z } from 'genkit';
@@ -37,7 +37,7 @@ const CapsuleSchema = z.object({
     type: z.enum(['top', 'bottom', 'dress', 'outerwear', 'shoe', 'accessory']),
     source: z.enum(['wardrobe', 'external']),
     wardrobeItemId: z.string().optional().describe('El ID exacto del objeto en la lista de armario'),
-    searchKeywords: z.string().describe('Keywords en inglés para buscar solo el PRODUCTO de ropa, sin modelos'),
+    searchKeywords: z.string().describe('Highly descriptive English keywords for fashion product search (e.g. "minimalist black leather tote bag studio photography")'),
   })),
 });
 
@@ -54,34 +54,27 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
 
   const openai = new OpenAI({ apiKey });
 
-  const prompt = `Eres el Stylist Maestro de Pilar Cifuentes Catalán. Debes crear exactamente 2 outfits (cápsulas) para la ocasión: "${input.eventType}" y clima: "${input.weatherConditions}".
+  const prompt = `Eres el Stylist Maestro de Pilar Cifuentes Catalán. Tu misión es crear exactamente 2 outfits (cápsulas) únicos para la ocasión: "${input.eventType}" y clima: "${input.weatherConditions}".
 
-REGLAS INVIOLABLES:
-1. PRIORIDAD TOTAL AL ARMARIO: Usa obligatoriamente los IDs de la lista "ARMARIO REAL". Si usas una prenda de la lista, pon source: "wardrobe" y el "id" exacto que te proporcioné.
-2. PRENDAS EXTERNAS: Solo puedes usar source: "external" si falta algo esencial que no esté en el armario. MÁXIMO 2 prendas externas por outfit.
-3. DIFERENCIACIÓN: Los 2 outfits deben ser para estilos totalmente diferentes y creativos entre sí.
-4. FORMATO: Responde ÚNICAMENTE con un JSON puro que siga esta estructura:
-{
-  "capsules": [
-    {
-      "name": "Nombre creativo",
-      "description": "Explicación del estilo",
-      "items": [
-        { "name": "...", "type": "top", "source": "wardrobe", "wardrobeItemId": "ID_DE_LA_LISTA", "searchKeywords": "black blazer flat lay" }
-      ]
-    }
-  ]
-}
+REGLAS INVIOLABLES DE NEGOCIO:
+1. DIFERENCIACIÓN TOTAL: Los 2 outfits DEBEN ser radicalmente diferentes (ej: uno elegante y otro moderno, o uno neutro y otro con color). No repitas el concepto.
+2. PRIORIDAD AL ARMARIO: Usa obligatoriamente los IDs de "ARMARIO REAL". Si usas una prenda de la lista, pon source: "wardrobe" y su "id" exacto.
+3. LÍMITE EXTERNO: Máximo 2 prendas externas (source: "external") por outfit, solo si es vital para el look.
+4. BÚSQUEDA VISUAL: Para prendas externas, genera keywords en inglés muy específicas de MODA Y PRODUCTO (ej: "high-waisted blue denim jeans flat lay").
+5. FORMATO: Responde SOLO con JSON puro.
 
 ARMARIO REAL DISPONIBLE:
 ${JSON.stringify(input.wardrobeItems)}
 
-No inventes IDs. Si no hay prendas suficientes, usa sugerencias externas hasta el límite de 2.`;
+ANÁLISIS DE USUARIO:
+- Figura: ${input.figureAnalysis}
+- Colorimetría: ${input.colorimetryAnalysis}
+- Reglas: ${input.knowledgeBase || 'Seguir tendencias actuales'}`;
 
   const finalResponse = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
-      { role: "system", content: "Experto en moda personalizada. Prioriza armario real. Devuelve JSON válido sin texto adicional." },
+      { role: "system", content: "Experto en estilismo personalizado. Genera outfits contrastantes y precisos. JSON válido solamente." },
       { role: "user", content: prompt }
     ],
     response_format: { type: "json_object" }
@@ -96,7 +89,6 @@ No inventes IDs. Si no hay prendas suficientes, usa sugerencias externas hasta e
       const processedItems = await Promise.all((capsule.items || []).map(async (item: any) => {
         let imageUrl = undefined;
         
-        // Solo buscamos en Unsplash si es externo
         if (item.source === 'external') {
           const images = await searchUnsplashImages(item.searchKeywords, input.unsplashAccessKey, item.type);
           imageUrl = images.length > 0 ? images[0].url : undefined;
