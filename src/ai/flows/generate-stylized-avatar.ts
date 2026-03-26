@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview FASE 2: Generación de Avatar 3D Pixar de alta fidelidad utilizando DALL-E 3.
- * Modificado para evitar bloqueos por filtros de contenido y asegurar cuerpo completo.
+ * Optimizado para encuadre de cuerpo completo (head-to-toe) y eliminación de artefactos técnicos.
  */
 
 import { ai } from '@/ai/genkit';
@@ -37,8 +37,8 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     const openai = new OpenAI({ apiKey });
     const bio = input.biometricData || {};
 
-    // Función de ayuda para evitar errores de 'undefined' durante la construcción del prompt
-    const g = (path: string, defaultValue = 'no especificado') => {
+    // Función de ayuda para evitar errores de 'undefined'
+    const g = (path: string, defaultValue = 'not specified') => {
       const parts = path.split('.');
       let current: any = bio;
       for (const part of parts) {
@@ -51,25 +51,26 @@ const generateStylizedAvatarFlow = ai.defineFlow(
       return current || defaultValue;
     };
 
-    // Construcción del prompt maestro optimizado para pasar filtros de seguridad
+    // Construcción del prompt maestro optimizado para CUERPO COMPLETO y ESTILO LIMPIO
     const finalPrompt = `
-      3D Pixar-style animated character, high-quality cinematic render.
-      GENDER: ${g('genero')}.
-      APPEARANCE: ${g('cabello.color')} ${g('cabello.tipo')} hair, ${g('rostro.ojos.color')} eyes, skin tone category ${g('tono_piel.categoria')}.
-      BODY: ${g('cuerpo.complexion')} build, realistic proportions.
-      OUTFIT: Neutral-colored minimalist athletic sportswear (leggings and technical t-shirt), simple and professional.
+      HEAD-TO-TOE FULL BODY CINEMATIC SHOT of a Disney/Pixar style 3D character standing in a neutral pose.
       
-      CAMERA & SHOT:
-      - FULL BODY SHOT (Feet to head visible).
-      - Character standing in a natural neutral pose, facing the camera.
-      - The entire figure including shoes and legs MUST be in the frame.
-      - Soft studio lighting, 50mm lens.
-      - Clean soft-focus background (bokeh).
+      PHYSICAL DESCRIPTION:
+      - Character Gender: ${g('genero')}
+      - Hair: ${g('cabello.color')}, ${g('cabello.tipo')} texture, ${g('cabello.peinado')} style.
+      - Face: ${g('rostro.ojos.color')} eyes, friendly expression, ${g('tono_piel.categoria')} skin tone.
+      - Body: ${g('cuerpo.complexion')} build, realistic height and proportions.
       
-      ART STYLE:
-      - Disney/Pixar 3D animation style.
-      - Clean textures, professional digital art, vibrant colors.
-      - NO realistic human photography. NO suggestive content.
+      OUTFIT:
+      - Wearing minimalist minimalist athletic sports clothes: a plain technical t-shirt, leggings or joggers, and clean modern sneakers.
+      - The entire outfit from head to shoes must be completely visible within the frame.
+      
+      COMPOSITION & STYLE:
+      - FULL BODY VIEW: The character's head must be at the top of the frame and their feet must be clearly visible at the bottom.
+      - Character is standing centered, facing the camera on a simple clean studio floor.
+      - NO technical lines, NO diagrams, NO blueprint markers, NO measurement text, NO grids.
+      - Professional digital 3D animation art style, vibrant colors, clean soft textures.
+      - Soft studio lighting with a clean bokeh background.
     `;
 
     try {
@@ -79,6 +80,7 @@ const generateStylizedAvatarFlow = ai.defineFlow(
         n: 1,
         size: "1024x1024",
         quality: "hd",
+        style: "vivid",
         response_format: "b64_json",
       });
 
@@ -89,8 +91,9 @@ const generateStylizedAvatarFlow = ai.defineFlow(
         avatarDataUri: `data:image/png;base64,${imageData}`
       };
     } catch (error: any) {
+      console.error("DALL-E Generation Error:", error);
       if (error.status === 400) {
-        throw new Error("El motor de IA bloqueó la descripción por seguridad. Intenta con fotos más claras o ropa menos ajustada.");
+        throw new Error("El motor de IA bloqueó la descripción por seguridad. Intenta con fotos más claras o menos sombras.");
       }
       throw error;
     }
