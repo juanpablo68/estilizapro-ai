@@ -74,9 +74,9 @@ export default function CapsulesPage() {
            return newList;
         });
         setSelectedCapsuleId(result.capsules[0].id);
-        toast({ title: "¡Outfits Generados!", description: "Se han creado propuestas diferentes priorizando tu armario." });
+        toast({ title: "¡Outfits Generados!", description: "Se han creado propuestas variadas." });
       } else {
-        toast({ variant: "destructive", title: "Error", description: "La IA no pudo generar outfits. Revisa tu armario." });
+        toast({ variant: "destructive", title: "Error", description: "La IA no pudo generar outfits. Prueba con otra combinación." });
       }
     } catch (err: any) {
       toast({ variant: "destructive", title: "Error del Sistema", description: err.message });
@@ -95,19 +95,16 @@ export default function CapsulesPage() {
   };
 
   const getItemImage = (item: CapsuleItem) => {
-    // 1. SI ES DEL ARMARIO: Buscar EXCLUSIVAMENTE en el almacenamiento local
     if (item.source === 'wardrobe') {
       const found = wardrobe.find(w => w.id === item.wardrobeItemId);
       if (found?.imageDataUri) return found.imageDataUri;
       
-      // Fallback por nombre si el ID no coincide exactamente (por si la IA lo alteró)
       const foundByName = wardrobe.find(w => w.name.toLowerCase().includes(item.name.toLowerCase()));
       if (foundByName?.imageDataUri) return foundByName.imageDataUri;
       
-      return null; // No usar imágenes aleatorias para armario
+      return null;
     }
     
-    // 2. SI ES SUGERENCIA IA: Usar URL de Unsplash si existe
     if (item.source === 'external' && item.imageUrl) {
       return item.imageUrl;
     }
@@ -188,7 +185,7 @@ export default function CapsulesPage() {
             <div className="flex space-x-4">
               {savedCapsules.map((capsule) => (
                 <div 
-                  key={capsule.id} 
+                  key={`nav-${capsule.id}`} 
                   onClick={() => setSelectedCapsuleId(capsule.id)}
                   className={cn(
                     "relative group w-52 shrink-0 cursor-pointer transition-all",
@@ -204,9 +201,9 @@ export default function CapsulesPage() {
                           {capsule.items.slice(0, 2).map((item, idx) => {
                              const img = getItemImage(item);
                              return (
-                               <div key={`${capsule.id}-thumb-${idx}`} className="relative h-full flex items-center justify-center bg-white border-r last:border-r-0">
+                               <div key={`thumb-${capsule.id}-${idx}`} className="relative h-full flex items-center justify-center bg-white border-r last:border-r-0">
                                   {img ? (
-                                    <Image src={img} alt="Outfit Thumbnail" fill className="object-cover" unoptimized />
+                                    <Image src={img} alt={item.name} fill className="object-cover" unoptimized />
                                   ) : (
                                     <Shirt className="w-6 h-6 text-muted-foreground/30" />
                                   )}
@@ -245,7 +242,7 @@ export default function CapsulesPage() {
             {currentCapsule.items.map((item, idx) => {
               const img = getItemImage(item);
               return (
-                <Card key={`${currentCapsule.id}-item-${idx}`} className="overflow-hidden border-none shadow-md rounded-2xl bg-white group">
+                <Card key={`item-${currentCapsule.id}-${idx}`} className="overflow-hidden border-none shadow-md rounded-2xl bg-white group">
                   <div className="relative aspect-[3/4] flex items-center justify-center bg-muted/20">
                     {img ? (
                       <Image src={img} alt={`Prenda: ${item.name}`} fill className="object-cover" unoptimized />

@@ -56,25 +56,25 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
 
   const prompt = `Eres el Stylist Maestro de Pilar Cifuentes Catalán. Tu misión es crear exactamente 2 outfits (cápsulas) únicos para la ocasión: "${input.eventType}" y clima: "${input.weatherConditions}".
 
-REGLAS INVIOLABLES DE NEGOCIO:
-1. DIFERENCIACIÓN TOTAL: Los 2 outfits DEBEN ser radicalmente diferentes (ej: uno elegante y otro moderno, o uno neutro y otro con color). No repitas el concepto.
-2. PRIORIDAD AL ARMARIO: Usa obligatoriamente los IDs de "ARMARIO REAL". Si usas una prenda de la lista, pon source: "wardrobe" y su "id" exacto.
-3. LÍMITE EXTERNO: Máximo 2 prendas externas (source: "external") por outfit, solo si es vital para el look.
-4. BÚSQUEDA VISUAL: Para prendas externas, genera keywords en inglés muy específicas de MODA Y PRODUCTO (ej: "high-waisted blue denim jeans flat lay").
-5. FORMATO: Responde SOLO con JSON puro.
+REGLAS DE NEGOCIO OBLIGATORIAS:
+1. DIFERENCIACIÓN: Los 2 outfits DEBEN ser radicalmente diferentes en estilo y color (ej: uno neutro formal y otro colorido casual).
+2. PRIORIDAD ARMARIO: Usa preferentemente los ítems de "ARMARIO REAL" listados abajo. Si usas uno, pon source: "wardrobe" y su "id" exacto.
+3. COMPLEMENTOS EXTERNOS: Si el armario no tiene lo necesario (ej: faltan zapatos o accesorios), puedes sugerir hasta un MÁXIMO de 2 prendas externas por outfit (source: "external").
+4. BÚSQUEDA VISUAL: Para prendas externas, genera keywords en inglés muy específicas de PRODUCTO (ej: "minimalist white leather sneakers flat lay studio").
+5. FORMATO: Responde SOLO con un objeto JSON que contenga un array "capsules".
 
 ARMARIO REAL DISPONIBLE:
-${JSON.stringify(input.wardrobeItems)}
+${input.wardrobeItems.length > 0 ? JSON.stringify(input.wardrobeItems) : "El armario está vacío. Sugiere outfits completos externos."}
 
 ANÁLISIS DE USUARIO:
 - Figura: ${input.figureAnalysis}
 - Colorimetría: ${input.colorimetryAnalysis}
-- Reglas: ${input.knowledgeBase || 'Seguir tendencias actuales'}`;
+- Reglas Maestras: ${input.knowledgeBase || 'Seguir tendencias actuales de alta costura'}`;
 
   const finalResponse = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
-      { role: "system", content: "Experto en estilismo personalizado. Genera outfits contrastantes y precisos. JSON válido solamente." },
+      { role: "system", content: "Experto en estilismo personalizado. Genera outfits contrastantes. Responde SIEMPRE con JSON válido." },
       { role: "user", content: prompt }
     ],
     response_format: { type: "json_object" }
