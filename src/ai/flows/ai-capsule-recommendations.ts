@@ -33,11 +33,11 @@ const CapsuleSchema = z.object({
   name: z.string().describe('Un nombre creativo para el outfit completo en español'),
   description: z.string().describe('Breve descripción del por qué este look funciona'),
   items: z.array(z.object({
-    name: z.string().describe('Nombre descriptivo de la prenda en ESPAÑOL (Ejem: Sombrero de paja ala ancha)'),
+    name: z.string().describe('Nombre descriptivo de la prenda en ESPAÑOL'),
     type: z.enum(['top', 'bottom', 'dress', 'outerwear', 'shoe', 'accessory']),
     source: z.enum(['wardrobe', 'external']),
     wardrobeItemId: z.string().optional().describe('El ID EXACTO del objeto del armario'),
-    searchKeywords: z.string().describe('English keywords for Unsplash API. Must be specific product descriptions: "straw sun hat wide brim product shot"'),
+    searchKeywords: z.string().describe('English keywords for Unsplash API. Use product-only descriptions like "flat lay fashion product photography"'),
   })),
 });
 
@@ -60,7 +60,7 @@ REGLAS DE ORO:
 1. PRIORIDAD ARMARIO: Usa los ítems de "ARMARIO REAL" abajo. Si la prenda existe, DEBES marcarla como source: "wardrobe" y poner su "id" exacto.
 2. NOMBRADO: Cada ítem DEBE tener un "name" descriptivo en ESPAÑOL. NO lo dejes vacío.
 3. CONTRASTE: Outfit 1 y Outfit 2 deben ser radicalmente diferentes en color y vibra (Ej: uno Formal/Oscuro y otro Casual/Brillante).
-4. BÚSQUEDA EXTERNA: Para prendas externas (source: external), genera "searchKeywords" en INGLÉS muy descriptivos de producto (Ej: "luxury beige leather tote bag product photography").
+4. BÚSQUEDA EXTERNA: Para prendas externas (source: external), genera "searchKeywords" en INGLÉS enfocados en "flat lay product photography" sin personas.
 5. FORMATO: Responde SOLO con un objeto JSON con el array "capsules".
 
 ARMARIO REAL DISPONIBLE:
@@ -74,7 +74,7 @@ PERFIL USUARIO:
   const finalResponse = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
-      { role: "system", content: "Experto en estilismo profesional y psicología del color. Solo respondes en JSON estructurado." },
+      { role: "system", content: "Experto en estilismo profesional. Solo respondes en JSON estructurado." },
       { role: "user", content: prompt }
     ],
     response_format: { type: "json_object" }
@@ -104,8 +104,11 @@ PERFIL USUARIO:
         };
       }));
       
+      const enrichedName = `${capsule.name || 'Outfit Maestro'} (${input.eventType} / ${input.weatherConditions})`;
+
       return {
         ...capsule,
+        name: enrichedName,
         id: `cap-${Date.now()}-${cIdx}`,
         date,
         eventType: input.eventType,

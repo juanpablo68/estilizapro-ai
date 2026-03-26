@@ -63,7 +63,7 @@ export default function CapsulesPage() {
         knowledgeBase: profile.knowledgeBase,
         eventType: params.eventType,
         weatherConditions: params.weather,
-        wardrobeItems: wardrobe.map(i => ({ id: i.id, name: i.name, type: i.type })),
+        wardrobeItems: wardrobe.map(i => ({ id: i.id, name: i.name || 'Sin nombre', type: i.type })),
         openaiApiKey: openaiKey,
         unsplashAccessKey: unsplashKey || undefined,
       });
@@ -104,13 +104,13 @@ export default function CapsulesPage() {
         if (found?.imageDataUri) return found.imageDataUri;
       }
       
-      // 2. Respaldo: Nombre (Búsqueda parcial segura)
-      const queryName = (item.name || "").toLowerCase();
-      if (queryName) {
-        const foundByName = wardrobe.find(w => 
-          (w.name || "").toLowerCase().includes(queryName) || 
-          queryName.includes((w.name || "").toLowerCase())
-        );
+      // 2. Respaldo: Nombre con protección toLowerCase()
+      const itemNameToSearch = (item.name || "").toLowerCase();
+      if (itemNameToSearch) {
+        const foundByName = wardrobe.find(w => {
+           const wardrobeName = (w.name || "").toLowerCase();
+           return wardrobeName.includes(itemNameToSearch) || itemNameToSearch.includes(wardrobeName);
+        });
         if (foundByName?.imageDataUri) return foundByName.imageDataUri;
       }
 
@@ -185,7 +185,7 @@ export default function CapsulesPage() {
             disabled={loading || isLimitReached} 
             className="w-full h-14 bg-primary text-white font-bold rounded-2xl shadow-lg"
           >
-            {loading ? <><Loader2 className="mr-2 animate-spin" /> Analizando Armario...</> : <><Sparkles className="mr-2" /> Crear Look Maestro</>}
+            {loading ? <><Loader2 className="mr-2 animate-spin" /> Analizando Armario...</> : <><Sparkles className="mr-2" /> Crear Outfits</>}
           </Button>
         </CardContent>
       </Card>
