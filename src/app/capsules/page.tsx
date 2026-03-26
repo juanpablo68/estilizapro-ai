@@ -11,7 +11,6 @@ import { Loader2, ArrowLeft, Sparkles, LayoutGrid, Trash2, Shirt, Info, FolderHe
 import Link from 'next/link';
 import Image from 'next/image';
 import { useToast } from "@/hooks/use-toast";
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -43,7 +42,7 @@ export default function CapsulesPage() {
 
   const generateCapsules = async () => {
     if (isLimitReached) {
-      toast({ variant: "destructive", title: "Límite alcanzado" });
+      toast({ variant: "destructive", title: "Límite alcanzado", description: "Adquiere más espacio para generar nuevos outfits." });
       return;
     }
 
@@ -51,7 +50,7 @@ export default function CapsulesPage() {
     const unsplashKey = localStorage.getItem('unsplash_access_key');
     
     if (!openaiKey) {
-      toast({ variant: "destructive", title: "Configura tu OpenAI Key en Ajustes" });
+      toast({ variant: "destructive", title: "API Key Faltante", description: "Configura tu OpenAI Key en Ajustes." });
       return;
     }
 
@@ -70,20 +69,24 @@ export default function CapsulesPage() {
       });
       
       if (result.capsules && result.capsules.length > 0) {
-        const updatedList = [...result.capsules, ...savedCapsules].slice(0, MAX_OUTFITS);
-        setSavedCapsules(updatedList);
+        setSavedCapsules(prev => {
+           const newList = [...result.capsules, ...prev].slice(0, MAX_OUTFITS);
+           return newList;
+        });
         setSelectedCapsuleId(result.capsules[0].id);
-        toast({ title: "¡Outfits Generados!", description: "Se han creado 2 propuestas diferentes priorizando tu armario." });
+        toast({ title: "¡Outfits Generados!", description: "Se han creado propuestas diferentes priorizando tu armario." });
+      } else {
+        toast({ variant: "destructive", title: "Error", description: "La IA no pudo generar outfits. Revisa tu armario." });
       }
     } catch (err: any) {
-      toast({ variant: "destructive", title: "Error", description: err.message });
+      toast({ variant: "destructive", title: "Error del Sistema", description: err.message });
     } finally {
       setLoading(false);
     }
   };
 
   const deleteCapsule = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Evitar seleccionar la cápsula al borrar
+    e.stopPropagation();
     const filtered = savedCapsules.filter(c => c.id !== id);
     setSavedCapsules(filtered);
     if (selectedCapsuleId === id) {
@@ -92,25 +95,24 @@ export default function CapsulesPage() {
   };
 
   const getItemImage = (item: CapsuleItem) => {
-    // 1. SI ES DEL ARMARIO: Buscar OBLIGATORIAMENTE en el almacenamiento local
+    // 1. SI ES DEL ARMARIO: Buscar EXCLUSIVAMENTE en el almacenamiento local
     if (item.source === 'wardrobe') {
       const found = wardrobe.find(w => w.id === item.wardrobeItemId);
       if (found?.imageDataUri) return found.imageDataUri;
-      // Fallback si no se encuentra por ID: Buscar por nombre similar
+      
+      // Fallback por nombre si el ID no coincide exactamente (por si la IA lo alteró)
       const foundByName = wardrobe.find(w => w.name.toLowerCase().includes(item.name.toLowerCase()));
       if (foundByName?.imageDataUri) return foundByName.imageDataUri;
-      // Si falla todo: Icono de ropa (NUNCA Paisajes)
-      return "/placeholder-fashion.png"; 
+      
+      return null; // No usar imágenes aleatorias para armario
     }
     
-    // 2. SI ES SUGERENCIA IA: Usar URL de Unsplash
+    // 2. SI ES SUGERENCIA IA: Usar URL de Unsplash si existe
     if (item.source === 'external' && item.imageUrl) {
       return item.imageUrl;
     }
     
-    // 3. FALLBACK FINAL: Placeholder de moda profesional
-    const fashionPlaceholder = PlaceHolderImages.find(p => p.id === `fashion-${item.type}`) || PlaceHolderImages[0];
-    return fashionPlaceholder.imageUrl;
+    return null;
   };
 
   const currentCapsule = savedCapsules.find(c => c.id === selectedCapsuleId);
@@ -199,11 +201,18 @@ export default function CapsulesPage() {
                   )}>
                     <div className="relative aspect-[4/3] bg-muted">
                        <div className="grid grid-cols-2 h-full">
-                          {capsule.items.slice(0, 2).map((item, idx) => (
-                             <div key={`${capsule.id}-thumb-${idx}`} className="relative h-full">
-                                <Image src={getItemImage(item)} alt={`Preview ${item.name}`} fill className="object-cover" unoptimized />
-                             </div>
-                          ))}
+                          {capsule.items.slice(0, 2).map((item, idx) => {
+                             const img = getItemImage(item);
+                             return (
+                               <div key={`${capsule.id}-thumb-${idx}`} className="relative h-full flex items-center justify-center bg-white border-r last:border-r-0">
+                                  {img ? (
+                                    <Image src={img} alt="Outfit Thumbnail" fill className="object-cover" unoptimized />
+                                  ) : (
+                                    <Shirt className="w-6 h-6 text-muted-foreground/30" />
+                                  )}
+                               </div>
+                             );
+                          })}
                        </div>
                        <Button 
                           variant="destructive" size="icon" 
@@ -233,28 +242,35 @@ export default function CapsulesPage() {
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {currentCapsule.items.map((item, idx) => (
-              <Card key={`${currentCapsule.id}-item-${idx}`} className="overflow-hidden border-none shadow-md rounded-2xl bg-white group">
-                <div className="relative aspect-[3/4]">
-                  <Image src={getItemImage(item)} alt={`Prenda: ${item.name}`} fill className="object-cover" unoptimized />
-                  <div className="absolute top-2 left-2">
-                    {item.source === 'wardrobe' ? (
-                      <div className="bg-green-500 text-white text-[8px] font-black px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
-                        <FolderHeart className="w-2.5 h-2.5" /> MI ARMARIO
-                      </div>
+            {currentCapsule.items.map((item, idx) => {
+              const img = getItemImage(item);
+              return (
+                <Card key={`${currentCapsule.id}-item-${idx}`} className="overflow-hidden border-none shadow-md rounded-2xl bg-white group">
+                  <div className="relative aspect-[3/4] flex items-center justify-center bg-muted/20">
+                    {img ? (
+                      <Image src={img} alt={`Prenda: ${item.name}`} fill className="object-cover" unoptimized />
                     ) : (
-                      <div className="bg-pink-500 text-white text-[8px] font-black px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
-                        <Sparkles className="w-2.5 h-2.5" /> SUGERENCIA IA
-                      </div>
+                      <Shirt className="w-12 h-12 text-muted-foreground/20" />
                     )}
+                    <div className="absolute top-2 left-2">
+                      {item.source === 'wardrobe' ? (
+                        <div className="bg-green-500 text-white text-[8px] font-black px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
+                          <FolderHeart className="w-2.5 h-2.5" /> MI ARMARIO
+                        </div>
+                      ) : (
+                        <div className="bg-pink-500 text-white text-[8px] font-black px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
+                          <Sparkles className="w-2.5 h-2.5" /> SUGERENCIA IA
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <CardContent className="p-3">
-                  <p className="font-bold text-[11px] truncate uppercase">{item.name}</p>
-                  <p className="text-[9px] text-primary/70 font-black uppercase mt-1">{item.type}</p>
-                </CardContent>
-              </Card>
-            ))}
+                  <CardContent className="p-3">
+                    <p className="font-bold text-[11px] truncate uppercase">{item.name}</p>
+                    <p className="text-[9px] text-primary/70 font-black uppercase mt-1">{item.type}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
       ) : (

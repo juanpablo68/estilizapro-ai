@@ -54,23 +54,34 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
 
   const openai = new OpenAI({ apiKey });
 
-  const prompt = `Eres el Stylist Maestro. Debes crear exactamente 2 outfits (cápsulas) para la ocasión: "${input.eventType}" y clima: "${input.weatherConditions}".
+  const prompt = `Eres el Stylist Maestro de Pilar Cifuentes Catalán. Debes crear exactamente 2 outfits (cápsulas) para la ocasión: "${input.eventType}" y clima: "${input.weatherConditions}".
 
 REGLAS INVIOLABLES:
-1. PRIORIDAD TOTAL AL ARMARIO: Usa los IDs de la lista "ARMARIO REAL". Si usas uno, pon source: "wardrobe" y su ID exacto.
-2. PRENDAS EXTERNAS: Solo usa source: "external" si falta algo esencial. MÁXIMO 2 por outfit.
-3. DIFERENCIACIÓN: Los 2 outfits deben ser para estilos totalmente diferentes (ej: uno Formal y uno Relajado).
-4. FOTOGRAFÍA: Para prendas externas, genera keywords de búsqueda tipo "product flat lay" (sin personas).
+1. PRIORIDAD TOTAL AL ARMARIO: Usa obligatoriamente los IDs de la lista "ARMARIO REAL". Si usas una prenda de la lista, pon source: "wardrobe" y el "id" exacto que te proporcioné.
+2. PRENDAS EXTERNAS: Solo puedes usar source: "external" si falta algo esencial que no esté en el armario. MÁXIMO 2 prendas externas por outfit.
+3. DIFERENCIACIÓN: Los 2 outfits deben ser para estilos totalmente diferentes y creativos entre sí.
+4. FORMATO: Responde ÚNICAMENTE con un JSON puro que siga esta estructura:
+{
+  "capsules": [
+    {
+      "name": "Nombre creativo",
+      "description": "Explicación del estilo",
+      "items": [
+        { "name": "...", "type": "top", "source": "wardrobe", "wardrobeItemId": "ID_DE_LA_LISTA", "searchKeywords": "black blazer flat lay" }
+      ]
+    }
+  ]
+}
 
 ARMARIO REAL DISPONIBLE:
 ${JSON.stringify(input.wardrobeItems)}
 
-Responde ÚNICAMENTE con un objeto JSON con la llave "capsules".`;
+No inventes IDs. Si no hay prendas suficientes, usa sugerencias externas hasta el límite de 2.`;
 
   const finalResponse = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
-      { role: "system", content: "Experto en moda. Prioriza armario real. Devuelve JSON puro." },
+      { role: "system", content: "Experto en moda personalizada. Prioriza armario real. Devuelve JSON válido sin texto adicional." },
       { role: "user", content: prompt }
     ],
     response_format: { type: "json_object" }
@@ -85,6 +96,7 @@ Responde ÚNICAMENTE con un objeto JSON con la llave "capsules".`;
       const processedItems = await Promise.all((capsule.items || []).map(async (item: any) => {
         let imageUrl = undefined;
         
+        // Solo buscamos en Unsplash si es externo
         if (item.source === 'external') {
           const images = await searchUnsplashImages(item.searchKeywords, input.unsplashAccessKey, item.type);
           imageUrl = images.length > 0 ? images[0].url : undefined;

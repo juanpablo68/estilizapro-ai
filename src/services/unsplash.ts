@@ -4,8 +4,6 @@
  * Prioriza fotos de producto aisladas (flat lay) y elimina fallbacks de paisajes.
  */
 
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-
 export interface UnsplashImage {
   id: string;
   url: string;
@@ -15,19 +13,13 @@ export interface UnsplashImage {
 export async function searchUnsplashImages(query: string, accessKey?: string, itemType?: string): Promise<UnsplashImage[]> {
   const key = accessKey || process.env.UNSPLASH_ACCESS_KEY;
   
-  // Fallback profesional si no hay API KEY: Usar nuestros propios placeholders de moda
-  const fashionFallback = PlaceHolderImages.find(img => img.id === `fashion-${itemType}`) || PlaceHolderImages[0];
-  
   if (!key || key === 'undefined' || key.trim() === '') {
-    return [{
-      id: `fallback-${Date.now()}`,
-      url: fashionFallback.imageUrl,
-      description: `Sugerencia: ${query}`
-    }];
+    // Si no hay key, no devolvemos nada para que el sistema use iconos genéricos en lugar de paisajes
+    return [];
   }
 
-  // Filtro estricto para prendas: Producto aislado, flat lay, sin personas
-  const productFocusedQuery = `${query} clothing product flat lay isolated white background -person -model -mannequin`;
+  // Filtro estricto para prendas: Producto aislado, flat lay, sin personas ni paisajes
+  const productFocusedQuery = `${query} clothing product flat lay isolated white background -person -model -mannequin -landscape`;
 
   try {
     const response = await fetch(
@@ -38,7 +30,7 @@ export async function searchUnsplashImages(query: string, accessKey?: string, it
       }
     );
 
-    if (!response.ok) throw new Error('Unsplash fail');
+    if (!response.ok) return [];
     
     const data = await response.json();
     
@@ -50,17 +42,9 @@ export async function searchUnsplashImages(query: string, accessKey?: string, it
       }];
     }
 
-    // Si Unsplash no devuelve nada de ropa, usar nuestro placeholder de moda, NUNCA paisajes
-    return [{
-      id: `fallback-no-result-${Date.now()}`,
-      url: fashionFallback.imageUrl,
-      description: query
-    }];
+    return [];
   } catch (error) {
-    return [{
-      id: `error-${Date.now()}`,
-      url: fashionFallback.imageUrl,
-      description: query
-    }];
+    console.error('Unsplash API Error:', error);
+    return [];
   }
 }
