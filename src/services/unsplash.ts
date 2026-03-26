@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview Servicio de búsqueda de imágenes de moda en Unsplash.
@@ -19,13 +18,13 @@ export async function searchUnsplashImages(query: string, accessKey?: string, it
   }
 
   // Refinamiento de búsqueda: Forzamos fotografía de producto e-commerce y aislamos el fondo.
-  // Excluimos explícitamente términos que suelen causar confusión (puertas, paredes, edificios).
+  // Excluimos explícitamente términos arquitectónicos y de interiores.
   const typeContext = itemType ? `${itemType} ` : '';
-  const refinedQuery = `${typeContext}${query} fashion product photography e-commerce isolated -door -wall -building -architecture -room -interior -furniture -landscape`;
+  const refinedQuery = `${typeContext}${query} fashion product studio shot e-commerce white background isolated -door -wall -building -architecture -room -interior -furniture -landscape -nature -outdoor`;
 
   try {
     const response = await fetch(
-      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(refinedQuery)}&per_page=3&orientation=portrait&content_filter=high`,
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(refinedQuery)}&per_page=5&orientation=portrait&content_filter=high`,
       {
         headers: { Authorization: `Client-ID ${key}` },
         next: { revalidate: 3600 }
@@ -37,9 +36,8 @@ export async function searchUnsplashImages(query: string, accessKey?: string, it
     const data = await response.json();
     
     if (data.results && data.results.length > 0) {
-      // Filtrado manual de seguridad: Analizamos la descripción del resultado
-      // Si contiene palabras prohibidas, pasamos al siguiente resultado o descartamos.
-      const forbiddenWords = ['door', 'building', 'wall', 'architecture', 'interior', 'room', 'house', 'window', 'street'];
+      // Filtrado manual de seguridad para evitar falsos positivos (como puertas en lugar de bolsos rojos)
+      const forbiddenWords = ['door', 'building', 'wall', 'architecture', 'interior', 'room', 'house', 'window', 'street', 'gate', 'nature', 'forest', 'mountain'];
       
       for (const result of data.results) {
         const desc = (result.alt_description || result.description || '').toLowerCase();

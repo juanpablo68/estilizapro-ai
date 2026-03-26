@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview Generación de cápsulas de moda con prioridad absoluta al armario local.
@@ -34,11 +33,11 @@ const CapsuleSchema = z.object({
   name: z.string(),
   description: z.string(),
   items: z.array(z.object({
-    name: z.string(),
+    name: z.string().describe('Name of the item'),
     type: z.enum(['top', 'bottom', 'dress', 'outerwear', 'shoe', 'accessory']),
     source: z.enum(['wardrobe', 'external']),
-    wardrobeItemId: z.string().optional().describe('El ID exacto del objeto en la lista de armario'),
-    searchKeywords: z.string().describe('Highly descriptive English keywords for fashion product search. E.g. "classic red leather structured handbag studio lighting"'),
+    wardrobeItemId: z.string().optional().describe('The EXACT ID of the object from the wardrobe list'),
+    searchKeywords: z.string().describe('Highly descriptive English keywords for fashion product search. E.g. "red leather structured handbag studio lighting"'),
   })),
 });
 
@@ -55,14 +54,14 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
 
   const openai = new OpenAI({ apiKey });
 
-  const prompt = `Eres el Stylist Maestro de Pilar Cifuentes Catalán. Tu misión es crear exactamente 2 outfits (cápsulas) ÚNICOS y TOTALMENTE DIFERENTES para: "${input.eventType}" y clima: "${input.weatherConditions}".
+  const prompt = `Eres el Stylist Maestro de Pilar Cifuentes Catalán. Tu misión es crear exactamente 2 outfits (cápsulas) TOTALMENTE DIFERENTES para: "${input.eventType}" y clima: "${input.weatherConditions}".
 
-REGLAS DE ORO:
-1. CONTRASTE TOTAL: El Outfit 1 y el Outfit 2 deben ser radicalmente diferentes en color y vibra (ej: uno formal neutro vs uno casual vibrante).
-2. PRIORIDAD ARMARIO: Usa OBLIGATORIAMENTE los ítems de "ARMARIO REAL" listados abajo. Pon source: "wardrobe" y su "id" exacto.
-3. EXTERNOS LIMITADOS: Máximo 2 prendas sugeridas por outfit. Genera "searchKeywords" en inglés súper técnicos (ej: "minimalist navy blue blazer, white background, product photography").
-4. CALIDAD DE BÚSQUEDA: No uses palabras genéricas. Sé específico con texturas y formas para que el buscador no devuelva cosas que no son ropa.
-5. FORMATO: Responde SOLO con un objeto JSON con el array "capsules".
+REGLAS INVIOLABLES DE NEGOCIO:
+1. PRIORIDAD ARMARIO: Usa OBLIGATORIAMENTE los ítems de "ARMARIO REAL" listados abajo. Si la prenda existe en el armario, DEBES marcarla como source: "wardrobe" y poner su "id" exacto.
+2. LIMITACIÓN EXTERNA: Máximo 2 prendas externas (sugerencias) por outfit. Úsalas solo para completar el look si el armario no tiene lo necesario.
+3. CONTRASTE TOTAL: El Outfit 1 y el Outfit 2 deben ser radicalmente diferentes en color, vibra y estilo.
+4. BÚSQUEDA TÉCNICA: Para source: "external", genera "searchKeywords" en inglés súper técnicos enfocados a PRODUCTO (ej: "minimalist navy blue blazer, white background, product photography, studio shot"). No uses palabras genéricas.
+5. FORMATO: Responde SOLO con un objeto JSON con el array "capsules". Asegúrate de que cada "item" tenga un "name" descriptivo.
 
 ARMARIO REAL DISPONIBLE:
 ${input.wardrobeItems.length > 0 ? JSON.stringify(input.wardrobeItems) : "Vacío. Sugiere outfits externos."}
@@ -70,12 +69,12 @@ ${input.wardrobeItems.length > 0 ? JSON.stringify(input.wardrobeItems) : "Vacío
 PERFIL USUARIO:
 - Figura: ${input.figureAnalysis}
 - Color: ${input.colorimetryAnalysis}
-- Guía: ${input.knowledgeBase || 'Seguir tendencias actuales'}`;
+- Guía de estilo: ${input.knowledgeBase || 'Seguir tendencias actuales'}`;
 
   const finalResponse = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
-      { role: "system", content: "Experto en estilismo e-commerce. Genera outfits contrastantes. Responde SIEMPRE con JSON." },
+      { role: "system", content: "Experto en estilismo e-commerce y asesoría de imagen. Genera outfits contrastantes. Responde SIEMPRE con JSON estructurado." },
       { role: "user", content: prompt }
     ],
     response_format: { type: "json_object" }

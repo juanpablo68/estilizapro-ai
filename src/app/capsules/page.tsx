@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -8,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, ArrowLeft, Sparkles, LayoutGrid, Trash2, Shirt, Info, FolderHeart } from "lucide-react";
+import { Loader2, ArrowLeft, Sparkles, LayoutGrid, Trash2, Shirt, Info, FolderHeart, XCircle } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
 import { useToast } from "@/hooks/use-toast";
@@ -77,7 +76,7 @@ export default function CapsulesPage() {
         setSelectedCapsuleId(result.capsules[0].id);
         toast({ title: "¡Outfits Generados!", description: "Se han creado propuestas variadas y únicas." });
       } else {
-        toast({ variant: "destructive", title: "Error", description: "La IA no pudo generar outfits. Prueba con otra combinación." });
+        toast({ variant: "destructive", title: "Error", description: "La IA no pudo generar outfits satisfactorios." });
       }
     } catch (err: any) {
       toast({ variant: "destructive", title: "Error del Sistema", description: err.message });
@@ -96,12 +95,20 @@ export default function CapsulesPage() {
   };
 
   const getItemImage = (item: CapsuleItem) => {
+    if (!item) return null;
+
     if (item.source === 'wardrobe') {
+      // 1. Buscar por ID exacto (Prioridad Máxima)
       const found = wardrobe.find(w => w.id === item.wardrobeItemId);
       if (found?.imageDataUri) return found.imageDataUri;
       
-      const foundByName = wardrobe.find(w => w.name.toLowerCase().includes(item.name.toLowerCase()));
-      if (foundByName?.imageDataUri) return foundByName.imageDataUri;
+      // 2. Buscar por nombre (Respaldo inteligente)
+      if (item.name) {
+        const foundByName = wardrobe.find(w => 
+          w.name && w.name.toLowerCase().includes(item.name.toLowerCase())
+        );
+        if (foundByName?.imageDataUri) return foundByName.imageDataUri;
+      }
       
       return null;
     }
@@ -125,7 +132,7 @@ export default function CapsulesPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-headline font-bold">Capsulizador AI</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Identidad Real • Sugerencia Selectiva</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Armario Real • Pipeline de Estilo</p>
         </div>
       </header>
 
@@ -172,7 +179,7 @@ export default function CapsulesPage() {
             disabled={loading || isLimitReached} 
             className="w-full h-14 bg-primary text-white font-bold rounded-2xl shadow-lg"
           >
-            {loading ? <><Loader2 className="mr-2 animate-spin" /> Analizando Armario...</> : <><Sparkles className="mr-2" /> Generar Outfits Variados</>}
+            {loading ? <><Loader2 className="mr-2 animate-spin" /> Analizando Armario...</> : <><Sparkles className="mr-2" /> Crear Look Maestro</>}
           </Button>
         </CardContent>
       </Card>
@@ -204,7 +211,7 @@ export default function CapsulesPage() {
                              return (
                                <div key={`thumb-${capsule.id}-${idx}`} className="relative h-full flex items-center justify-center bg-white border-r last:border-r-0">
                                   {img ? (
-                                    <Image src={img} alt={`Prenda miniatura: ${item.name}`} fill className="object-cover" unoptimized />
+                                    <Image src={img} alt={item.name || "Miniatura de prenda"} fill className="object-cover" unoptimized />
                                   ) : (
                                     <Shirt className="w-6 h-6 text-muted-foreground/30" />
                                   )}
@@ -244,13 +251,22 @@ export default function CapsulesPage() {
               const img = getItemImage(item);
               return (
                 <Card key={`item-${currentCapsule.id}-${idx}`} className="overflow-hidden border-none shadow-md rounded-2xl bg-white group">
-                  <div className="relative aspect-[3/4] flex items-center justify-center bg-muted/20">
+                  <div className="relative aspect-[3/4] flex items-center justify-center bg-muted/10">
                     {img ? (
-                      <Image src={img} alt={`Prenda: ${item.name}`} fill className="object-cover" unoptimized />
+                      <Image src={img} alt={item.name || "Prenda de outfit"} fill className="object-cover" unoptimized />
                     ) : (
-                      <div className="flex flex-col items-center justify-center gap-2">
-                        <Shirt className="w-12 h-12 text-muted-foreground/20" />
-                        <span className="text-[8px] text-muted-foreground/40 font-bold">SIN IMAGEN</span>
+                      <div className="flex flex-col items-center justify-center gap-2 p-4 text-center">
+                        {item.source === 'wardrobe' ? (
+                          <>
+                            <XCircle className="w-10 h-10 text-destructive/40" />
+                            <span className="text-[8px] text-destructive/60 font-black uppercase">Foto no encontrada</span>
+                          </>
+                        ) : (
+                          <>
+                            <Shirt className="w-10 h-10 text-muted-foreground/30" />
+                            <span className="text-[8px] text-muted-foreground/40 font-black uppercase">Sin imagen de Unsplash</span>
+                          </>
+                        )}
                       </div>
                     )}
                     <div className="absolute top-2 left-2">
@@ -259,14 +275,14 @@ export default function CapsulesPage() {
                           <FolderHeart className="w-2.5 h-2.5" /> MI ARMARIO
                         </div>
                       ) : (
-                        <div className="bg-pink-500 text-white text-[8px] font-black px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
+                        <div className="bg-primary text-white text-[8px] font-black px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
                           <Sparkles className="w-2.5 h-2.5" /> SUGERENCIA IA
                         </div>
                       )}
                     </div>
                   </div>
                   <CardContent className="p-3">
-                    <p className="font-bold text-[11px] truncate uppercase">{item.name}</p>
+                    <p className="font-bold text-[11px] truncate uppercase">{item.name || "Sin nombre"}</p>
                     <p className="text-[9px] text-primary/70 font-black uppercase mt-1">{item.type}</p>
                   </CardContent>
                 </Card>
