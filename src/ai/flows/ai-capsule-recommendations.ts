@@ -3,7 +3,7 @@
  * @fileOverview Generación de cápsulas de moda con prioridad absoluta al armario local.
  * - Diferenciación garantizada entre los 2 outfits.
  * - Máximo 2 prendas externas por outfit.
- * - Identificadores de armario estrictamente validados.
+ * - Generación de nombres obligatoria y descriptiva.
  */
 
 import { z } from 'genkit';
@@ -30,14 +30,14 @@ const AICapsuleRecommendationsInputSchema = z.object({
 
 const CapsuleSchema = z.object({
   id: z.string(),
-  name: z.string(),
-  description: z.string(),
+  name: z.string().describe('Un nombre creativo para el outfit completo en español'),
+  description: z.string().describe('Breve descripción del por qué este look funciona'),
   items: z.array(z.object({
-    name: z.string().describe('Name of the item in Spanish'),
+    name: z.string().describe('Nombre descriptivo de la prenda en ESPAÑOL (Ejem: Sombrero de paja ala ancha)'),
     type: z.enum(['top', 'bottom', 'dress', 'outerwear', 'shoe', 'accessory']),
     source: z.enum(['wardrobe', 'external']),
-    wardrobeItemId: z.string().optional().describe('The EXACT ID of the object from the wardrobe list provided'),
-    searchKeywords: z.string().describe('Descriptive English keywords for product search. MUST include "product shot" and "flat lay"'),
+    wardrobeItemId: z.string().optional().describe('El ID EXACTO del objeto del armario'),
+    searchKeywords: z.string().describe('English keywords for Unsplash API. Must be specific product descriptions: "straw sun hat wide brim product shot"'),
   })),
 });
 
@@ -54,15 +54,14 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
 
   const openai = new OpenAI({ apiKey });
 
-  const prompt = `Eres el Stylist Maestro de Pilar Cifuentes Catalán. Crea 2 outfits (cápsulas) TOTALMENTE DIFERENTES para: "${input.eventType}" y clima: "${input.weatherConditions}".
+  const prompt = `Actúa como el Stylist Maestro de Pilar Cifuentes Catalán. Crea 2 outfits (cápsulas) para: "${input.eventType}" y clima: "${input.weatherConditions}".
 
-REGLAS DE NEGOCIO:
-1. PRIORIDAD ARMARIO: Usa los ítems de "ARMARIO REAL" abajo. Si la prenda existe en el armario, DEBES marcarla como source: "wardrobe" y poner su "id" exacto en el campo "wardrobeItemId".
-2. LIMITACIÓN EXTERNA: Máximo 2 sugerencias externas por outfit. Úsalas solo si falta algo esencial que no está en el armario.
-3. NOMBRES: Cada item debe tener un "name" descriptivo en ESPAÑOL.
-4. CONTRASTE: Outfit 1 y Outfit 2 deben ser radicalmente diferentes en color y estilo.
-5. BÚSQUEDA: Para externas, genera "searchKeywords" en INGLÉS descriptivos de producto (ej: "minimalist leather handbag flat lay product shot").
-6. FORMATO: Responde SOLO con un objeto JSON con el array "capsules".
+REGLAS DE ORO:
+1. PRIORIDAD ARMARIO: Usa los ítems de "ARMARIO REAL" abajo. Si la prenda existe, DEBES marcarla como source: "wardrobe" y poner su "id" exacto.
+2. NOMBRADO: Cada ítem DEBE tener un "name" descriptivo en ESPAÑOL. NO lo dejes vacío.
+3. CONTRASTE: Outfit 1 y Outfit 2 deben ser radicalmente diferentes en color y vibra (Ej: uno Formal/Oscuro y otro Casual/Brillante).
+4. BÚSQUEDA EXTERNA: Para prendas externas (source: external), genera "searchKeywords" en INGLÉS muy descriptivos de producto (Ej: "luxury beige leather tote bag product photography").
+5. FORMATO: Responde SOLO con un objeto JSON con el array "capsules".
 
 ARMARIO REAL DISPONIBLE:
 ${input.wardrobeItems.length > 0 ? JSON.stringify(input.wardrobeItems) : "Vacío. Sugiere outfits externos."}
@@ -70,12 +69,12 @@ ${input.wardrobeItems.length > 0 ? JSON.stringify(input.wardrobeItems) : "Vacío
 PERFIL USUARIO:
 - Figura: ${input.figureAnalysis}
 - Color: ${input.colorimetryAnalysis}
-- Guía: ${input.knowledgeBase || 'Seguir tendencias'}`;
+- Guía de estilo: ${input.knowledgeBase || 'Seguir tendencias modernas'}`;
 
   const finalResponse = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
-      { role: "system", content: "Experto en estilismo profesional. Responde SIEMPRE con JSON. Los nombres de las prendas deben estar en español y ser descriptivos." },
+      { role: "system", content: "Experto en estilismo profesional y psicología del color. Solo respondes en JSON estructurado." },
       { role: "user", content: prompt }
     ],
     response_format: { type: "json_object" }
@@ -90,7 +89,7 @@ PERFIL USUARIO:
       const processedItems = await Promise.all((capsule.items || []).map(async (item: any) => {
         let imageUrl = undefined;
         
-        const finalName = item.name || (item.source === 'wardrobe' ? 'Prenda de Armario' : `Sugerencia de ${item.type}`);
+        const finalName = item.name || (item.source === 'wardrobe' ? 'Prenda de Armario' : `Accesorio Sugerido`);
 
         if (item.source === 'external') {
           const images = await searchUnsplashImages(item.searchKeywords, input.unsplashAccessKey, item.type);

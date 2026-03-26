@@ -98,22 +98,23 @@ export default function CapsulesPage() {
     if (!item) return null;
 
     if (item.source === 'wardrobe') {
-      // 1. Intento por ID exacto (Prioridad)
+      // 1. Prioridad: ID Exacto
       if (item.wardrobeItemId) {
         const found = wardrobe.find(w => w.id === item.wardrobeItemId);
         if (found?.imageDataUri) return found.imageDataUri;
       }
       
-      // 2. Intento por Nombre (Respaldo si el ID cambió)
-      const itemName = item.name?.toLowerCase() || "";
-      if (itemName) {
+      // 2. Respaldo: Nombre (Búsqueda parcial segura)
+      const queryName = (item.name || "").toLowerCase();
+      if (queryName) {
         const foundByName = wardrobe.find(w => 
-          w.name && w.name.toLowerCase().includes(itemName)
+          (w.name || "").toLowerCase().includes(queryName) || 
+          queryName.includes((w.name || "").toLowerCase())
         );
         if (foundByName?.imageDataUri) return foundByName.imageDataUri;
       }
 
-      // 3. Intento por Tipo (Último recurso si el nombre no coincide)
+      // 3. Respaldo Final: Tipo
       const foundByType = wardrobe.find(w => w.type === item.type);
       if (foundByType?.imageDataUri) return foundByType.imageDataUri;
     }
@@ -270,7 +271,7 @@ export default function CapsulesPage() {
                         ) : (
                           <>
                             <Shirt className="w-10 h-10 text-muted-foreground/30" />
-                            <span className="text-[8px] text-muted-foreground/40 font-black uppercase">Sin imagen de Unsplash</span>
+                            <span className="text-[8px] text-muted-foreground/40 font-black uppercase">Sin imagen sugerida</span>
                           </>
                         )}
                       </div>
