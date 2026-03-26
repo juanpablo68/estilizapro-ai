@@ -3,7 +3,7 @@
  * @fileOverview Generación de cápsulas de moda con prioridad absoluta al armario local.
  * - Diferenciación garantizada entre los 2 outfits.
  * - Máximo 2 prendas externas por outfit.
- * - Keywords de búsqueda en inglés optimizados para fotografía de catálogo (e-commerce).
+ * - Keywords de búsqueda optimizados para Unsplash (Product Photography).
  */
 
 import { z } from 'genkit';
@@ -37,7 +37,7 @@ const CapsuleSchema = z.object({
     type: z.enum(['top', 'bottom', 'dress', 'outerwear', 'shoe', 'accessory']),
     source: z.enum(['wardrobe', 'external']),
     wardrobeItemId: z.string().optional().describe('The EXACT ID of the object from the wardrobe list'),
-    searchKeywords: z.string().describe('Highly descriptive English keywords for fashion product search. E.g. "red leather structured handbag studio lighting"'),
+    searchKeywords: z.string().describe('Descriptive English keywords for product search. E.g. "minimalist beige trench coat", "tan leather belt studio"'),
   })),
 });
 
@@ -58,10 +58,10 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
 
 REGLAS INVIOLABLES DE NEGOCIO:
 1. PRIORIDAD ARMARIO: Usa OBLIGATORIAMENTE los ítems de "ARMARIO REAL" listados abajo. Si la prenda existe en el armario, DEBES marcarla como source: "wardrobe" y poner su "id" exacto.
-2. LIMITACIÓN EXTERNA: Máximo 2 prendas externas (sugerencias) por outfit. Úsalas solo para completar el look si el armario no tiene lo necesario.
+2. LIMITACIÓN EXTERNA: Máximo 2 prendas externas (sugerencias) por outfit. Úsalas solo para completar el look si el armario no tiene lo necesario (ej: si no hay zapatos adecuados).
 3. CONTRASTE TOTAL: El Outfit 1 y el Outfit 2 deben ser radicalmente diferentes en color, vibra y estilo (ej: uno empoderado y otro relajado).
-4. BÚSQUEDA TÉCNICA: Para prendas externas, genera "searchKeywords" en inglés súper técnicos enfocados a PRODUCTO (ej: "minimalist navy blue blazer, white background, product photography, studio shot").
-5. FORMATO: Responde SOLO con un objeto JSON con el array "capsules". Asegúrate de que cada "item" tenga un "name" descriptivo.
+4. BÚSQUEDA EN INGLÉS: Para prendas externas, genera "searchKeywords" en inglés súper descriptivos de producto (ej: "structured red blazer studio", "straw wide brim hat").
+5. FORMATO: Responde SOLO con un objeto JSON con el array "capsules". 
 
 ARMARIO REAL DISPONIBLE:
 ${input.wardrobeItems.length > 0 ? JSON.stringify(input.wardrobeItems) : "Vacío. Sugiere outfits externos."}
@@ -74,7 +74,7 @@ PERFIL USUARIO:
   const finalResponse = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
-      { role: "system", content: "Experto en estilismo e-commerce y asesoría de imagen. Genera outfits contrastantes. Responde SIEMPRE con JSON estructurado." },
+      { role: "system", content: "Experto en estilismo y asesoría de imagen profesional. Responde SIEMPRE con JSON estructurado. Prioriza el armario real del usuario." },
       { role: "user", content: prompt }
     ],
     response_format: { type: "json_object" }
@@ -90,7 +90,6 @@ PERFIL USUARIO:
         let imageUrl = undefined;
         
         if (item.source === 'external') {
-          // Buscamos la imagen en Unsplash usando los keywords técnicos generados por la IA.
           const images = await searchUnsplashImages(item.searchKeywords, input.unsplashAccessKey, item.type);
           imageUrl = images.length > 0 ? images[0].url : undefined;
         }

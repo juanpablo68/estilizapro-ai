@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Servicio de búsqueda visual de moda optimizado para Unsplash.
- * Utiliza descriptores de producto e-commerce para evitar resultados irrelevantes.
+ * Se ha simplificado la consulta para evitar que filtros demasiado técnicos bloqueen resultados reales.
  */
 
 export interface UnsplashImage {
@@ -13,15 +13,13 @@ export interface UnsplashImage {
 export async function searchUnsplashImages(query: string, accessKey?: string, itemType?: string): Promise<UnsplashImage[]> {
   const key = accessKey || process.env.UNSPLASH_ACCESS_KEY;
   
-  // Si no hay llave, devolvemos vacío para que el sistema use iconos genéricos en lugar de paisajes.
   if (!key || key === 'undefined' || key.trim() === '') {
     return [];
   }
 
-  // Refinamiento de búsqueda: Forzamos fotografía de producto e-commerce.
-  // Usamos términos positivos potentes en lugar de negativos restrictivos.
-  const typeContext = itemType ? `${itemType} ` : '';
-  const refinedQuery = `${typeContext}${query} fashion product photography, studio shot, high quality, white background`;
+  // Refinamiento balanceado: Usamos la consulta de la IA con un contexto de moda general.
+  // Evitamos forzar "white background" aquí para permitir que Unsplash use su propia relevancia.
+  const refinedQuery = `${query} fashion ${itemType || ''}`.trim();
 
   try {
     const response = await fetch(
@@ -37,8 +35,6 @@ export async function searchUnsplashImages(query: string, accessKey?: string, it
     const data = await response.json();
     
     if (data.results && data.results.length > 0) {
-      // Retornamos el primer resultado que sea relevante.
-      // Unsplash ya filtra por 'high' content_filter, lo que reduce drásticamente el ruido.
       return data.results.map((result: any) => ({
         id: result.id,
         url: result.urls.regular,

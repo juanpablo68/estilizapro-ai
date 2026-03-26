@@ -86,7 +86,6 @@ export default function CapsulesPage() {
   };
 
   const deleteCapsule = (id: string, e: React.MouseEvent) => {
-    // Evitamos que el clic en eliminar active la selección de la cápsula.
     e.stopPropagation();
     const filtered = savedCapsules.filter(c => c.id !== id);
     setSavedCapsules(filtered);
@@ -95,27 +94,21 @@ export default function CapsulesPage() {
     }
   };
 
-  // Función crítica para obtener la imagen correcta (Armario o Unsplash)
   const getItemImage = (item: CapsuleItem) => {
     if (!item) return null;
 
     if (item.source === 'wardrobe') {
-      // Prioridad 1: Buscar por ID exacto en el armario local.
       const found = wardrobe.find(w => w.id === item.wardrobeItemId);
       if (found?.imageDataUri) return found.imageDataUri;
       
-      // Prioridad 2: Buscar por nombre si el ID falló (respaldo).
-      if (item.name) {
-        const foundByName = wardrobe.find(w => 
-          w.name && w.name.toLowerCase().includes(item.name.toLowerCase())
-        );
-        if (foundByName?.imageDataUri) return foundByName.imageDataUri;
-      }
+      const foundByName = wardrobe.find(w => 
+        w.name && item.name && w.name.toLowerCase().includes(item.name.toLowerCase())
+      );
+      if (foundByName?.imageDataUri) return foundByName.imageDataUri;
       
-      return null; // Si es armario y no hay foto, devolvemos null para mostrar icono.
+      return null;
     }
     
-    // Si es externo, devolvemos la URL de Unsplash guardada en el objeto.
     if (item.source === 'external' && item.imageUrl) {
       return item.imageUrl;
     }
@@ -286,7 +279,7 @@ export default function CapsulesPage() {
                   </div>
                   <CardContent className="p-3">
                     <p className="font-bold text-[11px] truncate uppercase">{item.name || "Sin nombre"}</p>
-                    <p className="text-[9px] text-primary/70 font-black uppercase mt-1">{item.type}</p>
+                    <p className="text-[9px] text-primary/70 font-black uppercase mt-1">{item.type || item.source}</p>
                   </CardContent>
                 </Card>
               );
