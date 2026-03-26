@@ -86,6 +86,7 @@ export default function CapsulesPage() {
   };
 
   const deleteCapsule = (id: string, e: React.MouseEvent) => {
+    // Evitamos que el clic en eliminar active la selección de la cápsula.
     e.stopPropagation();
     const filtered = savedCapsules.filter(c => c.id !== id);
     setSavedCapsules(filtered);
@@ -94,15 +95,16 @@ export default function CapsulesPage() {
     }
   };
 
+  // Función crítica para obtener la imagen correcta (Armario o Unsplash)
   const getItemImage = (item: CapsuleItem) => {
     if (!item) return null;
 
     if (item.source === 'wardrobe') {
-      // 1. Buscar por ID exacto (Prioridad Máxima)
+      // Prioridad 1: Buscar por ID exacto en el armario local.
       const found = wardrobe.find(w => w.id === item.wardrobeItemId);
       if (found?.imageDataUri) return found.imageDataUri;
       
-      // 2. Buscar por nombre (Respaldo inteligente)
+      // Prioridad 2: Buscar por nombre si el ID falló (respaldo).
       if (item.name) {
         const foundByName = wardrobe.find(w => 
           w.name && w.name.toLowerCase().includes(item.name.toLowerCase())
@@ -110,9 +112,10 @@ export default function CapsulesPage() {
         if (foundByName?.imageDataUri) return foundByName.imageDataUri;
       }
       
-      return null;
+      return null; // Si es armario y no hay foto, devolvemos null para mostrar icono.
     }
     
+    // Si es externo, devolvemos la URL de Unsplash guardada en el objeto.
     if (item.source === 'external' && item.imageUrl) {
       return item.imageUrl;
     }
@@ -211,7 +214,7 @@ export default function CapsulesPage() {
                              return (
                                <div key={`thumb-${capsule.id}-${idx}`} className="relative h-full flex items-center justify-center bg-white border-r last:border-r-0">
                                   {img ? (
-                                    <Image src={img} alt={item.name || "Miniatura de prenda"} fill className="object-cover" unoptimized />
+                                    <Image src={img} alt={item.name || "Prenda"} fill className="object-cover" unoptimized />
                                   ) : (
                                     <Shirt className="w-6 h-6 text-muted-foreground/30" />
                                   )}
@@ -253,7 +256,7 @@ export default function CapsulesPage() {
                 <Card key={`item-${currentCapsule.id}-${idx}`} className="overflow-hidden border-none shadow-md rounded-2xl bg-white group">
                   <div className="relative aspect-[3/4] flex items-center justify-center bg-muted/10">
                     {img ? (
-                      <Image src={img} alt={item.name || "Prenda de outfit"} fill className="object-cover" unoptimized />
+                      <Image src={img} alt={item.name || "Prenda del outfit"} fill className="object-cover" unoptimized />
                     ) : (
                       <div className="flex flex-col items-center justify-center gap-2 p-4 text-center">
                         {item.source === 'wardrobe' ? (
