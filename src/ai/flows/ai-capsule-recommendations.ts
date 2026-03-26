@@ -3,7 +3,7 @@
  * @fileOverview Generación de cápsulas de moda con prioridad absoluta al armario local.
  * - Diferenciación garantizada entre los 2 outfits.
  * - Máximo 2 prendas externas por outfit.
- * - Nombres descriptivos obligatorios para sugerencias externas.
+ * - Identificadores de armario estrictamente validados.
  */
 
 import { z } from 'genkit';
@@ -36,8 +36,8 @@ const CapsuleSchema = z.object({
     name: z.string().describe('Name of the item in Spanish'),
     type: z.enum(['top', 'bottom', 'dress', 'outerwear', 'shoe', 'accessory']),
     source: z.enum(['wardrobe', 'external']),
-    wardrobeItemId: z.string().optional().describe('The EXACT ID of the object from the wardrobe list'),
-    searchKeywords: z.string().describe('Descriptive English keywords for product search. E.g. "minimalist beige trench coat studio"'),
+    wardrobeItemId: z.string().optional().describe('The EXACT ID of the object from the wardrobe list provided'),
+    searchKeywords: z.string().describe('Descriptive English keywords for product search. MUST include "product shot" and "flat lay"'),
   })),
 });
 
@@ -57,11 +57,11 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
   const prompt = `Eres el Stylist Maestro de Pilar Cifuentes Catalán. Crea 2 outfits (cápsulas) TOTALMENTE DIFERENTES para: "${input.eventType}" y clima: "${input.weatherConditions}".
 
 REGLAS DE NEGOCIO:
-1. PRIORIDAD ARMARIO: Usa los ítems de "ARMARIO REAL" abajo. Si la prenda existe en el armario, DEBES marcarla como source: "wardrobe" y poner su "id" exacto.
-2. LIMITACIÓN EXTERNA: Máximo 2 sugerencias externas por outfit. 
-3. NOMBRES: Cada item debe tener un "name" descriptivo en ESPAÑOL (ej: "Blazer Negro Estructurado"). No dejes nombres vacíos.
+1. PRIORIDAD ARMARIO: Usa los ítems de "ARMARIO REAL" abajo. Si la prenda existe en el armario, DEBES marcarla como source: "wardrobe" y poner su "id" exacto en el campo "wardrobeItemId".
+2. LIMITACIÓN EXTERNA: Máximo 2 sugerencias externas por outfit. Úsalas solo si falta algo esencial que no está en el armario.
+3. NOMBRES: Cada item debe tener un "name" descriptivo en ESPAÑOL.
 4. CONTRASTE: Outfit 1 y Outfit 2 deben ser radicalmente diferentes en color y estilo.
-5. BÚSQUEDA: Para externas, genera "searchKeywords" en INGLÉS descriptivos de producto (ej: "crimson leather handbag studio shot").
+5. BÚSQUEDA: Para externas, genera "searchKeywords" en INGLÉS descriptivos de producto (ej: "minimalist leather handbag flat lay product shot").
 6. FORMATO: Responde SOLO con un objeto JSON con el array "capsules".
 
 ARMARIO REAL DISPONIBLE:
@@ -90,7 +90,6 @@ PERFIL USUARIO:
       const processedItems = await Promise.all((capsule.items || []).map(async (item: any) => {
         let imageUrl = undefined;
         
-        // Asegurar que el nombre existe
         const finalName = item.name || (item.source === 'wardrobe' ? 'Prenda de Armario' : `Sugerencia de ${item.type}`);
 
         if (item.source === 'external') {

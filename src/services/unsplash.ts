@@ -17,12 +17,13 @@ export async function searchUnsplashImages(query: string, accessKey?: string, it
     return [];
   }
 
-  // Refinamiento para producto real: "flat lay" es clave para evitar personas.
-  const refinedQuery = `${query} fashion flat lay product studio shot`.trim();
+  // Refinamiento estricto para producto real sin personas. 
+  // "Flat lay" y "Product photography" son claves.
+  const refinedQuery = `${query} fashion product photography flat lay isolated on white background`.trim();
 
   try {
     const response = await fetch(
-      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(refinedQuery)}&per_page=3&orientation=portrait&content_filter=high`,
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(refinedQuery)}&per_page=5&orientation=portrait&content_filter=high`,
       {
         headers: { Authorization: `Client-ID ${key}` },
         next: { revalidate: 86400 } // Cache por 24 horas
@@ -34,7 +35,17 @@ export async function searchUnsplashImages(query: string, accessKey?: string, it
     const data = await response.json();
     
     if (data.results && data.results.length > 0) {
-      return data.results.map((result: any) => ({
+      // Filtrar resultados que mencionen personas o caras en sus metadatos si es posible
+      const filteredResults = data.results.filter((result: any) => {
+        const desc = (result.alt_description || "").toLowerCase();
+        const tags = (result.tags || []).map((t: any) => t.title.toLowerCase());
+        const forbidden = ['person', 'face', 'woman', 'man', 'girl', 'boy', 'model', 'people', 'portrait'];
+        return !forbidden.some(word => desc.includes(word) || tags.includes(word));
+      });
+
+      const finalResults = filteredResults.length > 0 ? filteredResults : data.results;
+
+      return finalResults.map((result: any) => ({
         id: result.id,
         url: result.urls.regular,
         description: result.alt_description || query

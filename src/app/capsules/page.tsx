@@ -97,15 +97,25 @@ export default function CapsulesPage() {
   const getItemImage = (item: CapsuleItem) => {
     if (!item) return null;
 
-    if (item.source === 'wardrobe' && item.wardrobeItemId) {
-      const found = wardrobe.find(w => w.id === item.wardrobeItemId);
-      if (found?.imageDataUri) return found.imageDataUri;
+    if (item.source === 'wardrobe') {
+      // 1. Intento por ID exacto (Prioridad)
+      if (item.wardrobeItemId) {
+        const found = wardrobe.find(w => w.id === item.wardrobeItemId);
+        if (found?.imageDataUri) return found.imageDataUri;
+      }
       
+      // 2. Intento por Nombre (Respaldo si el ID cambió)
       const itemName = item.name?.toLowerCase() || "";
-      const foundByName = wardrobe.find(w => 
-        w.name && itemName && w.name.toLowerCase().includes(itemName)
-      );
-      if (foundByName?.imageDataUri) return foundByName.imageDataUri;
+      if (itemName) {
+        const foundByName = wardrobe.find(w => 
+          w.name && w.name.toLowerCase().includes(itemName)
+        );
+        if (foundByName?.imageDataUri) return foundByName.imageDataUri;
+      }
+
+      // 3. Intento por Tipo (Último recurso si el nombre no coincide)
+      const foundByType = wardrobe.find(w => w.type === item.type);
+      if (foundByType?.imageDataUri) return foundByType.imageDataUri;
     }
     
     if (item.source === 'external' && item.imageUrl) {
