@@ -104,12 +104,12 @@ export default function CapsulesPage() {
         if (found?.imageDataUri) return found.imageDataUri;
       }
       
-      // 2. Respaldo: Nombre con protección toLowerCase()
+      // 2. Respaldo: Nombre con protección de nulabilidad
       const itemNameToSearch = (item.name || "").toLowerCase();
       if (itemNameToSearch) {
         const foundByName = wardrobe.find(w => {
            const wardrobeName = (w.name || "").toLowerCase();
-           return wardrobeName.includes(itemNameToSearch) || itemNameToSearch.includes(wardrobeName);
+           return wardrobeName && (wardrobeName.includes(itemNameToSearch) || itemNameToSearch.includes(wardrobeName));
         });
         if (foundByName?.imageDataUri) return foundByName.imageDataUri;
       }
