@@ -1,9 +1,10 @@
+
 'use server';
 /**
  * @fileOverview Generación de cápsulas de moda con prioridad absoluta al armario local.
  * - Diferenciación garantizada entre los 2 outfits.
  * - Máximo 2 prendas externas por outfit.
- * - Palabras clave de búsqueda optimizadas para alta fidelidad visual.
+ * - Keywords de búsqueda en inglés optimizados para fotografía de catálogo (e-commerce).
  */
 
 import { z } from 'genkit';
@@ -37,7 +38,7 @@ const CapsuleSchema = z.object({
     type: z.enum(['top', 'bottom', 'dress', 'outerwear', 'shoe', 'accessory']),
     source: z.enum(['wardrobe', 'external']),
     wardrobeItemId: z.string().optional().describe('El ID exacto del objeto en la lista de armario'),
-    searchKeywords: z.string().describe('Highly descriptive English keywords for fashion product search (e.g. "minimalist black leather tote bag studio photography")'),
+    searchKeywords: z.string().describe('Highly descriptive English keywords for fashion product search. E.g. "classic red leather structured handbag studio lighting"'),
   })),
 });
 
@@ -54,27 +55,27 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
 
   const openai = new OpenAI({ apiKey });
 
-  const prompt = `Eres el Stylist Maestro de Pilar Cifuentes Catalán. Tu misión es crear exactamente 2 outfits (cápsulas) únicos para la ocasión: "${input.eventType}" y clima: "${input.weatherConditions}".
+  const prompt = `Eres el Stylist Maestro de Pilar Cifuentes Catalán. Tu misión es crear exactamente 2 outfits (cápsulas) ÚNICOS y TOTALMENTE DIFERENTES para: "${input.eventType}" y clima: "${input.weatherConditions}".
 
-REGLAS DE NEGOCIO OBLIGATORIAS:
-1. DIFERENCIACIÓN: Los 2 outfits DEBEN ser radicalmente diferentes en estilo y color (ej: uno neutro formal y otro colorido casual).
-2. PRIORIDAD ARMARIO: Usa preferentemente los ítems de "ARMARIO REAL" listados abajo. Si usas uno, pon source: "wardrobe" y su "id" exacto.
-3. COMPLEMENTOS EXTERNOS: Si el armario no tiene lo necesario (ej: faltan zapatos o accesorios), puedes sugerir hasta un MÁXIMO de 2 prendas externas por outfit (source: "external").
-4. BÚSQUEDA VISUAL: Para prendas externas, genera keywords en inglés muy específicas de PRODUCTO (ej: "minimalist white leather sneakers flat lay studio").
-5. FORMATO: Responde SOLO con un objeto JSON que contenga un array "capsules".
+REGLAS DE ORO:
+1. CONTRASTE TOTAL: El Outfit 1 y el Outfit 2 deben ser radicalmente diferentes en color y vibra (ej: uno formal neutro vs uno casual vibrante).
+2. PRIORIDAD ARMARIO: Usa OBLIGATORIAMENTE los ítems de "ARMARIO REAL" listados abajo. Pon source: "wardrobe" y su "id" exacto.
+3. EXTERNOS LIMITADOS: Máximo 2 prendas sugeridas por outfit. Genera "searchKeywords" en inglés súper técnicos (ej: "minimalist navy blue blazer, white background, product photography").
+4. CALIDAD DE BÚSQUEDA: No uses palabras genéricas. Sé específico con texturas y formas para que el buscador no devuelva cosas que no son ropa.
+5. FORMATO: Responde SOLO con un objeto JSON con el array "capsules".
 
 ARMARIO REAL DISPONIBLE:
-${input.wardrobeItems.length > 0 ? JSON.stringify(input.wardrobeItems) : "El armario está vacío. Sugiere outfits completos externos."}
+${input.wardrobeItems.length > 0 ? JSON.stringify(input.wardrobeItems) : "Vacío. Sugiere outfits externos."}
 
-ANÁLISIS DE USUARIO:
+PERFIL USUARIO:
 - Figura: ${input.figureAnalysis}
-- Colorimetría: ${input.colorimetryAnalysis}
-- Reglas Maestras: ${input.knowledgeBase || 'Seguir tendencias actuales de alta costura'}`;
+- Color: ${input.colorimetryAnalysis}
+- Guía: ${input.knowledgeBase || 'Seguir tendencias actuales'}`;
 
   const finalResponse = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
-      { role: "system", content: "Experto en estilismo personalizado. Genera outfits contrastantes. Responde SIEMPRE con JSON válido." },
+      { role: "system", content: "Experto en estilismo e-commerce. Genera outfits contrastantes. Responde SIEMPRE con JSON." },
       { role: "user", content: prompt }
     ],
     response_format: { type: "json_object" }

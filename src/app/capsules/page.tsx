@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -74,7 +75,7 @@ export default function CapsulesPage() {
            return newList;
         });
         setSelectedCapsuleId(result.capsules[0].id);
-        toast({ title: "¡Outfits Generados!", description: "Se han creado propuestas variadas." });
+        toast({ title: "¡Outfits Generados!", description: "Se han creado propuestas variadas y únicas." });
       } else {
         toast({ variant: "destructive", title: "Error", description: "La IA no pudo generar outfits. Prueba con otra combinación." });
       }
@@ -124,7 +125,7 @@ export default function CapsulesPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-headline font-bold">Capsulizador AI</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Armario Real • Máx 2 Sugerencias</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Identidad Real • Sugerencia Selectiva</p>
         </div>
       </header>
 
@@ -171,7 +172,7 @@ export default function CapsulesPage() {
             disabled={loading || isLimitReached} 
             className="w-full h-14 bg-primary text-white font-bold rounded-2xl shadow-lg"
           >
-            {loading ? <><Loader2 className="mr-2 animate-spin" /> Analizando Armario...</> : <><Sparkles className="mr-2" /> Generar 2 Outfits</>}
+            {loading ? <><Loader2 className="mr-2 animate-spin" /> Analizando Armario...</> : <><Sparkles className="mr-2" /> Generar Outfits Variados</>}
           </Button>
         </CardContent>
       </Card>
@@ -179,7 +180,7 @@ export default function CapsulesPage() {
       {savedCapsules.length > 0 && (
         <div className="space-y-4">
           <h3 className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
-            <LayoutGrid className="w-4 h-4" /> MIS OUTFITs ({savedCapsules.length}/{MAX_OUTFITS})
+            <LayoutGrid className="w-4 h-4" /> MIS OUTFITS ({savedCapsules.length}/{MAX_OUTFITS})
           </h3>
           <ScrollArea className="w-full whitespace-nowrap pb-4">
             <div className="flex space-x-4">
@@ -203,7 +204,7 @@ export default function CapsulesPage() {
                              return (
                                <div key={`thumb-${capsule.id}-${idx}`} className="relative h-full flex items-center justify-center bg-white border-r last:border-r-0">
                                   {img ? (
-                                    <Image src={img} alt={item.name} fill className="object-cover" unoptimized />
+                                    <Image src={img} alt={`Prenda miniatura: ${item.name}`} fill className="object-cover" unoptimized />
                                   ) : (
                                     <Shirt className="w-6 h-6 text-muted-foreground/30" />
                                   )}
@@ -247,7 +248,10 @@ export default function CapsulesPage() {
                     {img ? (
                       <Image src={img} alt={`Prenda: ${item.name}`} fill className="object-cover" unoptimized />
                     ) : (
-                      <Shirt className="w-12 h-12 text-muted-foreground/20" />
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <Shirt className="w-12 h-12 text-muted-foreground/20" />
+                        <span className="text-[8px] text-muted-foreground/40 font-bold">SIN IMAGEN</span>
+                      </div>
                     )}
                     <div className="absolute top-2 left-2">
                       {item.source === 'wardrobe' ? (
