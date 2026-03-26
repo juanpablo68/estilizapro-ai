@@ -3,7 +3,7 @@
  * @fileOverview Generación de cápsulas de moda con prioridad absoluta al armario local.
  * - Diferenciación garantizada entre los 2 outfits.
  * - Máximo 2 prendas externas por outfit.
- * - Keywords de búsqueda optimizados para Unsplash (Product Photography).
+ * - Nombres descriptivos obligatorios para sugerencias externas.
  */
 
 import { z } from 'genkit';
@@ -33,11 +33,11 @@ const CapsuleSchema = z.object({
   name: z.string(),
   description: z.string(),
   items: z.array(z.object({
-    name: z.string().describe('Name of the item'),
+    name: z.string().describe('Name of the item in Spanish'),
     type: z.enum(['top', 'bottom', 'dress', 'outerwear', 'shoe', 'accessory']),
     source: z.enum(['wardrobe', 'external']),
     wardrobeItemId: z.string().optional().describe('The EXACT ID of the object from the wardrobe list'),
-    searchKeywords: z.string().describe('Descriptive English keywords for product search. E.g. "minimalist beige trench coat", "tan leather belt studio"'),
+    searchKeywords: z.string().describe('Descriptive English keywords for product search. E.g. "minimalist beige trench coat studio"'),
   })),
 });
 
@@ -54,14 +54,15 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
 
   const openai = new OpenAI({ apiKey });
 
-  const prompt = `Eres el Stylist Maestro de Pilar Cifuentes Catalán. Tu misión es crear exactamente 2 outfits (cápsulas) TOTALMENTE DIFERENTES para: "${input.eventType}" y clima: "${input.weatherConditions}".
+  const prompt = `Eres el Stylist Maestro de Pilar Cifuentes Catalán. Crea 2 outfits (cápsulas) TOTALMENTE DIFERENTES para: "${input.eventType}" y clima: "${input.weatherConditions}".
 
-REGLAS INVIOLABLES DE NEGOCIO:
-1. PRIORIDAD ARMARIO: Usa OBLIGATORIAMENTE los ítems de "ARMARIO REAL" listados abajo. Si la prenda existe en el armario, DEBES marcarla como source: "wardrobe" y poner su "id" exacto.
-2. LIMITACIÓN EXTERNA: Máximo 2 prendas externas (sugerencias) por outfit. Úsalas solo para completar el look si el armario no tiene lo necesario (ej: si no hay zapatos adecuados).
-3. CONTRASTE TOTAL: El Outfit 1 y el Outfit 2 deben ser radicalmente diferentes en color, vibra y estilo (ej: uno empoderado y otro relajado).
-4. BÚSQUEDA EN INGLÉS: Para prendas externas, genera "searchKeywords" en inglés súper descriptivos de producto (ej: "structured red blazer studio", "straw wide brim hat").
-5. FORMATO: Responde SOLO con un objeto JSON con el array "capsules". 
+REGLAS DE NEGOCIO:
+1. PRIORIDAD ARMARIO: Usa los ítems de "ARMARIO REAL" abajo. Si la prenda existe en el armario, DEBES marcarla como source: "wardrobe" y poner su "id" exacto.
+2. LIMITACIÓN EXTERNA: Máximo 2 sugerencias externas por outfit. 
+3. NOMBRES: Cada item debe tener un "name" descriptivo en ESPAÑOL (ej: "Blazer Negro Estructurado"). No dejes nombres vacíos.
+4. CONTRASTE: Outfit 1 y Outfit 2 deben ser radicalmente diferentes en color y estilo.
+5. BÚSQUEDA: Para externas, genera "searchKeywords" en INGLÉS descriptivos de producto (ej: "crimson leather handbag studio shot").
+6. FORMATO: Responde SOLO con un objeto JSON con el array "capsules".
 
 ARMARIO REAL DISPONIBLE:
 ${input.wardrobeItems.length > 0 ? JSON.stringify(input.wardrobeItems) : "Vacío. Sugiere outfits externos."}
@@ -69,12 +70,12 @@ ${input.wardrobeItems.length > 0 ? JSON.stringify(input.wardrobeItems) : "Vacío
 PERFIL USUARIO:
 - Figura: ${input.figureAnalysis}
 - Color: ${input.colorimetryAnalysis}
-- Guía de estilo: ${input.knowledgeBase || 'Seguir tendencias actuales'}`;
+- Guía: ${input.knowledgeBase || 'Seguir tendencias'}`;
 
   const finalResponse = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
-      { role: "system", content: "Experto en estilismo y asesoría de imagen profesional. Responde SIEMPRE con JSON estructurado. Prioriza el armario real del usuario." },
+      { role: "system", content: "Experto en estilismo profesional. Responde SIEMPRE con JSON. Los nombres de las prendas deben estar en español y ser descriptivos." },
       { role: "user", content: prompt }
     ],
     response_format: { type: "json_object" }
@@ -89,6 +90,9 @@ PERFIL USUARIO:
       const processedItems = await Promise.all((capsule.items || []).map(async (item: any) => {
         let imageUrl = undefined;
         
+        // Asegurar que el nombre existe
+        const finalName = item.name || (item.source === 'wardrobe' ? 'Prenda de Armario' : `Sugerencia de ${item.type}`);
+
         if (item.source === 'external') {
           const images = await searchUnsplashImages(item.searchKeywords, input.unsplashAccessKey, item.type);
           imageUrl = images.length > 0 ? images[0].url : undefined;
@@ -96,6 +100,7 @@ PERFIL USUARIO:
 
         return {
           ...item,
+          name: finalName,
           imageUrl,
           dateAdded: date,
         };
@@ -103,7 +108,7 @@ PERFIL USUARIO:
       
       return {
         ...capsule,
-        id: `cap-${Date.now()}-${cIdx}-${Math.random().toString(36).substr(2, 5)}`,
+        id: `cap-${Date.now()}-${cIdx}`,
         date,
         eventType: input.eventType,
         weatherConditions: input.weatherConditions,

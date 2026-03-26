@@ -97,16 +97,15 @@ export default function CapsulesPage() {
   const getItemImage = (item: CapsuleItem) => {
     if (!item) return null;
 
-    if (item.source === 'wardrobe') {
+    if (item.source === 'wardrobe' && item.wardrobeItemId) {
       const found = wardrobe.find(w => w.id === item.wardrobeItemId);
       if (found?.imageDataUri) return found.imageDataUri;
       
+      const itemName = item.name?.toLowerCase() || "";
       const foundByName = wardrobe.find(w => 
-        w.name && item.name && w.name.toLowerCase().includes(item.name.toLowerCase())
+        w.name && itemName && w.name.toLowerCase().includes(itemName)
       );
       if (foundByName?.imageDataUri) return foundByName.imageDataUri;
-      
-      return null;
     }
     
     if (item.source === 'external' && item.imageUrl) {
@@ -128,7 +127,7 @@ export default function CapsulesPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-headline font-bold">Capsulizador AI</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Armario Real • Pipeline de Estilo</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Armario Real • Sugerencias Maestras</p>
         </div>
       </header>
 
@@ -245,11 +244,12 @@ export default function CapsulesPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {currentCapsule.items.map((item, idx) => {
               const img = getItemImage(item);
+              const itemName = item.name || "Sin nombre";
               return (
                 <Card key={`item-${currentCapsule.id}-${idx}`} className="overflow-hidden border-none shadow-md rounded-2xl bg-white group">
                   <div className="relative aspect-[3/4] flex items-center justify-center bg-muted/10">
                     {img ? (
-                      <Image src={img} alt={item.name || "Prenda del outfit"} fill className="object-cover" unoptimized />
+                      <Image src={img} alt={itemName} fill className="object-cover" unoptimized />
                     ) : (
                       <div className="flex flex-col items-center justify-center gap-2 p-4 text-center">
                         {item.source === 'wardrobe' ? (
@@ -278,7 +278,7 @@ export default function CapsulesPage() {
                     </div>
                   </div>
                   <CardContent className="p-3">
-                    <p className="font-bold text-[11px] truncate uppercase">{item.name || "Sin nombre"}</p>
+                    <p className="font-bold text-[11px] truncate uppercase">{itemName}</p>
                     <p className="text-[9px] text-primary/70 font-black uppercase mt-1">{item.type || item.source}</p>
                   </CardContent>
                 </Card>

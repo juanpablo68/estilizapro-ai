@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Servicio de búsqueda visual de moda optimizado para Unsplash.
- * Se ha simplificado la consulta para evitar que filtros demasiado técnicos bloqueen resultados reales.
+ * Utiliza términos de "flat lay" y "product photography" para evitar fotos de personas.
  */
 
 export interface UnsplashImage {
@@ -17,9 +17,8 @@ export async function searchUnsplashImages(query: string, accessKey?: string, it
     return [];
   }
 
-  // Refinamiento balanceado: Usamos la consulta de la IA con un contexto de moda general.
-  // Evitamos forzar "white background" aquí para permitir que Unsplash use su propia relevancia.
-  const refinedQuery = `${query} fashion ${itemType || ''}`.trim();
+  // Refinamiento para producto real: "flat lay" es clave para evitar personas.
+  const refinedQuery = `${query} fashion flat lay product studio shot`.trim();
 
   try {
     const response = await fetch(
