@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -147,7 +146,7 @@ export default function AvatarCreationPage() {
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">
       <div className="space-y-2 text-center pt-8">
         <h1 className="text-3xl font-headline font-bold text-primary">Esencia Biométrica</h1>
-        <p className="text-muted-foreground text-sm">Modelado 3D de Cuerpo Completo • Estilo Pixar</p>
+        <p className="text-muted-foreground text-sm">Modelado 3D de Cuerpo Completo</p>
       </div>
 
       {!generatedAvatar ? (
@@ -216,7 +215,7 @@ export default function AvatarCreationPage() {
             <div className="relative aspect-[3/4] w-full bg-muted">
               <Image 
                 src={generatedAvatar} 
-                alt="Avatar Pixar Full Body" 
+                alt="Avatar Full Body" 
                 fill 
                 className="object-contain p-4" 
                 unoptimized
