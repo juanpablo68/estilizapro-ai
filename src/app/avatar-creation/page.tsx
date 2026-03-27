@@ -90,7 +90,7 @@ export default function AvatarCreationPage() {
 
     setLoading(true);
     try {
-      setLoadingStatus('Análisis Biométrico Profundo...');
+      setLoadingStatus('Diagnóstico Biométrico Quirúrgico...');
       const analysis = await analyzeStyleContext({
         facePhotoDataUri: facePhoto,
         figurePhotoDataUri: figurePhoto,
@@ -104,21 +104,22 @@ export default function AvatarCreationPage() {
         colorimetryAnalysis: analysis.colorimetryAnalysis 
       };
 
-      setLoadingStatus('Generando Avatar de Cuerpo Completo...');
+      setLoadingStatus('Generando Modelo de Cuerpo Completo...');
       const result = await generateStylizedAvatar({
         biometricData: analysis.biometricData,
         openaiApiKey: openaiKey
       });
       
-      setLoadingStatus('Finalizando renderizado...');
+      setLoadingStatus('Finalizando diagnóstico...');
       const optimizedAvatar = await resizeImage(result.avatarDataUri);
       
       setGeneratedAvatar(optimizedAvatar);
+      // Actualizamos el perfil local con TODO el análisis
       setProfile({ ...updatedProfile, avatarDataUri: optimizedAvatar });
       
       toast({
-        title: "¡Avatar y Perfil Creados!",
-        description: "Tu modelo 3D y análisis de estilo están listos.",
+        title: "¡Análisis y Avatar Listos!",
+        description: "Tu diagnóstico de color y figura ha sido sincronizado.",
       });
     } catch (error: any) {
       console.error(error);
@@ -143,16 +144,16 @@ export default function AvatarCreationPage() {
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">
       <div className="space-y-2 text-center pt-8">
         <h1 className="text-3xl font-headline font-bold text-primary">Esencia Biométrica</h1>
-        <p className="text-muted-foreground text-sm">Modelado 3D de Cuerpo Completo</p>
+        <p className="text-muted-foreground text-sm">Diagnóstico y Modelado 3D</p>
       </div>
 
       {!generatedAvatar ? (
         <div className="space-y-6 animate-in fade-in duration-500">
           <Alert className="bg-primary/5 border-primary/20">
             <Sparkles className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-primary font-bold">Análisis Maestro</AlertTitle>
+            <AlertTitle className="text-primary font-bold">Diagnóstico Profesional</AlertTitle>
             <AlertDescription className="text-xs">
-              Sube fotos claras para que la IA identifique tu subtono, contraste y silueta exacta.
+              Sube fotos con buena iluminación. La IA detectará el matiz exacto de tus ojos, cabello y silueta.
               <Link href="/settings" className="block mt-1 font-bold underline">Configurar OpenAI Key</Link>
             </AlertDescription>
           </Alert>
@@ -202,7 +203,7 @@ export default function AvatarCreationPage() {
             {loading ? (
               <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> {loadingStatus}</>
             ) : (
-              <><Brain className="mr-3 h-6 w-6" /> Iniciar Análisis Maestro</>
+              <><Brain className="mr-3 h-6 w-6" /> Iniciar Diagnóstico</>
             )}
           </Button>
         </div>
@@ -219,8 +220,8 @@ export default function AvatarCreationPage() {
               />
             </div>
             <CardContent className="p-6 text-center space-y-2">
-              <CardTitle className="text-xl text-primary font-headline font-bold">¡Análisis Sincronizado!</CardTitle>
-              <p className="text-xs text-muted-foreground">Tu Asistente de Vestuario ya conoce tu biometría.</p>
+              <CardTitle className="text-xl text-primary font-headline font-bold">¡Diagnóstico Finalizado!</CardTitle>
+              <p className="text-xs text-muted-foreground">Tu Asistente ya conoce tu biometría real.</p>
               <div className="flex flex-col gap-2 mt-2">
                 <span className="text-[10px] bg-secondary/10 text-secondary px-3 py-1.5 rounded-full font-bold uppercase tracking-wider">{profile.figureAnalysis}</span>
                 <span className="text-[10px] bg-primary/10 text-primary px-3 py-1.5 rounded-full font-bold uppercase tracking-wider">{profile.colorimetryAnalysis}</span>
