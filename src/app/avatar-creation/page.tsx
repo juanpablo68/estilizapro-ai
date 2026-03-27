@@ -13,17 +13,13 @@ import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from 'next/link';
 
-/**
- * Función crítica para optimizar imágenes antes de enviarlas al servidor
- * o guardarlas en localStorage. Reduce el peso drásticamente.
- */
 const resizeImage = (base64Str: string): Promise<string> => {
   return new Promise((resolve) => {
     const img = new window.Image();
     img.src = base64Str;
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      const MAX_WIDTH = 800; // Aumentado ligeramente para mejor detalle en cuerpo completo
+      const MAX_WIDTH = 800;
       const MAX_HEIGHT = 1200; 
       let width = img.width;
       let height = img.height;
@@ -94,7 +90,7 @@ export default function AvatarCreationPage() {
 
     setLoading(true);
     try {
-      setLoadingStatus('Análisis Biométrico en curso...');
+      setLoadingStatus('Análisis Biométrico Profundo...');
       const analysis = await analyzeStyleContext({
         facePhotoDataUri: facePhoto,
         figurePhotoDataUri: figurePhoto,
@@ -103,6 +99,7 @@ export default function AvatarCreationPage() {
 
       const updatedProfile = { 
         ...profile, 
+        biometricData: analysis.biometricData,
         figureAnalysis: analysis.figureAnalysis, 
         colorimetryAnalysis: analysis.colorimetryAnalysis 
       };
@@ -120,8 +117,8 @@ export default function AvatarCreationPage() {
       setProfile({ ...updatedProfile, avatarDataUri: optimizedAvatar });
       
       toast({
-        title: "¡Avatar Creado!",
-        description: "Tu modelo 3D de cuerpo completo está listo para pruebas de ropa.",
+        title: "¡Avatar y Perfil Creados!",
+        description: "Tu modelo 3D y análisis de estilo están listos.",
       });
     } catch (error: any) {
       console.error(error);
@@ -153,9 +150,9 @@ export default function AvatarCreationPage() {
         <div className="space-y-6 animate-in fade-in duration-500">
           <Alert className="bg-primary/5 border-primary/20">
             <Sparkles className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-primary font-bold">Instrucciones de Captura</AlertTitle>
+            <AlertTitle className="text-primary font-bold">Análisis Maestro</AlertTitle>
             <AlertDescription className="text-xs">
-              Para un avatar perfecto, sube una foto de tu rostro de frente y otra de tu cuerpo completo con ropa ajustada.
+              Sube fotos claras para que la IA identifique tu subtono, contraste y silueta exacta.
               <Link href="/settings" className="block mt-1 font-bold underline">Configurar OpenAI Key</Link>
             </AlertDescription>
           </Alert>
@@ -205,7 +202,7 @@ export default function AvatarCreationPage() {
             {loading ? (
               <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> {loadingStatus}</>
             ) : (
-              <><Brain className="mr-3 h-6 w-6" /> Crear Avatar 3D</>
+              <><Brain className="mr-3 h-6 w-6" /> Iniciar Análisis Maestro</>
             )}
           </Button>
         </div>
@@ -222,21 +219,21 @@ export default function AvatarCreationPage() {
               />
             </div>
             <CardContent className="p-6 text-center space-y-2">
-              <CardTitle className="text-xl text-primary font-headline font-bold">¡Avatar Listo!</CardTitle>
-              <p className="text-xs text-muted-foreground">Este modelo se usará para probarte ropa virtualmente.</p>
-              <div className="flex justify-center gap-2 mt-2">
-                <span className="text-[9px] bg-secondary/10 text-secondary px-3 py-1 rounded-full font-bold uppercase tracking-wider">Silueta: {profile.figureAnalysis}</span>
-                <span className="text-[9px] bg-primary/10 text-primary px-3 py-1 rounded-full font-bold uppercase tracking-wider">Color: {profile.colorimetryAnalysis}</span>
+              <CardTitle className="text-xl text-primary font-headline font-bold">¡Análisis Sincronizado!</CardTitle>
+              <p className="text-xs text-muted-foreground">Tu Asistente de Vestuario ya conoce tu biometría.</p>
+              <div className="flex flex-col gap-2 mt-2">
+                <span className="text-[10px] bg-secondary/10 text-secondary px-3 py-1.5 rounded-full font-bold uppercase tracking-wider">{profile.figureAnalysis}</span>
+                <span className="text-[10px] bg-primary/10 text-primary px-3 py-1.5 rounded-full font-bold uppercase tracking-wider">{profile.colorimetryAnalysis}</span>
               </div>
             </CardContent>
           </Card>
           
           <div className="flex gap-4">
             <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={() => setGeneratedAvatar(null)}>
-              <RefreshCw className="mr-2 w-4 h-4" /> Re-generar
+              <RefreshCw className="mr-2 w-4 h-4" /> Re-analizar
             </Button>
             <Button className="flex-1 bg-primary font-bold shadow-md h-12 rounded-xl" onClick={handleProceed}>
-              Dashboard →
+              Ir al Chat →
             </Button>
           </div>
         </div>

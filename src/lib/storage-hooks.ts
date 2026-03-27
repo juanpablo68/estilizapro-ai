@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -51,6 +50,7 @@ export interface UserProfile {
   knowledgeBase: string;
   colorimetryAnalysis?: string;
   figureAnalysis?: string;
+  biometricData?: any; // Memoria HD para la IA
   avatarDataUri?: string;
   onboardingComplete: boolean;
   passcode: string;

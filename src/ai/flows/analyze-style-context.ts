@@ -1,7 +1,7 @@
-
 'use server';
 /**
- * @fileOverview FASE 1: Análisis Estructurado Biométrico utilizando OpenAI GPT-4o.
+ * @fileOverview FASE 1: Análisis Estructurado Biométrico Quirúrgico utilizando OpenAI GPT-4o.
+ * Detecta subtonos, contraste facial y matices detallados para una asesoría de alta precisión.
  */
 
 import { z } from 'genkit';
@@ -10,36 +10,28 @@ import OpenAI from 'openai';
 const BiometricDataSchema = z.object({
   genero: z.string(),
   edad_aproximada: z.string(),
-  tono_piel: z.object({
-    categoria: z.string(),
-    hex_aproximado: z.string()
+  colorimetria: z.object({
+    tono_piel: z.string().describe('claro, medio, oscuro'),
+    subtono: z.string().describe('cálido, frío, neutro'),
+    contraste_facial: z.string().describe('bajo, medio, alto'),
+    hex_piel: z.string()
   }),
   rostro: z.object({
     forma: z.string(),
     ojos: z.object({
-      color: z.string(),
-      forma: z.string(),
-      tamaño: z.string()
+      color_detalle: z.string().describe('miel, verde oliva, azul grisáceo, etc.'),
+      forma: z.string()
     }),
-    nariz: z.string(),
-    labios: z.string(),
-    cejas: z.string()
-  }),
-  cabello: z.object({
-    color: z.string(),
-    tipo: z.string(),
-    largo: z.string(),
-    peinado: z.string()
+    cabello: z.object({
+      color_natural: z.string(),
+      textura: z.string()
+    })
   }),
   cuerpo: z.object({
     complexion: z.string(),
-    proporcion_hombros: z.string(),
-    proporcion_cintura: z.string(),
-    proporcion_cadera: z.string(),
-    altura_aproximada: z.string(),
-    postura: z.string()
+    figura_geometrica: z.string().describe('Reloj de arena, pera, etc.'),
+    proporcion_hombros_cadera: z.string()
   }),
-  rasgos_distintivos: z.array(z.string()),
   nivel_confianza: z.string()
 });
 
@@ -69,60 +61,20 @@ export async function analyzeStyleContext(input: AnalyzeStyleInput): Promise<Ana
     messages: [
       {
         role: "system",
-        content: `Actúa como un sistema híbrido de análisis biométrico y generación de avatar 3D cinematográfico estilo Pixar. Tu tarea se divide en dos fases estrictas: (1) análisis estructurado de imágenes y (2) generación visual controlada. No debes omitir ninguna fase ni mezclar sus objetivos.
+        content: `Actúa como un experto en morfología y colorimetría profesional para PILAR CIFUENTES.
+        
+        Analiza las imágenes para identificar:
+        1. Tono y Subtono de piel (Cálido/Frío/Neutro).
+        2. Color de ojos con matiz exacto.
+        3. Contraste facial (diferencia entre piel, ojos y cabello).
+        4. Silueta corporal exacta.
 
-FASE 1 — ANÁLISIS ESTRUCTURADO (OBLIGATORIO):
-Analiza ambas imágenes (rostro y cuerpo) y extrae únicamente atributos físicos reales observables. No inventes información. No estilices. No embellezcas. Si algún atributo no es claro, márcalo como "no determinable". Mantén coherencia entre rostro y cuerpo.
-
-Genera el siguiente JSON como única fuente de verdad:
-
-{
-  "genero": "",
-  "edad_aproximada": "",
-  "tono_piel": {
-    "categoria": "",
-    "hex_aproximado": ""
-  },
-  "rostro": {
-    "forma": "",
-    "ojos": {
-      "color": "",
-      "forma": "",
-      "tamaño": ""
-    },
-    "nariz": "",
-    "labios": "",
-    "cejas": ""
-  },
-  "cabello": {
-    "color": "",
-    "tipo": "",
-    "largo": "",
-    "peinado": ""
-  },
-  "cuerpo": {
-    "complexion": "",
-    "proporcion_hombros": "",
-    "proporcion_cintura": "",
-    "proporcion_cadera": "",
-    "altura_aproximada": "",
-    "postura": ""
-  },
-  "rasgos_distintivos": [],
-  "nivel_confianza": ""
-}
-
-Reglas críticas del análisis:
-- No cambiar género bajo ninguna circunstancia
-- No asumir datos no visibles
-- No promediar rasgos
-- Precisión > estética
-- Este JSON será usado directamente para generar la imagen`
+        IMPORTANTE: Responde ÚNICAMENTE con el objeto JSON estructurado.`
       },
       {
         role: "user",
         content: [
-          { type: "text", text: "Realiza el análisis biométrico completo de estas fotos." },
+          { type: "text", text: "Realiza el análisis biométrico profundo de estas fotos." },
           { type: "image_url", image_url: { url: input.facePhotoDataUri } },
           { type: "image_url", image_url: { url: input.figurePhotoDataUri } }
         ],
@@ -133,9 +85,12 @@ Reglas críticas del análisis:
 
   const content = JSON.parse(response.choices[0].message.content || "{}");
   
+  const figureText = `Figura: ${content.cuerpo?.figura_geometrica || 'No identificada'} (${content.cuerpo?.complexion || ''})`;
+  const colorText = `Paleta: ${content.colorimetria?.subtono || 'No identificada'} con contraste ${content.colorimetria?.contraste_facial || ''}`;
+
   return {
     biometricData: content as z.infer<typeof BiometricDataSchema>,
-    figureAnalysis: content.cuerpo?.complexion || "No identificada",
-    colorimetryAnalysis: content.tono_piel?.categoria || "No identificada"
+    figureAnalysis: figureText,
+    colorimetryAnalysis: colorText
   };
 }

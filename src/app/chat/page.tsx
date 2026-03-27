@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useRef, useEffect } from 'react';
@@ -18,7 +17,7 @@ interface Message {
 export default function ChatPage() {
   const [profile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: '¡Hola! Soy tu Asistente de Vestuario de PILAR CIFUENTES. Estoy aquí para ayudarte a encontrar tu mejor versión utilizando tus datos de figura, colorimetría y tu base de conocimiento maestra. ¿En qué puedo asesorarte hoy?' }
+    { role: 'assistant', content: '¡Hola! Soy tu Asistente de Vestuario de PILAR CIFUENTES. Ya tengo cargado tu perfil biométrico y tus preferencias. ¿En qué look trabajamos hoy?' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -49,9 +48,12 @@ export default function ChatPage() {
       const response = await chatWithAIStylist({
         message: userMsg,
         userContext: {
+          biometricData: profile.biometricData,
           figure: profile.figureAnalysis,
           colorimetry: profile.colorimetryAnalysis,
           preferences: profile.stylePreferences.preferredStyles.join(', '),
+          accentuate: profile.stylePreferences.bodyPartsToAccentuate.join(', '),
+          minimize: profile.stylePreferences.bodyPartsToMinimize.join(', '),
           knowledgeBase: profile.knowledgeBase
         },
         openaiApiKey: openaiKey
@@ -88,10 +90,10 @@ export default function ChatPage() {
             </div>
           </div>
         </div>
-        {profile.knowledgeBase && (
+        {(profile.knowledgeBase || profile.biometricData) && (
           <div className="flex items-center gap-1.5 bg-indigo-50 px-3 py-1.5 rounded-full">
             <BookOpen className="w-3.5 h-3.5 text-indigo-600" />
-            <span className="text-[10px] font-black text-indigo-700 uppercase">Sincronizado</span>
+            <span className="text-[10px] font-black text-indigo-700 uppercase">Contexto Sincronizado</span>
           </div>
         )}
       </header>
@@ -128,9 +130,6 @@ export default function ChatPage() {
               target="_blank" 
               className="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground hover:text-primary transition-colors"
             >
-              <Avatar className="w-4 h-4 border border-muted">
-                <AvatarImage src="https://picsum.photos/seed/instagram/50" />
-              </Avatar>
               Contactar a Pilar Cifuentes para asesoría premium
             </Link>
         </div>
