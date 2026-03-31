@@ -97,12 +97,15 @@ export default function AvatarCreationPage() {
         openaiApiKey: openaiKey
       });
 
+      // Actualizamos el perfil local con el diagnóstico profundo
       const updatedProfile = { 
         ...profile, 
         biometricData: analysis.biometricData,
         figureAnalysis: analysis.figureAnalysis, 
         colorimetryAnalysis: analysis.colorimetryAnalysis 
       };
+      
+      setProfile(updatedProfile);
 
       setLoadingStatus('Generando Modelo de Cuerpo Completo...');
       const result = await generateStylizedAvatar({
@@ -114,7 +117,7 @@ export default function AvatarCreationPage() {
       const optimizedAvatar = await resizeImage(result.avatarDataUri);
       
       setGeneratedAvatar(optimizedAvatar);
-      // Actualizamos el perfil local con TODO el análisis
+      // Guardado final incluyendo el avatar generado
       setProfile({ ...updatedProfile, avatarDataUri: optimizedAvatar });
       
       toast({
@@ -153,7 +156,7 @@ export default function AvatarCreationPage() {
             <Sparkles className="h-4 w-4 text-primary" />
             <AlertTitle className="text-primary font-bold">Diagnóstico Profesional</AlertTitle>
             <AlertDescription className="text-xs">
-              Sube fotos con buena iluminación. La IA detectará el matiz exacto de tus ojos, cabello y silueta.
+              Sube fotos con buena iluminación. La IA detectará el matiz exacto de tus ojos, cabello y silueta para tu Asistente de Vestuario.
               <Link href="/settings" className="block mt-1 font-bold underline">Configurar OpenAI Key</Link>
             </AlertDescription>
           </Alert>
@@ -222,9 +225,11 @@ export default function AvatarCreationPage() {
             <CardContent className="p-6 text-center space-y-2">
               <CardTitle className="text-xl text-primary font-headline font-bold">¡Diagnóstico Finalizado!</CardTitle>
               <p className="text-xs text-muted-foreground">Tu Asistente ya conoce tu biometría real.</p>
-              <div className="flex flex-col gap-2 mt-2">
-                <span className="text-[10px] bg-secondary/10 text-secondary px-3 py-1.5 rounded-full font-bold uppercase tracking-wider">{profile.figureAnalysis}</span>
-                <span className="text-[10px] bg-primary/10 text-primary px-3 py-1.5 rounded-full font-bold uppercase tracking-wider">{profile.colorimetryAnalysis}</span>
+              <div className="flex flex-col gap-2 mt-4">
+                <div className="bg-primary/5 p-3 rounded-2xl space-y-1">
+                   <p className="text-[10px] font-black text-primary uppercase tracking-widest">{profile.figureAnalysis}</p>
+                   <p className="text-[10px] font-black text-primary uppercase tracking-widest border-t border-primary/10 pt-1 mt-1">{profile.colorimetryAnalysis}</p>
+                </div>
               </div>
             </CardContent>
           </Card>

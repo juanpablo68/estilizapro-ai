@@ -30,7 +30,7 @@ const BiometricDataSchema = z.object({
   }),
   cuerpo: z.object({
     complexion: z.string(),
-    figura_geometrica: z.string().describe('Reloj de arena, pera, etc.'),
+    figura_geometrica: z.string().describe('Reloj de arena, pera, rectángulo, triángulo invertido, manzana'),
     proporcion_hombros_cadera: z.string()
   }),
   nivel_confianza: z.string()
@@ -64,19 +64,19 @@ export async function analyzeStyleContext(input: AnalyzeStyleInput): Promise<Ana
         role: "system",
         content: `Actúa como un experto de élite en morfología y colorimetría profesional para PILAR CIFUENTES.
         
-        INSTRUCCIONES DE ANÁLISIS:
-        1. Compara el tono de piel, ojos y cabello contra paletas de colorimetría profesional (12 estaciones).
-        2. Identifica el matiz exacto de los ojos (no solo "café", sino "café miel", "verde oliva", etc.).
-        3. Determina el subtono (Cálido/Frío/Neutro) analizando la reacción visual de la piel en las fotos.
-        4. Define el nivel de contraste (Diferencia tonal entre piel, ojos y cejas/cabello).
-        5. Analiza la silueta corporal completa para dictaminar la figura geométrica.
+        REGLAS CRÍTICAS DE ANÁLISIS:
+        1. NO puedes devolver valores vacíos o "no identificado". Debes mojarte y dar un diagnóstico basado en la evidencia visual.
+        2. OJOS Y CABELLO: Analiza el matiz exacto (ej: "miel con destellos dorados", "verde oliva profundo"). 
+        3. PIEL: Determina el subtono (Cálido/Frío) analizando si la piel tiene matices rosados/azulados (Frío) o amarillentos/dorados (Cálido).
+        4. FIGURA: Identifica la silueta geométrica exacta (Reloj de Arena, Pera, Triángulo Invertido, etc.).
+        5. ESTACIÓN: Dictamina una de las 12 estaciones (ej: Verano Suave, Invierno Brillante, Otoño Verdadero).
 
-        IMPORTANTE: Responde ÚNICAMENTE con el objeto JSON estructurado según el esquema solicitado.`
+        IMPORTANTE: Responde ÚNICAMENTE con el objeto JSON estructurado. Asegúrate de que las llaves coincidan exactamente con el esquema solicitado.`
       },
       {
         role: "user",
         content: [
-          { type: "text", text: "Realiza el análisis biométrico profundo y diagnóstico de estas fotos." },
+          { type: "text", text: "Realiza el análisis biométrico profundo y diagnóstico de estas fotos para Pilar Cifuentes." },
           { type: "image_url", image_url: { url: input.facePhotoDataUri } },
           { type: "image_url", image_url: { url: input.figurePhotoDataUri } }
         ],
@@ -85,10 +85,18 @@ export async function analyzeStyleContext(input: AnalyzeStyleInput): Promise<Ana
     response_format: { type: "json_object" }
   });
 
-  const content = JSON.parse(response.choices[0].message.content || "{}");
+  const rawContent = response.choices[0].message.content || "{}";
+  const content = JSON.parse(rawContent);
   
-  const figureText = `Figura: ${content.cuerpo?.figura_geometrica || 'No identificada'} (${content.cuerpo?.complexion || ''})`;
-  const colorText = `Diagnóstico: ${content.colorimetria?.estacion_sugerida || 'No identificado'} (Subtono ${content.colorimetria?.subtono || ''}, Contraste ${content.colorimetria?.contraste_facial || ''})`;
+  // Normalización de datos para asegurar que siempre haya texto en el UI
+  const figura = content.cuerpo?.figura_geometrica || 'Silueta por definir';
+  const complexion = content.cuerpo?.complexion || '';
+  const estacion = content.colorimetria?.estacion_sugerida || 'Estación por definir';
+  const subtono = content.colorimetria?.subtono || 'Neutro';
+  const contraste = content.colorimetria?.contraste_facial || 'Medio';
+
+  const figureText = `Figura: ${figura} (${complexion})`;
+  const colorText = `Diagnóstico: ${estacion} (Subtono ${subtono}, Contraste ${contraste})`;
 
   return {
     biometricData: content as z.infer<typeof BiometricDataSchema>,
