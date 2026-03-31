@@ -97,9 +97,11 @@ export default function AvatarCreationPage() {
         openaiApiKey: openaiKey
       });
 
-      // Actualizamos el perfil local con el diagnóstico profundo
+      // Guardado inmediato del análisis biométrico detallado
+      const currentProfile = JSON.parse(localStorage.getItem('estiliza_profile') || JSON.stringify(INITIAL_USER_PROFILE));
+      
       const updatedProfile = { 
-        ...profile, 
+        ...currentProfile, 
         biometricData: analysis.biometricData,
         figureAnalysis: analysis.figureAnalysis, 
         colorimetryAnalysis: analysis.colorimetryAnalysis 

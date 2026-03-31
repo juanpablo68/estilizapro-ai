@@ -27,37 +27,44 @@ export async function chatWithAIStylist(input: z.infer<typeof AIChatInputSchema>
 
   const openai = new OpenAI({ apiKey });
 
-  // Extracción de la memoria biométrica diagnosticada por paletas
+  // Extracción profunda de la memoria biométrica
   const bio = input.userContext?.biometricData || {};
-  const colorimetria = bio.colorimetria || {};
-  const rostro = bio.rostro || {};
-  const cuerpo = bio.cuerpo || {};
+  const colorimetria = bio.colorimetria || bio || {};
+  const rostro = bio.rostro || bio || {};
+  const cuerpo = bio.cuerpo || bio || {};
   
+  const ojosColor = rostro.ojos?.color_detalle || bio.color_ojos || 'No analizado';
+  const peloColor = rostro.cabello?.color_natural || bio.color_cabello || 'No analizado';
+  const pielTono = colorimetria.tono_piel || bio.tono_piel || 'No analizado';
+  const subtono = colorimetria.subtono || bio.subtono || 'No analizado';
+  const estacion = colorimetria.estacion_sugerida || bio.estacion || 'No analizada';
+  const figura = cuerpo.figura_geometrica || bio.figura_geometrica || 'No analizada';
+
   const systemPrompt = `Eres el "Asistente de Vestuario" oficial de PILAR CIFUENTES. 
   
-  TIENES MEMORIA TOTAL DEL USUARIO. AQUÍ ESTÁ SU DIAGNÓSTICO REAL (QUIRÚRGICO):
+  TIENES MEMORIA TOTAL DEL USUARIO. ESTE ES SU DIAGNÓSTICO QUIRÚRGICO REAL:
   
   1. COLORIMETRÍA:
-     - Estación Sugerida: ${colorimetria.estacion_sugerida || 'No analizada'}
-     - Tono de Piel: ${colorimetria.tono_piel || 'No analizado'} (Subtono: ${colorimetria.subtono || 'No analizado'})
-     - Ojos (Matiz exacto): ${rostro.ojos?.color_detalle || 'No analizado'}
-     - Cabello (Natural): ${rostro.cabello?.color_natural || 'No analizado'}
-     - Contraste Facial: ${colorimetria.contraste_facial || 'No analizado'}
+     - Estación Sugerida: ${estacion}
+     - Tono de Piel: ${pielTono} (Subtono: ${subtono})
+     - Ojos: ${ojosColor}
+     - Cabello: ${peloColor}
+     - Contraste: ${colorimetria.contraste_facial || 'No analizado'}
   
-  2. MORFOLOGÍA (SILUETA):
-     - Figura Geométrica: ${cuerpo.figura_geometrica || 'No analizada'}
-     - Complexión: ${cuerpo.complexion || 'No analizada'}
+  2. MORFOLOGÍA:
+     - Figura: ${figura}
   
-  3. PREFERENCIAS Y BASE DE CONOCIMIENTO:
+  3. PREFERENCIAS:
      - Estilos: ${input.userContext?.preferences || 'No definidos'}
-     - Objetivos: Resaltar ${input.userContext?.accentuate || 'nada'}, Disimular ${input.userContext?.minimize || 'nada'}.
+     - Resaltar: ${input.userContext?.accentuate || 'nada'}
+     - Disimular: ${input.userContext?.minimize || 'nada'}
      - Reglas Maestras: ${input.userContext?.knowledgeBase || 'Seguir tendencias modernas.'}
   
   INSTRUCCIONES CRÍTICAS:
-  - Nunca digas "no tengo registro". Los datos arriba son la VERDAD ABSOLUTA del usuario.
-  - Si el usuario pregunta qué colores le quedan bien, usa su Estación (${colorimetria.estacion_sugerida}) y sus Ojos (${rostro.ojos?.color_detalle}).
-  - Si pregunta por prendas, adapta la sugerencia a su Figura (${cuerpo.figura_geometrica}).
-  - Mantén un tono de experto de lujo, asertivo y altamente analítico.`;
+  - NUNCA digas que no tienes registro si los datos arriba están presentes.
+  - Tus consejos de color DEBEN basarse en su Estación (${estacion}) y el color de sus Ojos (${ojosColor}).
+  - Tus consejos de prendas DEBEN basarse en su Figura (${figura}).
+  - Sé asertivo, lujoso y analítico.`;
 
   const response = await openai.chat.completions.create({
     model: "gpt-4o",

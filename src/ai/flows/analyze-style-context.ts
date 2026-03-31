@@ -1,40 +1,11 @@
 'use server';
 /**
  * @fileOverview FASE 1: Análisis Estructurado Biométrico Quirúrgico utilizando OpenAI GPT-4o.
- * Utiliza paletas de referencia para ojos, piel, cabello y silueta para un diagnóstico infalible.
+ * Utiliza paletas de referencia estrictas para ojos, piel, cabello y silueta.
  */
 
 import { z } from 'genkit';
 import OpenAI from 'openai';
-
-const BiometricDataSchema = z.object({
-  genero: z.string(),
-  edad_aproximada: z.string(),
-  colorimetria: z.object({
-    tono_piel: z.string().describe('Paleta: Pálido, Claro, Medio, Bronceado, Oscuro, Ébano'),
-    subtono: z.string().describe('Paleta: Cálido (Amarillo/Dorado), Frío (Rosa/Azul), Neutro'),
-    contraste_facial: z.string().describe('bajo, medio, alto'),
-    hex_piel: z.string(),
-    estacion_sugerida: z.string().describe('Una de las 12 estaciones (ej: Verano Suave, Invierno Brillante, Otoño Verdadero)')
-  }),
-  rostro: z.object({
-    forma: z.string().describe('Paleta: Ovalado, Redondo, Cuadrado, Corazón, Diamante, Alargado'),
-    ojos: z.object({
-      color_detalle: z.string().describe('Paleta: Ámbar, Miel, Avellana, Verde Oliva, Verde Esmeralda, Azul Acero, Azul Grisáceo, Marrón Oscuro, Negro'),
-      forma: z.string()
-    }),
-    cabello: z.object({
-      color_natural: z.string().describe('Paleta: Rubio Platino, Rubio Dorado, Pelirrojo, Castaño Claro, Castaño Oscuro, Negro Azabache, Gris/Blanco'),
-      textura: z.string()
-    })
-  }),
-  cuerpo: z.object({
-    complexion: z.string().describe('Paleta: Ectomorfo (Delgado), Mesomorfo (Atlético), Endomorfo (Robusto)'),
-    figura_geometrica: z.string().describe('Paleta OBLIGATORIA: Reloj de Arena, Pera (Triángulo), Rectángulo, Triángulo Invertido, Manzana (Ovalo)'),
-    proporcion_hombros_cadera: z.string()
-  }),
-  nivel_confianza: z.string()
-});
 
 const AnalyzeStyleInputSchema = z.object({
   facePhotoDataUri: z.string(),
@@ -59,22 +30,38 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
     messages: [
       {
         role: "system",
-        content: `Actúa como un experto de élite en morfología y colorimetría profesional para PILAR CIFUENTES.
+        content: `Actúa como un experto de élite en morfología y colorimetría profesional. 
         
-        REGLAS DE DIAGNÓSTICO QUIRÚRGICO:
-        1. COMPARACIÓN DE PALETAS: Analiza los píxeles de las fotos y clasifícalos según estas paletas:
-           - OJOS: Identifica matices específicos (Ámbar, Miel, Verde Oliva, Azul Acero, etc.).
-           - PIEL: Determina categoría (Pálido a Ébano) y SUBTONO (Cálido vs Frío) analizando la saturación de hemoglobina (rosa) o caroteno (amarillo).
-           - SILUETA: Mide visualmente la proporción hombro-cintura-cadera y asigna una de estas: Reloj de Arena, Pera, Rectángulo, Triángulo Invertido o Manzana.
-        
-        2. NO VALORES NULOS: Está prohibido responder "desconocido" o "no identificado". Debes asignar el valor más cercano de la paleta.
-        
-        3. FORMATO: Responde únicamente con el objeto JSON estructurado.`
+        REGLA DE ORO: NO PUEDES USAR "DESCONOCIDO" O "POR DEFINIR". Debes elegir el valor más cercano de las siguientes paletas:
+
+        1. OJOS (Matiz exacto): Ámbar, Miel, Avellana, Verde Oliva, Verde Esmeralda, Azul Acero, Azul Grisáceo, Marrón Oscuro, Negro.
+        2. PIEL (Tono): Pálido, Claro, Medio, Bronceado, Oscuro, Ébano.
+        3. PIEL (Subtono): Cálido (Dorado), Frío (Rosado), Neutro.
+        4. CABELLO (Natural): Rubio Platino, Rubio Dorado, Pelirrojo, Castaño Claro, Castaño Oscuro, Negro Azabache, Gris/Blanco.
+        5. SILUETA (Obligatorio elegir una): Reloj de Arena, Pera, Rectángulo, Triángulo Invertido, Manzana.
+        6. ESTACIÓN: Una de las 12 estaciones (ej: Verano Suave, Otoño Verdadero, Invierno Brillante, etc.).
+
+        FORMATO DE RESPUESTA (JSON ESTRICTO):
+        {
+          "colorimetria": {
+            "tono_piel": "...",
+            "subtono": "...",
+            "contraste_facial": "bajo/medio/alto",
+            "estacion_sugerida": "..."
+          },
+          "rostro": {
+            "ojos": { "color_detalle": "..." },
+            "cabello": { "color_natural": "..." }
+          },
+          "cuerpo": {
+            "figura_geometrica": "..."
+          }
+        }`
       },
       {
         role: "user",
         content: [
-          { type: "text", text: "Realiza el diagnóstico biométrico profundo comparando contra paletas profesionales para Pilar Cifuentes." },
+          { type: "text", text: "Realiza el diagnóstico biométrico quirúrgico usando las paletas indicadas." },
           { type: "image_url", image_url: { url: input.facePhotoDataUri } },
           { type: "image_url", image_url: { url: input.figurePhotoDataUri } }
         ],
@@ -86,11 +73,12 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
   const rawContent = response.choices[0].message.content || "{}";
   const content = JSON.parse(rawContent);
   
-  const figura = content.cuerpo?.figura_geometrica || 'Silueta por definir';
-  const ojos = content.rostro?.ojos?.color_detalle || 'Color ojos';
-  const cabello = content.rostro?.cabello?.color_natural || 'Color cabello';
-  const estacion = content.colorimetria?.estacion_sugerida || 'Estación por definir';
-  const subtono = content.colorimetria?.subtono || 'Neutro';
+  // Mapeo robusto para asegurar que los datos se extraigan correctamente
+  const figura = content.cuerpo?.figura_geometrica || content.figura_geometrica || 'Silueta por definir';
+  const ojos = content.rostro?.ojos?.color_detalle || content.color_ojos || 'Color ojos';
+  const cabello = content.rostro?.cabello?.color_natural || content.color_cabello || 'Color cabello';
+  const estacion = content.colorimetria?.estacion_sugerida || content.estacion || 'Estación por definir';
+  const subtono = content.colorimetria?.subtono || content.subtono || 'Neutro';
 
   const figureText = `Figura: ${figura}`;
   const colorText = `${estacion} (Ojos ${ojos}, Pelo ${cabello}, Subtono ${subtono})`;
