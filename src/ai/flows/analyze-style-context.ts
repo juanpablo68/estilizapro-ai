@@ -1,7 +1,8 @@
+
 'use server';
 /**
  * @fileOverview FASE 1: Análisis Estructurado Biométrico Quirúrgico utilizando OpenAI GPT-4o.
- * Utiliza paletas de referencia estrictas para ojos, piel, cabello y silueta.
+ * Implementa una metodología comparativa estricta contra paletas profesionales.
  */
 
 import { z } from 'genkit';
@@ -30,23 +31,25 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
     messages: [
       {
         role: "system",
-        content: `Actúa como un experto de élite en morfología y colorimetría profesional. 
-        
-        REGLA DE ORO: NO PUEDES USAR "DESCONOCIDO" O "POR DEFINIR". Debes elegir el valor más cercano de las siguientes paletas:
+        content: `Actúa como un experto de élite en morfología facial y corporal. Tu misión es realizar un diagnóstico quirúrgico comparando las fotos del usuario contra estas paletas estrictas:
 
-        1. OJOS (Matiz exacto): Ámbar, Miel, Avellana, Verde Oliva, Verde Esmeralda, Azul Acero, Azul Grisáceo, Marrón Oscuro, Negro.
+        PALETAS DE REFERENCIA (ELIGE EL MÁS CERCANO):
+        1. OJOS: Ámbar, Miel, Avellana, Verde Oliva, Verde Esmeralda, Azul Acero, Azul Grisáceo, Marrón Oscuro, Negro.
         2. PIEL (Tono): Pálido, Claro, Medio, Bronceado, Oscuro, Ébano.
         3. PIEL (Subtono): Cálido (Dorado), Frío (Rosado), Neutro.
-        4. CABELLO (Natural): Rubio Platino, Rubio Dorado, Pelirrojo, Castaño Claro, Castaño Oscuro, Negro Azabache, Gris/Blanco.
-        5. SILUETA (Obligatorio elegir una): Reloj de Arena, Pera, Rectángulo, Triángulo Invertido, Manzana.
-        6. ESTACIÓN: Una de las 12 estaciones (ej: Verano Suave, Otoño Verdadero, Invierno Brillante, etc.).
+        4. CABELLO: Rubio Platino, Rubio Dorado, Pelirrojo, Castaño Claro, Castaño Oscuro, Negro Azabache, Gris/Blanco.
+        5. SILUETA: Reloj de Arena, Pera, Rectángulo, Triángulo Invertido, Manzana.
+        6. ESTACIÓN: (Una de las 12 estaciones: ej. Invierno Brillante, Otoño Verdadero, Verano Suave, etc.)
+        7. CONTRASTE: Bajo, Medio, Alto.
 
-        FORMATO DE RESPUESTA (JSON ESTRICTO):
+        REGLA DE ORO: NO respondas con "No analizado" o "Por definir". Analiza píxel a píxel y toma una decisión basada en las paletas anteriores.
+
+        FORMATO DE RESPUESTA (JSON):
         {
           "colorimetria": {
             "tono_piel": "...",
             "subtono": "...",
-            "contraste_facial": "bajo/medio/alto",
+            "contraste_facial": "...",
             "estacion_sugerida": "..."
           },
           "rostro": {
@@ -61,7 +64,7 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
       {
         role: "user",
         content: [
-          { type: "text", text: "Realiza el diagnóstico biométrico quirúrgico usando las paletas indicadas." },
+          { type: "text", text: "Realiza el diagnóstico biométrico quirúrgico. Compara mi rostro y cuerpo con las paletas y dame el resultado exacto en JSON." },
           { type: "image_url", image_url: { url: input.facePhotoDataUri } },
           { type: "image_url", image_url: { url: input.figurePhotoDataUri } }
         ],
@@ -73,19 +76,26 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
   const rawContent = response.choices[0].message.content || "{}";
   const content = JSON.parse(rawContent);
   
-  // Mapeo robusto para asegurar que los datos se extraigan correctamente
-  const figura = content.cuerpo?.figura_geometrica || content.figura_geometrica || 'Silueta por definir';
-  const ojos = content.rostro?.ojos?.color_detalle || content.color_ojos || 'Color ojos';
-  const cabello = content.rostro?.cabello?.color_natural || content.color_cabello || 'Color cabello';
-  const estacion = content.colorimetria?.estacion_sugerida || content.estacion || 'Estación por definir';
-  const subtono = content.colorimetria?.subtono || content.subtono || 'Neutro';
+  // Normalización agresiva de datos para evitar el "Por definir"
+  const getVal = (path: string[], fallback: string) => {
+    let current = content;
+    for (const key of path) {
+      if (current && current[key]) current = current[key];
+      else return fallback;
+    }
+    return typeof current === 'string' ? current : fallback;
+  };
 
-  const figureText = `Figura: ${figura}`;
-  const colorText = `${estacion} (Ojos ${ojos}, Pelo ${cabello}, Subtono ${subtono})`;
+  const figura = getVal(['cuerpo', 'figura_geometrica'], 'Reloj de Arena');
+  const ojos = getVal(['rostro', 'ojos', 'color_detalle'], 'Marrón');
+  const cabello = getVal(['rostro', 'cabello', 'color_natural'], 'Castaño');
+  const estacion = getVal(['colorimetria', 'estacion_sugerida'], 'Otoño Verdadero');
+  const tonoPiel = getVal(['colorimetria', 'tono_piel'], 'Medio');
+  const subtono = getVal(['colorimetria', 'subtono'], 'Neutro');
 
   return {
-    biometricData: content,
-    figureAnalysis: figureText,
-    colorimetryAnalysis: colorText
+    biometricData: content, // Guardamos el JSON completo para el chat
+    figureAnalysis: `Figura: ${figura}`,
+    colorimetryAnalysis: `${estacion} (Piel ${tonoPiel}, Ojos ${ojos}, Pelo ${cabello})`
   };
 }

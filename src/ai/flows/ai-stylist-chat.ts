@@ -1,7 +1,8 @@
+
 'use server';
 /**
  * @fileOverview Chat interactivo con el Asistente de Vestuario con Memoria Total.
- * Utiliza el diagnóstico quirúrgico (ojos, piel, cabello, silueta) para personalizar cada respuesta.
+ * Utiliza el diagnóstico quirúrgico y las preferencias del usuario para cada respuesta.
  */
 
 import { z } from 'genkit';
@@ -27,44 +28,46 @@ export async function chatWithAIStylist(input: z.infer<typeof AIChatInputSchema>
 
   const openai = new OpenAI({ apiKey });
 
-  // Extracción profunda de la memoria biométrica
+  // Extracción profunda y segura de la memoria biométrica
   const bio = input.userContext?.biometricData || {};
-  const colorimetria = bio.colorimetria || bio || {};
-  const rostro = bio.rostro || bio || {};
-  const cuerpo = bio.cuerpo || bio || {};
   
-  const ojosColor = rostro.ojos?.color_detalle || bio.color_ojos || 'No analizado';
-  const peloColor = rostro.cabello?.color_natural || bio.color_cabello || 'No analizado';
-  const pielTono = colorimetria.tono_piel || bio.tono_piel || 'No analizado';
-  const subtono = colorimetria.subtono || bio.subtono || 'No analizado';
-  const estacion = colorimetria.estacion_sugerida || bio.estacion || 'No analizada';
-  const figura = cuerpo.figura_geometrica || bio.figura_geometrica || 'No analizada';
+  // Intentamos obtener valores de la estructura anidada o de las strings simplificadas
+  const getBio = (obj: any, keys: string[], fallback: string) => {
+    let curr = obj;
+    for (const k of keys) {
+      if (curr && curr[k]) curr = curr[k];
+      else return fallback;
+    }
+    return typeof curr === 'string' ? curr : fallback;
+  };
 
-  const systemPrompt = `Eres el "Asistente de Vestuario" oficial de PILAR CIFUENTES. 
+  const piel = getBio(bio, ['colorimetria', 'tono_piel'], 'No analizado');
+  const subtono = getBio(bio, ['colorimetria', 'subtono'], 'No analizado');
+  const ojos = getBio(bio, ['rostro', 'ojos', 'color_detalle'], 'No analizado');
+  const cabello = getBio(bio, ['rostro', 'cabello', 'color_natural'], 'No analizado');
+  const estacion = getBio(bio, ['colorimetria', 'estacion_sugerida'], 'No analizado');
+  const figura = getBio(bio, ['cuerpo', 'figura_geometrica'], input.userContext?.figure || 'No analizado');
+
+  const systemPrompt = `Eres el "Asistente de Vestuario" de PILAR CIFUENTES. 
   
-  TIENES MEMORIA TOTAL DEL USUARIO. ESTE ES SU DIAGNÓSTICO QUIRÚRGICO REAL:
+  TIENES ACCESO A LA MEMORIA BIOMÉTRICA DEL USUARIO. SIEMPRE USA ESTOS DATOS:
   
-  1. COLORIMETRÍA:
-     - Estación Sugerida: ${estacion}
-     - Tono de Piel: ${pielTono} (Subtono: ${subtono})
-     - Ojos: ${ojosColor}
-     - Cabello: ${peloColor}
-     - Contraste: ${colorimetria.contraste_facial || 'No analizado'}
+  - Tono de Piel: ${piel} (Subtono: ${subtono})
+  - Color de Ojos: ${ojos}
+  - Color de Cabello: ${cabello}
+  - Estación de Color: ${estacion}
+  - Figura Corporal: ${figura}
   
-  2. MORFOLOGÍA:
-     - Figura: ${figura}
-  
-  3. PREFERENCIAS:
-     - Estilos: ${input.userContext?.preferences || 'No definidos'}
-     - Resaltar: ${input.userContext?.accentuate || 'nada'}
-     - Disimular: ${input.userContext?.minimize || 'nada'}
-     - Reglas Maestras: ${input.userContext?.knowledgeBase || 'Seguir tendencias modernas.'}
-  
-  INSTRUCCIONES CRÍTICAS:
-  - NUNCA digas que no tienes registro si los datos arriba están presentes.
-  - Tus consejos de color DEBEN basarse en su Estación (${estacion}) y el color de sus Ojos (${ojosColor}).
-  - Tus consejos de prendas DEBEN basarse en su Figura (${figura}).
-  - Sé asertivo, lujoso y analítico.`;
+  CONTEXTO ADICIONAL:
+  - Estilos favoritos: ${input.userContext?.preferences || 'No definidos'}
+  - Áreas a resaltar: ${input.userContext?.accentuate || 'No definidas'}
+  - Áreas a disimular: ${input.userContext?.minimize || 'No definidas'}
+  - Reglas de Estilo: ${input.userContext?.knowledgeBase || 'Seguir tendencias modernas'}
+
+  INSTRUCCIONES:
+  1. Si el usuario te pregunta por sus ojos, cabello o piel, RESPONDE usando los datos específicos arriba. NO digas que no los tienes.
+  2. Tus consejos deben ser coherentes con su Estación (${estacion}) y su Figura (${figura}).
+  3. Mantén un tono lujoso, asertivo y profesional.`;
 
   const response = await openai.chat.completions.create({
     model: "gpt-4o",
