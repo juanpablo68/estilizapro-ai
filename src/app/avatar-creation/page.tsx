@@ -7,7 +7,7 @@ import { generateStylizedAvatar } from '@/ai/flows/generate-stylized-avatar';
 import { analyzeStyleContext } from '@/ai/flows/analyze-style-context';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, Image as ImageIcon, Loader2, Sparkles, RefreshCw, Brain } from "lucide-react";
+import { Camera, Image as ImageIcon, Loader2, Sparkles, RefreshCw, Brain, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -90,18 +90,16 @@ export default function AvatarCreationPage() {
 
     setLoading(true);
     try {
-      setLoadingStatus('Diagnóstico Biométrico Quirúrgico...');
+      setLoadingStatus('Iniciando Análisis Quirúrgico...');
       const analysis = await analyzeStyleContext({
         facePhotoDataUri: facePhoto,
         figurePhotoDataUri: figurePhoto,
         openaiApiKey: openaiKey
       });
 
-      // Guardado inmediato del análisis biométrico detallado
-      const currentProfile = JSON.parse(localStorage.getItem('estiliza_profile') || JSON.stringify(INITIAL_USER_PROFILE));
-      
+      // Guardado inmediato de la memoria biométrica HD
       const updatedProfile = { 
-        ...currentProfile, 
+        ...profile, 
         biometricData: analysis.biometricData,
         figureAnalysis: analysis.figureAnalysis, 
         colorimetryAnalysis: analysis.colorimetryAnalysis 
@@ -109,22 +107,21 @@ export default function AvatarCreationPage() {
       
       setProfile(updatedProfile);
 
-      setLoadingStatus('Generando Modelo de Cuerpo Completo...');
+      setLoadingStatus('Generando Avatar 3D de Cuerpo Completo...');
       const result = await generateStylizedAvatar({
         biometricData: analysis.biometricData,
         openaiApiKey: openaiKey
       });
       
-      setLoadingStatus('Finalizando diagnóstico...');
+      setLoadingStatus('Sincronizando Identidad...');
       const optimizedAvatar = await resizeImage(result.avatarDataUri);
       
       setGeneratedAvatar(optimizedAvatar);
-      // Guardado final incluyendo el avatar generado
       setProfile({ ...updatedProfile, avatarDataUri: optimizedAvatar });
       
       toast({
-        title: "¡Análisis y Avatar Listos!",
-        description: "Tu diagnóstico de color y figura ha sido sincronizado.",
+        title: "¡Diagnóstico Finalizado!",
+        description: "Tu fisionomía real ha sido cargada en el Asistente.",
       });
     } catch (error: any) {
       console.error(error);
@@ -149,17 +146,16 @@ export default function AvatarCreationPage() {
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">
       <div className="space-y-2 text-center pt-8">
         <h1 className="text-3xl font-headline font-bold text-primary">Esencia Biométrica</h1>
-        <p className="text-muted-foreground text-sm">Diagnóstico y Modelado 3D</p>
+        <p className="text-muted-foreground text-sm">Diagnóstico Real y Modelado 3D</p>
       </div>
 
       {!generatedAvatar ? (
         <div className="space-y-6 animate-in fade-in duration-500">
           <Alert className="bg-primary/5 border-primary/20">
             <Sparkles className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-primary font-bold">Diagnóstico Profesional</AlertTitle>
+            <AlertTitle className="text-primary font-bold">Diagnóstico de Alta Fidelidad</AlertTitle>
             <AlertDescription className="text-xs">
-              Sube fotos con buena iluminación. La IA detectará el matiz exacto de tus ojos, cabello y silueta para tu Asistente de Vestuario.
-              <Link href="/settings" className="block mt-1 font-bold underline">Configurar OpenAI Key</Link>
+              La IA analizará quirúrgicamente el matiz de tus ojos, cabello y silueta para personalizar cada consejo de vestuario.
             </AlertDescription>
           </Alert>
 
@@ -218,20 +214,21 @@ export default function AvatarCreationPage() {
             <div className="relative aspect-[3/4] w-full bg-muted">
               <Image 
                 src={generatedAvatar} 
-                alt="Avatar Full Body" 
+                alt="Avatar" 
                 fill 
                 className="object-contain p-4" 
                 unoptimized
               />
             </div>
-            <CardContent className="p-6 text-center space-y-2">
-              <CardTitle className="text-xl text-primary font-headline font-bold">¡Diagnóstico Finalizado!</CardTitle>
-              <p className="text-xs text-muted-foreground">Tu Asistente ya conoce tu biometría real.</p>
-              <div className="flex flex-col gap-2 mt-4">
-                <div className="bg-primary/5 p-3 rounded-2xl space-y-1">
-                   <p className="text-[10px] font-black text-primary uppercase tracking-widest">{profile.figureAnalysis}</p>
-                   <p className="text-[10px] font-black text-primary uppercase tracking-widest border-t border-primary/10 pt-1 mt-1">{profile.colorimetryAnalysis}</p>
-                </div>
+            <CardContent className="p-6 text-center space-y-4">
+              <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-200">
+                <CheckCircle className="w-3 h-3" /> Identidad Sincronizada
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-black text-primary uppercase tracking-widest">{profile.figureAnalysis}</p>
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest leading-relaxed">
+                  {profile.colorimetryAnalysis}
+                </p>
               </div>
             </CardContent>
           </Card>

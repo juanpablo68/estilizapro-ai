@@ -2,7 +2,7 @@
 /**
  * @fileOverview FASE 1: Análisis Estructurado Biométrico Quirúrgico utilizando OpenAI GPT-4o.
  * Implementa una metodología comparativa estricta contra paletas profesionales.
- * Ahora incluye detección de género para personalización del avatar.
+ * Optimizado para detección de matices sutiles en ojos (claros/mixtos) y cabello.
  */
 
 import { z } from 'genkit';
@@ -31,26 +31,28 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
     messages: [
       {
         role: "system",
-        content: `Actúa como un experto de élite en morfología facial y corporal. Tu misión es realizar un diagnóstico quirúrgico comparando las fotos del usuario contra estas paletas estrictas:
+        content: `Actúa como un experto de élite en colorimetría y morfología. Tu misión es realizar un diagnóstico quirúrgico. 
+        
+        INSTRUCCIONES DE ANÁLISIS:
+        1. OJOS (CRÍTICO): Analiza el iris. Busca matices. Si hay destellos dorados o verdes sobre base clara, especifica (ej. "Miel", "Verde Oliva"). No generalices a "Marrón" si hay claridad.
+        2. CABELLO: Determina el color base. Distingue entre "Castaño Oscuro" y "Negro". Si el cabello refleja luz, es "Castaño".
+        3. PIEL: Analiza el subtono en la zona de la mandíbula y cuello para evitar sombras faciales.
+        4. GÉNERO: Identifica basándote en estructura ósea y facciones.
 
-        PALETAS DE REFERENCIA (ELIGE EL MÁS CERCANO):
-        1. GÉNERO (CRÍTICO): Analiza facciones y estructura ósea. Responde estrictamente con "Masculino" o "Femenino".
-        2. OJOS: Ámbar, Miel, Avellana, Verde Oliva, Verde Esmeralda, Azul Acero, Azul Grisáceo, Marrón Oscuro, Negro.
-        3. PIEL (Tono): Pálido, Claro, Medio, Bronceado, Oscuro, Ébano.
-        4. PIEL (Subtono): Cálido (Dorado), Frío (Rosado), Neutro.
-        5. CABELLO: Rubio Platino, Rubio Dorado, Pelirrojo, Castaño Claro, Castaño Oscuro, Negro Azabache, Gris/Blanco.
-        6. SILUETA: Reloj de Arena, Pera, Rectángulo, Triángulo Invertido, Manzana.
-        7. ESTACIÓN: (Una de las 12 estaciones de colorimetría).
+        PALETAS DE REFERENCIA OBLIGATORIAS:
+        - OJOS: Ámbar, Miel, Avellana, Verde Oliva, Verde Esmeralda, Azul Acero, Azul Grisáceo, Azul Claro, Marrón Claro, Marrón Oscuro, Negro.
+        - CABELLO: Rubio Platino, Rubio Dorado, Pelirrojo, Castaño Claro, Castaño Medio, Castaño Oscuro, Negro Azabache, Gris, Blanco.
+        - PIEL (Tono): Muy Pálido, Claro, Medio, Bronceado, Oscuro, Ébano.
+        - PIEL (Subtono): Cálido (Dorado), Frío (Rosado), Neutro.
+        - FIGURA: Reloj de Arena, Pera, Rectángulo, Triángulo Invertido, Manzana.
 
-        REGLA DE ORO: NO respondas con "No analizado". Analiza píxel a píxel y toma una decisión definitiva basada en las facciones.
-
-        FORMATO DE RESPUESTA (JSON):
+        FORMATO DE RESPUESTA (JSON ESTRICTO):
         {
-          "genero": "Femenino/Masculino",
+          "genero": "Masculino/Femenino",
           "colorimetria": {
             "tono_piel": "...",
             "subtono": "...",
-            "contraste_facial": "...",
+            "contraste_facial": "Bajo/Medio/Alto",
             "estacion_sugerida": "..."
           },
           "rostro": {
@@ -65,7 +67,7 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
       {
         role: "user",
         content: [
-          { type: "text", text: "Realiza el diagnóstico biométrico quirúrgico exacto en JSON. Determina el género con alta precisión basándote en el rostro y cuerpo cargados." },
+          { type: "text", text: "Realiza el diagnóstico biométrico quirúrgico exacto. Analiza el matiz real de ojos y cabello comparando píxeles contra las paletas indicadas." },
           { type: "image_url", image_url: { url: input.facePhotoDataUri } },
           { type: "image_url", image_url: { url: input.figurePhotoDataUri } }
         ],
@@ -86,16 +88,16 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
     return typeof current === 'string' ? current : fallback;
   };
 
-  const genero = content.genero || 'Femenino';
+  const genero = content.genero || 'No identificado';
   const figura = getVal(['cuerpo', 'figura_geometrica'], 'Reloj de Arena');
-  const ojos = getVal(['rostro', 'ojos', 'color_detalle'], 'Marrón');
-  const cabello = getVal(['rostro', 'cabello', 'color_natural'], 'Castaño');
-  const estacion = getVal(['colorimetria', 'estacion_sugerida'], 'Otoño Verdadero');
-  const tonoPiel = getVal(['colorimetria', 'tono_piel'], 'Medio');
+  const ojos = getVal(['rostro', 'ojos', 'color_detalle'], 'No identificado');
+  const cabello = getVal(['rostro', 'cabello', 'color_natural'], 'No identificado');
+  const estacion = getVal(['colorimetria', 'estacion_sugerida'], 'Otoño');
+  const tonoPiel = getVal(['colorimetria', 'tono_piel'], 'Claro');
 
   return {
     biometricData: content,
     figureAnalysis: `Figura: ${figura}`,
-    colorimetryAnalysis: `${estacion} (${genero}, Piel ${tonoPiel}, Ojos ${ojos}, Pelo ${cabello})`
+    colorimetryAnalysis: `${estacion} (${genero}, Ojos ${ojos}, Pelo ${cabello}, Piel ${tonoPiel})`
   };
 }
