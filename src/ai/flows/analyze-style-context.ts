@@ -34,7 +34,7 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
         content: `Actúa como un experto de élite en morfología facial y corporal. Tu misión es realizar un diagnóstico quirúrgico comparando las fotos del usuario contra estas paletas estrictas:
 
         PALETAS DE REFERENCIA (ELIGE EL MÁS CERCANO):
-        1. GÉNERO: Femenino (si las facciones y estructura son femeninas), Masculino (si las facciones y estructura son masculinas). Si hay duda razonable, utiliza el género predominante en la fisionomía.
+        1. GÉNERO: Femenino (facciones suaves, estructura ósea femenina), Masculino (facciones angulares, estructura ósea masculina).
         2. OJOS: Ámbar, Miel, Avellana, Verde Oliva, Verde Esmeralda, Azul Acero, Azul Grisáceo, Marrón Oscuro, Negro.
         3. PIEL (Tono): Pálido, Claro, Medio, Bronceado, Oscuro, Ébano.
         4. PIEL (Subtono): Cálido (Dorado), Frío (Rosado), Neutro.
@@ -42,7 +42,7 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
         6. SILUETA: Reloj de Arena, Pera, Rectángulo, Triángulo Invertido, Manzana.
         7. ESTACIÓN: (Una de las 12 estaciones de colorimetría).
 
-        REGLA DE ORO: NO respondas con "No analizado". Analiza píxel a píxel y toma una decisión.
+        REGLA DE ORO: NO respondas con "No analizado". Analiza píxel a píxel y toma una decisión definitiva.
 
         FORMATO DE RESPUESTA (JSON):
         {
