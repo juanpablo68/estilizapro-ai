@@ -1,7 +1,8 @@
+
 'use server';
 /**
  * @fileOverview FASE 1: Análisis Estructurado Biométrico Quirúrgico utilizando OpenAI GPT-4o.
- * Se enfoca en obtener etiquetas precisas de color de ojos, cabello y piel.
+ * Se enfoca en obtener etiquetas precisas de género, color de ojos, cabello y piel.
  */
 
 import { z } from 'genkit';
@@ -33,9 +34,9 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
         content: `Eres un experto en fisionomía y colorimetría forense. Analiza las fotos para identificar rasgos con precisión absoluta.
         
         REGLAS DE IDENTIFICACIÓN:
-        1. GÉNERO: Identifica basándote en rasgos fisionómicos reales (Masculino/Femenino).
-        2. OJOS: Realiza un zoom virtual al iris. Identifica matices claros: Miel, Ámbar, Verde Oliva, Hazel, Azul Acero, Gris, etc. NO digas solo "Marrón" si hay matices.
-        3. CABELLO: Determina el tono exacto (Castaño Claro, Rubio Ceniza, Pelirrojo, etc.) y la textura.
+        1. GÉNERO: Identifica basándote en rasgos fisionómicos reales (Masculino/Femenino). Este es el dato más importante.
+        2. OJOS: Identifica matices claros: Miel, Ámbar, Verde Oliva, Hazel, Azul Acero, Gris, etc.
+        3. CABELLO: Determina el tono exacto (Castaño Claro, Rubio Ceniza, Pelirrojo, Negro Intenso, etc.).
         4. SILUETA: Identifica la figura geométrica (Reloj de Arena, Triángulo Invertido, Rectángulo, Pera, Óvalo).
 
         RESPONDE EXCLUSIVAMENTE EN JSON:
@@ -51,14 +52,14 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
             "cabello": { "color_natural": "..." }
           },
           "cuerpo": {
-            "figura_geometrica": "..."
+            "figure_geometrica": "..."
           }
         }`
       },
       {
         role: "user",
         content: [
-          { type: "text", text: "Analiza el iris, la raíz del cabello y la silueta corporal. Identifica el género real." },
+          { type: "text", text: "Identifica el género real, el color exacto de ojos y el tono de cabello. Analiza la silueta de cuerpo completo." },
           { type: "image_url", image_url: { url: input.facePhotoDataUri } },
           { type: "image_url", image_url: { url: input.figurePhotoDataUri } }
         ],
@@ -71,7 +72,7 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
   const content = JSON.parse(rawContent);
   
   const genero = content.genero || 'No identificado';
-  const figura = content.cuerpo?.figura_geometrica || 'Reloj de Arena';
+  const figura = content.cuerpo?.figure_geometrica || 'Reloj de Arena';
   const ojos = content.rostro?.ojos?.color_detalle || 'No identificado';
   const cabello = content.rostro?.cabello?.color_natural || 'No identificado';
   const estacion = content.colorimetria?.estacion_sugerida || 'Otoño';
