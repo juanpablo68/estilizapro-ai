@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Pipeline Maestro de Probador Virtual Multimodal: GPT-4o (Razonamiento) + DALL-E 3 (Arte).
- * Soporta múltiples prendas simultáneas para visualización de outfits completos.
+ * Asegura consistencia absoluta del avatar y realismo quirúrgico de las prendas.
  */
 
 import { z } from 'genkit';
@@ -10,6 +10,7 @@ import OpenAI from 'openai';
 const PreviewOutfitOnAvatarInputSchema = z.object({
   avatarDataUri: z.string(),
   clothingItemsDataUris: z.array(z.string()).describe('Lista de imágenes de las prendas seleccionadas'),
+  biometricData: z.any().optional().describe('Datos para mantener la consistencia del personaje'),
   openaiApiKey: z.string().optional(),
 });
 
@@ -19,19 +20,25 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
 
   const openai = new OpenAI({ apiKey });
 
-  // ETAPA 1: RAZONAMIENTO MULTIMODAL (Cerebro GPT-4o)
-  // Analizamos el conjunto completo de prendas para entender capas y estilos.
+  // Extracción de rasgos para consistencia
+  const bio = input.biometricData || {};
+  const gender = bio.genero || 'Femenino';
+  const skin = bio.colorimetria?.tono_piel || 'natural skin tone';
+  const eyes = bio.rostro?.ojos?.color_detalle || 'natural eyes';
+  const hair = bio.rostro?.cabello?.color_natural || 'natural hair';
+
+  // ETAPA 1: RAZONAMIENTO DE MODA (Cerebro GPT-4o)
   const analysisResponse = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
       {
         role: "system",
-        content: "Eres un ingeniero de prompts experto en moda y renderizado 3D Pixar. Tu tarea es describir un conjunto completo de prendas reales para que un generador de imágenes pueda ponerlas exactamente igual sobre un personaje animado, respetando capas (ej: camisa bajo chaqueta)."
+        content: "Eres un sastre digital y experto en renderizado 3D fotorrealista. Tu misión es describir cómo se deben ver estas prendas REALES puestas sobre un personaje. Enfócate en la textura de la tela, el ajuste al cuerpo y las capas naturales."
       },
       {
         role: "user",
         content: [
-          { type: "text", text: "Analiza estas prendas y el avatar base. Describe detalladamente cómo debe verse el conjunto completo puesto en el personaje Pixar, manteniendo la fidelidad de color, textura y diseño de cada pieza." },
+          { type: "text", text: `Describe detalladamente cómo el personaje (${gender}, ojos ${eyes}, pelo ${hair}) debe vestir este conjunto. Asegura que la ropa parezca real, con arrugas naturales y texturas fieles a la foto de la prenda.` },
           ...input.clothingItemsDataUris.map(url => ({ type: "image_url" as const, image_url: { url } })),
           { type: "image_url", image_url: { url: input.avatarDataUri } }
         ],
@@ -41,10 +48,25 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
 
   const detailedDescription = analysisResponse.choices[0].message.content || "un conjunto de moda coordinado";
 
-  // ETAPA 2: GENERACIÓN VISUAL (Artista DALL-E 3)
+  // ETAPA 2: GENERACIÓN VISUAL DE ALTA FIDELIDAD (Artista DALL-E 3)
   const response = await openai.images.generate({
     model: "dall-e-3",
-    prompt: `Professional 3D fashion render in high-quality Disney/Pixar style. THE SAME CONSISTENT CHARACTER from the reference is now wearing THIS COMPLETE OUTFIT: ${detailedDescription}. PURE WHITE BACKGROUND. Full body head-to-toe shot. Perfect anatomical fit, cinematic lighting, vibrant clean textures. No text, no diagrams, just the character dressed.`,
+    prompt: `
+      A STUNNING FULL-LENGTH FASHION RENDER. 
+      CHARACTER: THE SAME CONSISTENT CHARACTER: A ${gender} with ${eyes} eyes, ${hair} hair, and ${skin} skin.
+      OUTFIT: Wearing exactly these items: ${detailedDescription}. 
+      STYLE: High-end 3D character animation (Pixar style) but with hyper-realistic fabric textures.
+      COMPOSITION:
+      - FULL BODY SHOT: From head to toe, feet and shoes must be clearly visible and within the frame.
+      - STANDING POSITION: Standing upright on a plain surface.
+      - PURE SOLID WHITE BACKGROUND: Absolute #FFFFFF white background. No floor lines, no grids, no shadows on walls.
+      - HIGH FIDELITY: The clothes must look realistically fitted to the 3D body, showing accurate colors and material properties.
+      
+      STRICT NEGATIVE CONSTRAINTS:
+      - NO wireframes, NO measurement lines, NO circles, NO HUD.
+      - NO text, NO labels, NO anatomical diagrams.
+      - NO blurred backgrounds, NO interior rooms.
+    `,
     n: 1,
     size: "1024x1024",
     quality: "hd",

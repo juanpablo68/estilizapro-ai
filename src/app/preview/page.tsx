@@ -55,6 +55,7 @@ export default function PreviewPage() {
       const result = await previewOutfitOnAvatar({
         avatarDataUri: profile.avatarDataUri,
         clothingItemsDataUris: selectedItems.map(i => i.imageDataUri),
+        biometricData: profile.biometricData, // Pasamos la memoria biométrica para consistencia
         openaiApiKey: openaiKey
       });
       setResultImage(result.previewImageDataUri);
@@ -180,7 +181,7 @@ export default function PreviewPage() {
                 </div>
                 <div className="text-center space-y-1">
                   <p className="text-sm font-bold text-primary">GPT-4o Coordinando Conjunto...</p>
-                  <p className="text-[10px] text-muted-foreground px-12">Integrando capas y texturas sobre tu avatar de cuerpo completo</p>
+                  <p className="text-[10px] text-muted-foreground px-12">Integrando capas y texturas reales sobre tu avatar</p>
                 </div>
               </div>
             ) : profile.avatarDataUri ? (
@@ -190,7 +191,7 @@ export default function PreviewPage() {
                   <div className="bg-white/90 p-6 rounded-[2rem] shadow-2xl border border-primary/10 max-w-[280px]">
                     <Shirt className="w-12 h-12 text-primary mx-auto mb-4 animate-bounce" />
                     <h3 className="text-sm font-bold mb-2">Listo para el montaje</h3>
-                    <p className="text-[10px] text-muted-foreground leading-relaxed">Selecciona una o varias prendas de tu armario para ver cómo te queda el conjunto completo.</p>
+                    <p className="text-[10px] text-muted-foreground leading-relaxed">Selecciona una o varias prendas de tu armario para ver cómo te queda el conjunto completo de forma realista.</p>
                   </div>
                 </div>
               </div>
