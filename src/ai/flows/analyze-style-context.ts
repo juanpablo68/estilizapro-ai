@@ -1,8 +1,7 @@
 'use server';
 /**
  * @fileOverview FASE 1: Análisis Estructurado Biométrico Quirúrgico utilizando OpenAI GPT-4o.
- * Implementa una metodología comparativa estricta contra paletas profesionales.
- * Optimizado para detección de matices sutiles en ojos (claros/mixtos) y cabello.
+ * Se enfoca en obtener etiquetas precisas de color de ojos, cabello y piel sin contaminar el flujo visual posterior.
  */
 
 import { z } from 'genkit';
@@ -31,28 +30,20 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
     messages: [
       {
         role: "system",
-        content: `Actúa como un experto de élite en colorimetría y morfología. Tu misión es realizar un diagnóstico quirúrgico. 
+        content: `Eres un experto en colorimetría forense y morfología. Tu tarea es identificar con precisión quirúrgica los rasgos del usuario analizando las imágenes.
         
-        INSTRUCCIONES DE ANÁLISIS:
-        1. OJOS (CRÍTICO): Analiza el iris. Busca matices. Si hay destellos dorados o verdes sobre base clara, especifica (ej. "Miel", "Verde Oliva"). No generalices a "Marrón" si hay claridad.
-        2. CABELLO: Determina el color base. Distingue entre "Castaño Oscuro" y "Negro". Si el cabello refleja luz, es "Castaño".
-        3. PIEL: Analiza el subtono en la zona de la mandíbula y cuello para evitar sombras faciales.
-        4. GÉNERO: Identifica basándote en estructura ósea y facciones.
+        INSTRUCCIONES DE IDENTIFICACIÓN:
+        1. OJOS: No digas solo "Marrón". Busca matices claros, dorados o verdes (Miel, Ámbar, Verde Oliva, Hazel). Si son azules, distingue (Azul Acero, Azul Claro, Grisáceo).
+        2. CABELLO: Determina el matiz real (Castaño Claro, Medio, Oscuro, Rubio Ceniza, etc.).
+        3. PIEL: Determina Tono (Muy Pálido a Ébano) y Subtono (Cálido/Dorado, Frío/Rosado, Neutro).
+        4. GÉNERO: Identifica basándote en rasgos óseos y fisionomía real.
 
-        PALETAS DE REFERENCIA OBLIGATORIAS:
-        - OJOS: Ámbar, Miel, Avellana, Verde Oliva, Verde Esmeralda, Azul Acero, Azul Grisáceo, Azul Claro, Marrón Claro, Marrón Oscuro, Negro.
-        - CABELLO: Rubio Platino, Rubio Dorado, Pelirrojo, Castaño Claro, Castaño Medio, Castaño Oscuro, Negro Azabache, Gris, Blanco.
-        - PIEL (Tono): Muy Pálido, Claro, Medio, Bronceado, Oscuro, Ébano.
-        - PIEL (Subtono): Cálido (Dorado), Frío (Rosado), Neutro.
-        - FIGURA: Reloj de Arena, Pera, Rectángulo, Triángulo Invertido, Manzana.
-
-        FORMATO DE RESPUESTA (JSON ESTRICTO):
+        RESPONDE EXCLUSIVAMENTE EN JSON:
         {
           "genero": "Masculino/Femenino",
           "colorimetria": {
             "tono_piel": "...",
             "subtono": "...",
-            "contraste_facial": "Bajo/Medio/Alto",
             "estacion_sugerida": "..."
           },
           "rostro": {
@@ -67,7 +58,7 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
       {
         role: "user",
         content: [
-          { type: "text", text: "Realiza el diagnóstico biométrico quirúrgico exacto. Analiza el matiz real de ojos y cabello comparando píxeles contra las paletas indicadas." },
+          { type: "text", text: "Analiza el iris y la raíz del cabello comparando contra matices profesionales. Identifica el género real." },
           { type: "image_url", image_url: { url: input.facePhotoDataUri } },
           { type: "image_url", image_url: { url: input.figurePhotoDataUri } }
         ],
@@ -91,13 +82,12 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
   const genero = content.genero || 'No identificado';
   const figura = getVal(['cuerpo', 'figura_geometrica'], 'Reloj de Arena');
   const ojos = getVal(['rostro', 'ojos', 'color_detalle'], 'No identificado');
-  const cabello = getVal(['rostro', 'cabello', 'color_natural'], 'No identificado');
+  const cabello = getVal(['rostro.cabello.color_natural'], 'No identificado');
   const estacion = getVal(['colorimetria', 'estacion_sugerida'], 'Otoño');
-  const tonoPiel = getVal(['colorimetria', 'tono_piel'], 'Claro');
 
   return {
     biometricData: content,
     figureAnalysis: `Figura: ${figura}`,
-    colorimetryAnalysis: `${estacion} (${genero}, Ojos ${ojos}, Pelo ${cabello}, Piel ${tonoPiel})`
+    colorimetryAnalysis: `${estacion} (${genero}, Ojos ${ojos}, Pelo ${cabello})`
   };
 }

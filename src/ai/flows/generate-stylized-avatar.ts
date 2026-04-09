@@ -1,8 +1,8 @@
 'use server';
 /**
- * @fileOverview FASE 2: Generación de Avatar 3D de alta fidelidad.
- * Optimizado para cuerpo completo, género identificado y fondo blanco inmaculado.
- * ELIMINACIÓN RADICAL de líneas técnicas, mallas de alambre, círculos de medida y diagramas.
+ * @fileOverview FASE 2: Generación Artística de Avatar.
+ * ELIMINACIÓN RADICAL de cualquier lenguaje técnico para evitar líneas HUD, círculos y diagramas.
+ * Se enfoca en un renderizado de personaje Disney/Pixar limpio sobre fondo blanco puro.
  */
 
 import { ai } from '@/ai/genkit';
@@ -18,10 +18,7 @@ const GenerateStylizedAvatarOutputSchema = z.object({
   avatarDataUri: z.string(),
 });
 
-export type GenerateStylizedAvatarInput = z.infer<typeof GenerateStylizedAvatarInputSchema>;
-export type GenerateStylizedAvatarOutput = z.infer<typeof GenerateStylizedAvatarOutputSchema>;
-
-export async function generateStylizedAvatar(input: GenerateStylizedAvatarInput): Promise<GenerateStylizedAvatarOutput> {
+export async function generateStylizedAvatar(input: z.infer<typeof GenerateStylizedAvatarInputSchema>): Promise<z.infer<typeof GenerateStylizedAvatarOutputSchema>> {
   return generateStylizedAvatarFlow(input);
 }
 
@@ -38,50 +35,34 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     const openai = new OpenAI({ apiKey });
     const bio = input.biometricData || {};
 
-    const g = (path: string, defaultValue = 'standard') => {
-      const parts = path.split('.');
-      let current: any = bio;
-      for (const part of parts) {
-        if (current && typeof current === 'object' && part in current) {
-          current = current[part];
-        } else {
-          return defaultValue;
-        }
-      }
-      return current || defaultValue;
-    };
-
+    // Mapeo simple de etiquetas para evitar palabras técnicas que confunden a DALL-E
     const gender = bio.genero || 'Femenino';
-    const skinTono = g('colorimetria.tono_piel');
-    const eyeColor = g('rostro.ojos.color_detalle');
-    const hairColor = g('rostro.cabello.color_natural');
+    const skin = bio.colorimetria?.tono_piel || 'clear';
+    const eyes = bio.rostro?.ojos?.color_detalle || 'natural';
+    const hair = bio.rostro?.cabello?.color_natural || 'natural';
 
-    // Prompt radicalmente artístico para evitar CUALQUIER interpretación técnica
     const finalPrompt = `
-      A STUNNING FULL-BODY 3D CHARACTER RENDER in the style of high-end modern animation (Disney/Pixar style). 
-      This is a clean, finished fashion catalog image for a character model.
+      A STUNNING SINGLE-CHARACTER LIFESTYLE PORTRAIT in the style of high-end modern 3D animation (Disney/Pixar style).
       
-      COMPOSITION & FRAME:
-      - FULL BODY VIEW: The character MUST be shown from head to toe. 
-      - VISIBLE FEET: The entire legs and feet MUST be inside the camera frame.
-      - PURE SOLID WHITE BACKGROUND: The background MUST be absolute #FFFFFF solid white. No floor lines, no shadows on the wall, no gradients, no grey, no props.
+      COMPOSITION:
+      - SINGLE FIGURE: Only one character in the frame.
+      - FULL BODY VIEW: Shown from head to toe, with feet fully visible and inside the frame.
+      - PURE SOLID WHITE BACKGROUND: Absolute #FFFFFF paper-white background. No shadows, no floor lines, no gradients, no grey spots.
       
-      CHARACTER DESIGN:
+      CHARACTER DETAILS:
       - Gender: Clearly ${gender} anatomy and facial features.
-      - Skin: Smooth ${skinTono} complexion.
-      - Eyes: Clear and detailed ${eyeColor} eyes, warm friendly look.
-      - Hair: Beautifully rendered ${hairColor} hair, professional digital styling.
-      
-      CLOTHING:
-      - Wearing simple, high-quality modern lifestyle clothing: a plain premium cotton t-shirt, minimal slim-fit joggers, and clean white fashion sneakers.
+      - Features: Beautifully rendered ${eyes} eyes and ${hair} hair.
+      - Skin: Smooth ${skin} skin texture.
+      - Clothing: Wearing simple, elegant modern casual clothes (plain t-shirt and minimal trousers).
       
       STRICT NEGATIVE CONSTRAINTS (FORBIDDEN):
-      - NO CIRCLES, NO LINES, NO GRIDS, NO DOTS, NO CROSSHAIRS.
-      - NO HUD, NO UI ELEMENTS, NO TECHNICAL INTERFACE.
-      - NO DIAGRAMS, NO BLUEPRINTS, NO MEASUREMENT MARKERS.
-      - NO TEXT, NO ANNOTATIONS, NO NUMBERS.
-      - DO NOT DRAW ANY GEOMETRIC SHAPES AROUND THE CHARACTER.
-      - The image must look like a pure artistic portrait on a white paper background.
+      - NO HUD, NO INTERFACE, NO UI.
+      - NO CIRCLES, NO LINES, NO GRIDS, NO MEASUREMENTS.
+      - NO DIAGRAMS, NO BLUEPRINTS, NO TECHNICAL DRAWINGS.
+      - NO TEXT, NO NUMBERS, NO ANNOTATIONS.
+      - NO MULTIPLE VIEWS: Only one character looking forward.
+      - NO WIREFRAMES, NO 3D MESH LINES.
+      - The image must look like a finished artistic character model on a plain white page.
     `;
 
     try {
@@ -102,7 +83,7 @@ const generateStylizedAvatarFlow = ai.defineFlow(
         avatarDataUri: `data:image/png;base64,${imageData}`
       };
     } catch (error: any) {
-      console.error("DALL-E Generation Error:", error);
+      console.error("DALL-E Error:", error);
       throw new Error(error.message || "Error al generar el avatar visual.");
     }
   }
