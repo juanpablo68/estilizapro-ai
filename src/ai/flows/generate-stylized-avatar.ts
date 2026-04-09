@@ -1,8 +1,8 @@
 'use server';
 /**
  * @fileOverview FASE 2: Generación Artística de Avatar.
- * ELIMINACIÓN RADICAL de cualquier lenguaje técnico para evitar líneas HUD, círculos y diagramas.
- * Se enfoca en un renderizado de personaje Disney/Pixar limpio sobre fondo blanco puro.
+ * Eliminación de cualquier término técnico para evitar ruido visual (HUD, líneas, círculos).
+ * Enfoque en fondo blanco puro y cuerpo completo.
  */
 
 import { ai } from '@/ai/genkit';
@@ -35,34 +35,29 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     const openai = new OpenAI({ apiKey });
     const bio = input.biometricData || {};
 
-    // Mapeo simple de etiquetas para evitar palabras técnicas que confunden a DALL-E
     const gender = bio.genero || 'Femenino';
-    const skin = bio.colorimetria?.tono_piel || 'clear';
-    const eyes = bio.rostro?.ojos?.color_detalle || 'natural';
-    const hair = bio.rostro?.cabello?.color_natural || 'natural';
+    const skin = bio.colorimetria?.tono_piel || 'natural skin tone';
+    const eyes = bio.rostro?.ojos?.color_detalle || 'natural eyes';
+    const hair = bio.rostro?.cabello?.color_natural || 'natural hair';
 
+    // Prompt puramente artístico de alta gama
     const finalPrompt = `
-      A STUNNING SINGLE-CHARACTER LIFESTYLE PORTRAIT in the style of high-end modern 3D animation (Disney/Pixar style).
+      A STUNNING SINGLE-CHARACTER LIFESTYLE PORTRAIT. 
+      STYLE: High-end modern 3D animation (Disney/Pixar style). 
+      CHARACTER: A beautiful ${gender} with ${eyes} eyes and ${hair} hair. ${skin} skin tone. 
+      COMPOSITION: 
+      - FULL BODY VIEW: Head to toe, feet must be fully visible and inside the frame. 
+      - PURE SOLID WHITE BACKGROUND: Absolute #FFFFFF paper-white background. No floor lines, no gradients, no grey spots. 
+      - CLOTHING: Wearing simple elegant modern casual clothing.
       
-      COMPOSITION:
-      - SINGLE FIGURE: Only one character in the frame.
-      - FULL BODY VIEW: Shown from head to toe, with feet fully visible and inside the frame.
-      - PURE SOLID WHITE BACKGROUND: Absolute #FFFFFF paper-white background. No shadows, no floor lines, no gradients, no grey spots.
-      
-      CHARACTER DETAILS:
-      - Gender: Clearly ${gender} anatomy and facial features.
-      - Features: Beautifully rendered ${eyes} eyes and ${hair} hair.
-      - Skin: Smooth ${skin} skin texture.
-      - Clothing: Wearing simple, elegant modern casual clothes (plain t-shirt and minimal trousers).
-      
-      STRICT NEGATIVE CONSTRAINTS (FORBIDDEN):
-      - NO HUD, NO INTERFACE, NO UI.
+      FORBIDDEN (STRICT NEGATIVE CONSTRAINTS):
+      - NO HUD, NO INTERFACE, NO UI ELEMENTS.
       - NO CIRCLES, NO LINES, NO GRIDS, NO MEASUREMENTS.
       - NO DIAGRAMS, NO BLUEPRINTS, NO TECHNICAL DRAWINGS.
       - NO TEXT, NO NUMBERS, NO ANNOTATIONS.
-      - NO MULTIPLE VIEWS: Only one character looking forward.
-      - NO WIREFRAMES, NO 3D MESH LINES.
-      - The image must look like a finished artistic character model on a plain white page.
+      - NO MULTIPLE VIEWS OR MULTIPLE IMAGES: ONLY ONE CHARACTER.
+      - NO WIREFRAMES, NO MESH.
+      - The image must look like a clean finished artistic render on a plain white page.
     `;
 
     try {
