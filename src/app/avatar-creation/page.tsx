@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -7,7 +8,7 @@ import { generateStylizedAvatar } from '@/ai/flows/generate-stylized-avatar';
 import { analyzeStyleContext } from '@/ai/flows/analyze-style-context';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, Image as ImageIcon, Loader2, Sparkles, RefreshCw, Brain, CheckCircle } from "lucide-react";
+import { Camera, Image as ImageIcon, Loader2, Sparkles, RefreshCw, Brain, CheckCircle, Settings, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -87,6 +88,14 @@ export default function AvatarCreationPage() {
     }
 
     const openaiKey = localStorage.getItem('openai_api_key') || undefined;
+    if (!openaiKey) {
+      toast({
+        variant: "destructive",
+        title: "Configuración Requerida",
+        description: "Por favor, configura tu API Key de OpenAI en Ajustes antes de continuar.",
+      });
+      return;
+    }
 
     setLoading(true);
     try {
@@ -144,10 +153,22 @@ export default function AvatarCreationPage() {
 
   return (
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">
-      <div className="space-y-2 text-center pt-8">
-        <h1 className="text-3xl font-headline font-bold text-primary">Esencia Biométrica</h1>
-        <p className="text-muted-foreground text-sm">Diagnóstico Real y Modelado 3D</p>
-      </div>
+      <header className="flex items-center justify-between pt-8">
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard">
+             <Button variant="ghost" size="icon" className="rounded-full"><ArrowLeft /></Button>
+          </Link>
+          <div className="space-y-0.5">
+            <h1 className="text-2xl font-headline font-bold text-primary leading-none">Esencia Biométrica</h1>
+            <p className="text-muted-foreground text-[10px] uppercase font-black tracking-widest">Diagnóstico Real</p>
+          </div>
+        </div>
+        <Link href="/settings">
+          <Button variant="outline" size="sm" className="rounded-xl border-primary text-primary font-bold gap-2 bg-white hover:bg-primary/5 shadow-sm">
+            <Settings className="w-4 h-4" /> Configurar APIs
+          </Button>
+        </Link>
+      </header>
 
       {!generatedAvatar ? (
         <div className="space-y-6 animate-in fade-in duration-500">
