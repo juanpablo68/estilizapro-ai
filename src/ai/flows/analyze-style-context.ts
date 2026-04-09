@@ -1,8 +1,8 @@
-
 'use server';
 /**
  * @fileOverview FASE 1: Análisis Estructurado Biométrico Quirúrgico utilizando OpenAI GPT-4o.
  * Implementa una metodología comparativa estricta contra paletas profesionales.
+ * Ahora incluye detección de género para personalización del avatar.
  */
 
 import { z } from 'genkit';
@@ -34,18 +34,19 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
         content: `Actúa como un experto de élite en morfología facial y corporal. Tu misión es realizar un diagnóstico quirúrgico comparando las fotos del usuario contra estas paletas estrictas:
 
         PALETAS DE REFERENCIA (ELIGE EL MÁS CERCANO):
-        1. OJOS: Ámbar, Miel, Avellana, Verde Oliva, Verde Esmeralda, Azul Acero, Azul Grisáceo, Marrón Oscuro, Negro.
-        2. PIEL (Tono): Pálido, Claro, Medio, Bronceado, Oscuro, Ébano.
-        3. PIEL (Subtono): Cálido (Dorado), Frío (Rosado), Neutro.
-        4. CABELLO: Rubio Platino, Rubio Dorado, Pelirrojo, Castaño Claro, Castaño Oscuro, Negro Azabache, Gris/Blanco.
-        5. SILUETA: Reloj de Arena, Pera, Rectángulo, Triángulo Invertido, Manzana.
-        6. ESTACIÓN: (Una de las 12 estaciones: ej. Invierno Brillante, Otoño Verdadero, Verano Suave, etc.)
-        7. CONTRASTE: Bajo, Medio, Alto.
+        1. GÉNERO: Femenino (si las facciones y estructura son femeninas), Masculino (si las facciones y estructura son masculinas). Si hay duda razonable, utiliza el género predominante en la fisionomía.
+        2. OJOS: Ámbar, Miel, Avellana, Verde Oliva, Verde Esmeralda, Azul Acero, Azul Grisáceo, Marrón Oscuro, Negro.
+        3. PIEL (Tono): Pálido, Claro, Medio, Bronceado, Oscuro, Ébano.
+        4. PIEL (Subtono): Cálido (Dorado), Frío (Rosado), Neutro.
+        5. CABELLO: Rubio Platino, Rubio Dorado, Pelirrojo, Castaño Claro, Castaño Oscuro, Negro Azabache, Gris/Blanco.
+        6. SILUETA: Reloj de Arena, Pera, Rectángulo, Triángulo Invertido, Manzana.
+        7. ESTACIÓN: (Una de las 12 estaciones de colorimetría).
 
-        REGLA DE ORO: NO respondas con "No analizado" o "Por definir". Analiza píxel a píxel y toma una decisión basada en las paletas anteriores.
+        REGLA DE ORO: NO respondas con "No analizado". Analiza píxel a píxel y toma una decisión.
 
         FORMATO DE RESPUESTA (JSON):
         {
+          "genero": "Femenino/Masculino",
           "colorimetria": {
             "tono_piel": "...",
             "subtono": "...",
@@ -64,7 +65,7 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
       {
         role: "user",
         content: [
-          { type: "text", text: "Realiza el diagnóstico biométrico quirúrgico. Compara mi rostro y cuerpo con las paletas y dame el resultado exacto en JSON." },
+          { type: "text", text: "Realiza el diagnóstico biométrico quirúrgico exacto en JSON." },
           { type: "image_url", image_url: { url: input.facePhotoDataUri } },
           { type: "image_url", image_url: { url: input.figurePhotoDataUri } }
         ],
@@ -76,7 +77,6 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
   const rawContent = response.choices[0].message.content || "{}";
   const content = JSON.parse(rawContent);
   
-  // Normalización agresiva de datos para evitar el "Por definir"
   const getVal = (path: string[], fallback: string) => {
     let current = content;
     for (const key of path) {
@@ -86,16 +86,16 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
     return typeof current === 'string' ? current : fallback;
   };
 
+  const genero = content.genero || 'Femenino';
   const figura = getVal(['cuerpo', 'figura_geometrica'], 'Reloj de Arena');
   const ojos = getVal(['rostro', 'ojos', 'color_detalle'], 'Marrón');
   const cabello = getVal(['rostro', 'cabello', 'color_natural'], 'Castaño');
   const estacion = getVal(['colorimetria', 'estacion_sugerida'], 'Otoño Verdadero');
   const tonoPiel = getVal(['colorimetria', 'tono_piel'], 'Medio');
-  const subtono = getVal(['colorimetria', 'subtono'], 'Neutro');
 
   return {
-    biometricData: content, // Guardamos el JSON completo para el chat
+    biometricData: content,
     figureAnalysis: `Figura: ${figura}`,
-    colorimetryAnalysis: `${estacion} (Piel ${tonoPiel}, Ojos ${ojos}, Pelo ${cabello})`
+    colorimetryAnalysis: `${estacion} (${genero}, Piel ${tonoPiel}, Ojos ${ojos}, Pelo ${cabello})`
   };
 }

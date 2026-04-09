@@ -1,7 +1,8 @@
 'use server';
 /**
- * @fileOverview FASE 2: Generación de Avatar 3D Pixar de alta fidelidad utilizando DALL-E 3.
- * Optimizado para encuadre de cuerpo completo (head-to-toe) y eliminación de artefactos técnicos.
+ * @fileOverview FASE 2: Generación de Avatar 3D Pixar de alta fidelidad.
+ * Optimizado para cuerpo completo, género identificado y FONDO BLANCO PURO.
+ * Eliminación total de artefactos técnicos y puntos de color.
  */
 
 import { ai } from '@/ai/genkit';
@@ -37,7 +38,6 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     const openai = new OpenAI({ apiKey });
     const bio = input.biometricData || {};
 
-    // Función de ayuda para evitar errores de 'undefined'
     const g = (path: string, defaultValue = 'not specified') => {
       const parts = path.split('.');
       let current: any = bio;
@@ -51,26 +51,29 @@ const generateStylizedAvatarFlow = ai.defineFlow(
       return current || defaultValue;
     };
 
-    // Construcción del prompt maestro optimizado para CUERPO COMPLETO y ESTILO LIMPIO
+    const gender = bio.genero || 'Feminine';
+    const skinTono = g('colorimetria.tono_piel');
+    const eyeColor = g('rostro.ojos.color_detalle');
+    const hairColor = g('rostro.cabello.color_natural');
+
+    // Prompt optimizado para CUERPO COMPLETO, GÉNERO CORRECTO y FONDO BLANCO PURO
     const finalPrompt = `
-      HEAD-TO-TOE FULL BODY CINEMATIC SHOT of a Disney/Pixar style 3D character standing in a neutral pose.
+      HEAD-TO-TOE FULL BODY CINEMATIC SHOT of a ${gender} character in a high-quality 3D digital animation style.
       
-      PHYSICAL DESCRIPTION:
-      - Character Gender: ${g('genero')}
-      - Hair: ${g('cabello.color')}, ${g('cabello.tipo')} texture, ${g('cabello.peinado')} style.
-      - Face: ${g('rostro.ojos.color')} eyes, friendly expression, ${g('tono_piel.categoria')} skin tone.
-      - Body: ${g('cuerpo.complexion')} build, realistic height and proportions.
+      PHYSICAL CHARACTERISTICS:
+      - Face: ${gender} features, ${eyeColor} eyes, friendly expression.
+      - Skin: ${skinTono} tone.
+      - Hair: ${hairColor} color.
       
       OUTFIT:
-      - Wearing minimalist minimalist athletic sports clothes: a plain technical t-shirt, leggings or joggers, and clean modern sneakers.
-      - The entire outfit from head to shoes must be completely visible within the frame.
+      - Wearing basic minimalist technical sports clothes: technical t-shirt, leggings/joggers, and modern sneakers.
       
-      COMPOSITION & STYLE:
-      - FULL BODY VIEW: The character's head must be at the top of the frame and their feet must be clearly visible at the bottom.
-      - Character is standing centered, facing the camera on a simple clean studio floor.
-      - NO technical lines, NO diagrams, NO blueprint markers, NO measurement text, NO grids.
-      - Professional digital 3D animation art style, vibrant colors, clean soft textures.
-      - Soft studio lighting with a clean bokeh background.
+      COMPOSITION & ENVIRONMENT:
+      - PURE WHITE BACKGROUND. Entirely empty white studio space.
+      - FULL BODY VIEW: Character's head to shoes must be completely visible.
+      - NO technical dots, NO measurement points, NO color swatches on the face, NO eye color verification markers.
+      - NO technical diagrams, NO blueprint lines, NO text, NO labels.
+      - Clean 3D render, soft lighting, vibrant professional digital art.
     `;
 
     try {
@@ -92,10 +95,7 @@ const generateStylizedAvatarFlow = ai.defineFlow(
       };
     } catch (error: any) {
       console.error("DALL-E Generation Error:", error);
-      if (error.status === 400) {
-        throw new Error("El motor de IA bloqueó la descripción por seguridad. Intenta con fotos más claras o menos sombras.");
-      }
-      throw error;
+      throw new Error(error.message || "Error al generar el avatar visual.");
     }
   }
 );
