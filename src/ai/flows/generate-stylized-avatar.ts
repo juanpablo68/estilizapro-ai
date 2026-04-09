@@ -1,8 +1,8 @@
 'use server';
 /**
  * @fileOverview FASE 2: Generación de Avatar 3D de alta fidelidad.
- * Optimizado para cuerpo completo, género identificado y FONDO BLANCO PURO.
- * Eliminación total de artefactos técnicos, líneas de medición y puntos de color.
+ * Optimizado para cuerpo completo, género identificado y fondo blanco inmaculado.
+ * ELIMINACIÓN TOTAL de líneas técnicas, mallas de alambre y diagramas.
  */
 
 import { ai } from '@/ai/genkit';
@@ -56,24 +56,31 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     const eyeColor = g('rostro.ojos.color_detalle');
     const hairColor = g('rostro.cabello.color_natural');
 
-    // Prompt rediseñado para evitar CUALQUIER elemento técnico
+    // Prompt rediseñado para ser puramente artístico y evitar CUALQUIER elemento técnico
     const finalPrompt = `
-      HEAD-TO-TOE FULL BODY cinematic shot of a ${gender} character in a high-quality 3D digital animation style.
+      A HIGH-QUALITY 3D DIGITAL CHARACTER RENDER in the style of modern animated films. 
+      This is a finished cinematic character model, NOT a technical drawing.
+      
+      COMPOSITION:
+      - FULL BODY STANDING POSE.
+      - HEAD-TO-TOE SHOT: The entire character from head to feet MUST be completely visible inside the frame.
+      - PURE SOLID WHITE BACKGROUND (#FFFFFF). No shadows, no floor, no props, no gradients.
       
       PHYSICAL CHARACTERISTICS:
-      - Face and Body: Clearly ${gender} anatomy and facial features.
-      - Eyes: ${eyeColor} color, friendly expression.
-      - Skin: ${skinTono} tone.
-      - Hair: ${hairColor} color, realistic stylized texture.
+      - Gender: Clearly ${gender} facial features and body anatomy.
+      - Eyes: Realistic ${eyeColor} eyes, soft friendly expression.
+      - Skin: Smooth ${skinTono} skin tone.
+      - Hair: Stylized ${hairColor} hair with professional digital grooming.
       
       OUTFIT:
-      - Wearing simple minimalist technical sportswear: technical t-shirt, leggings or joggers, and modern sneakers.
+      - Wearing simple modern minimalist lifestyle clothing: a plain cotton t-shirt, casual joggers, and clean modern sneakers.
       
-      STRICT COMPOSITION RULES:
-      - BACKGROUND: PURE SOLID WHITE BACKGROUND. Hex code #FFFFFF. No shadows, no gradients, no props.
-      - NO TECHNICAL ELEMENTS: Absolutely NO measurement lines, NO technical dots, NO blueprint markings, NO CAD diagrams, NO text, NO labels, NO color swatches, NO eye-verification circles.
-      - FULL BODY: Head, torso, arms, legs, and feet MUST be fully visible in the frame.
-      - STYLE: Clean 3D render, soft professional lighting, vibrant digital art.
+      STRICT PROHIBITIONS (DO NOT INCLUDE):
+      - NO technical lines, NO grid lines, NO wireframes, NO measurement markers.
+      - NO blueprint elements, NO CAD diagrams, NO anatomical labels.
+      - NO text, NO numbers, NO circles around the eyes, NO crosshairs.
+      - The character MUST NOT have any white or glowing lines drawn on their body or clothes.
+      - The image must look like a clean, finished 3D illustration.
     `;
 
     try {
