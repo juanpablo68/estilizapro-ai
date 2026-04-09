@@ -2,7 +2,7 @@
 /**
  * @fileOverview FASE 2: Generación de Avatar 3D de alta fidelidad.
  * Optimizado para cuerpo completo, género identificado y fondo blanco inmaculado.
- * ELIMINACIÓN TOTAL de líneas técnicas, mallas de alambre y diagramas.
+ * ELIMINACIÓN RADICAL de líneas técnicas, mallas de alambre, círculos de medida y diagramas.
  */
 
 import { ai } from '@/ai/genkit';
@@ -38,7 +38,7 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     const openai = new OpenAI({ apiKey });
     const bio = input.biometricData || {};
 
-    const g = (path: string, defaultValue = 'not specified') => {
+    const g = (path: string, defaultValue = 'standard') => {
       const parts = path.split('.');
       let current: any = bio;
       for (const part of parts) {
@@ -56,31 +56,32 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     const eyeColor = g('rostro.ojos.color_detalle');
     const hairColor = g('rostro.cabello.color_natural');
 
-    // Prompt rediseñado para ser puramente artístico y evitar CUALQUIER elemento técnico
+    // Prompt radicalmente artístico para evitar CUALQUIER interpretación técnica
     const finalPrompt = `
-      A HIGH-QUALITY 3D DIGITAL CHARACTER RENDER in the style of modern animated films. 
-      This is a finished cinematic character model, NOT a technical drawing.
+      A STUNNING FULL-BODY 3D CHARACTER RENDER in the style of high-end modern animation (Disney/Pixar style). 
+      This is a clean, finished fashion catalog image for a character model.
       
-      COMPOSITION:
-      - FULL BODY STANDING POSE.
-      - HEAD-TO-TOE SHOT: The entire character from head to feet MUST be completely visible inside the frame.
-      - PURE SOLID WHITE BACKGROUND (#FFFFFF). No shadows, no floor, no props, no gradients.
+      COMPOSITION & FRAME:
+      - FULL BODY VIEW: The character MUST be shown from head to toe. 
+      - VISIBLE FEET: The entire legs and feet MUST be inside the camera frame.
+      - PURE SOLID WHITE BACKGROUND: The background MUST be absolute #FFFFFF solid white. No floor lines, no shadows on the wall, no gradients, no grey, no props.
       
-      PHYSICAL CHARACTERISTICS:
-      - Gender: Clearly ${gender} facial features and body anatomy.
-      - Eyes: Realistic ${eyeColor} eyes, soft friendly expression.
-      - Skin: Smooth ${skinTono} skin tone.
-      - Hair: Stylized ${hairColor} hair with professional digital grooming.
+      CHARACTER DESIGN:
+      - Gender: Clearly ${gender} anatomy and facial features.
+      - Skin: Smooth ${skinTono} complexion.
+      - Eyes: Clear and detailed ${eyeColor} eyes, warm friendly look.
+      - Hair: Beautifully rendered ${hairColor} hair, professional digital styling.
       
-      OUTFIT:
-      - Wearing simple modern minimalist lifestyle clothing: a plain cotton t-shirt, casual joggers, and clean modern sneakers.
+      CLOTHING:
+      - Wearing simple, high-quality modern lifestyle clothing: a plain premium cotton t-shirt, minimal slim-fit joggers, and clean white fashion sneakers.
       
-      STRICT PROHIBITIONS (DO NOT INCLUDE):
-      - NO technical lines, NO grid lines, NO wireframes, NO measurement markers.
-      - NO blueprint elements, NO CAD diagrams, NO anatomical labels.
-      - NO text, NO numbers, NO circles around the eyes, NO crosshairs.
-      - The character MUST NOT have any white or glowing lines drawn on their body or clothes.
-      - The image must look like a clean, finished 3D illustration.
+      STRICT NEGATIVE CONSTRAINTS (FORBIDDEN):
+      - NO CIRCLES, NO LINES, NO GRIDS, NO DOTS, NO CROSSHAIRS.
+      - NO HUD, NO UI ELEMENTS, NO TECHNICAL INTERFACE.
+      - NO DIAGRAMS, NO BLUEPRINTS, NO MEASUREMENT MARKERS.
+      - NO TEXT, NO ANNOTATIONS, NO NUMBERS.
+      - DO NOT DRAW ANY GEOMETRIC SHAPES AROUND THE CHARACTER.
+      - The image must look like a pure artistic portrait on a white paper background.
     `;
 
     try {
