@@ -2,7 +2,7 @@
 /**
  * @fileOverview FASE 2: Generación Artística de Avatar.
  * Eliminación de cualquier término técnico para evitar ruido visual (HUD, líneas, círculos).
- * Enfoque en fondo blanco puro y cuerpo completo.
+ * Enfoque en fondo blanco puro y cuerpo completo (Pies a cabeza).
  */
 
 import { ai } from '@/ai/genkit';
@@ -40,14 +40,15 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     const eyes = bio.rostro?.ojos?.color_detalle || 'natural eyes';
     const hair = bio.rostro?.cabello?.color_natural || 'natural hair';
 
-    // Prompt puramente artístico de alta gama
+    // Prompt puramente artístico de alta gama con enfoque estricto en cuerpo completo
     const finalPrompt = `
       A STUNNING SINGLE-CHARACTER LIFESTYLE PORTRAIT. 
       STYLE: High-end modern 3D animation (Disney/Pixar style). 
       CHARACTER: A beautiful ${gender} with ${eyes} eyes and ${hair} hair. ${skin} skin tone. 
       COMPOSITION: 
-      - FULL BODY VIEW: Head to toe, feet must be fully visible and inside the frame. 
-      - PURE SOLID WHITE BACKGROUND: Absolute #FFFFFF paper-white background. No floor lines, no gradients, no grey spots. 
+      - FULL BODY VIEW: Head to toe, feet must be fully visible and inside the frame. Show the entire person from the top of the head to the soles of their shoes.
+      - WIDE ANGLE SHOT: Ensure there is space around the character so no part of the body is cropped.
+      - PURE SOLID WHITE BACKGROUND: Absolute #FFFFFF paper-white background. No floor lines, no gradients, no shadows on walls, no grey spots. 
       - CLOTHING: Wearing simple elegant modern casual clothing.
       
       FORBIDDEN (STRICT NEGATIVE CONSTRAINTS):
