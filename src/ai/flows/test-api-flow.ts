@@ -5,33 +5,38 @@
 
 import OpenAI from 'openai';
 import { z } from 'genkit';
+import { getOpenAIKey, getUnsplashKey } from '@/ai/genkit';
 
 const TestAPIInputSchema = z.object({
   provider: z.enum(['openai', 'unsplash']),
-  apiKey: z.string(),
+  apiKey: z.string().optional(),
 });
 
 export async function testAPIConnection(input: z.infer<typeof TestAPIInputSchema>) {
   try {
-    if (!input.apiKey || input.apiKey.trim() === '') {
-      throw new Error(`La llave de ${input.provider} está vacía.`);
+    const finalKey = input.provider === 'openai' 
+        ? getOpenAIKey(input.apiKey) 
+        : getUnsplashKey(input.apiKey);
+
+    if (!finalKey || finalKey.trim() === '') {
+      throw new Error(`No se encontró una llave de ${input.provider} (ni manual ni global).`);
     }
     
     if (input.provider === 'openai') {
-      const openai = new OpenAI({ apiKey: input.apiKey });
+      const openai = new OpenAI({ apiKey: finalKey });
       const response = await openai.models.list();
       const hasGpt4 = response.data.some(m => m.id.includes('gpt-4o'));
       
       return { 
         success: true, 
         message: hasGpt4 
-          ? "¡Conexión Exitosa! GPT-4o y DALL-E están listos." 
-          : "Conexión exitosa, pero no se detectó acceso a GPT-4o. Revisa tu plan."
+          ? "¡Conexión Exitosa! GPT-4o y DALL-E están activos mediante la configuración global." 
+          : "Conexión exitosa, pero verifica el acceso a GPT-4o en tu plan."
       };
     } else {
       // Test Unsplash
       const response = await fetch(
-        `https://api.unsplash.com/photos/random?client_id=${input.apiKey}`,
+        `https://api.unsplash.com/photos/random?client_id=${finalKey}`,
         { method: 'GET' }
       );
       

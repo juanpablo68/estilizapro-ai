@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Save, Key, ImageIcon, Loader2, BookOpen, Sparkles, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, Save, Key, ImageIcon, Loader2, BookOpen, CheckCircle, XCircle, Info } from "lucide-react";
 import Link from 'next/link';
 import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
 import { useToast } from "@/hooks/use-toast";
@@ -41,12 +41,14 @@ export default function SettingsPage() {
     
     toast({
       title: "Configuración Guardada",
-      description: "Pipeline de IA y motor visual de Unsplash actualizados.",
+      description: "Pipeline de IA y motor visual actualizados localmente.",
     });
   };
 
   const handleTestOpenAI = async () => {
-    if (!openaiKey) return;
+    if (!openaiKey) {
+        toast({ title: "Sin llave manual", description: "Se intentará usar la llave pre-configurada del sistema.", variant: "default" });
+    }
     setTestStatusOpenAI('loading');
     const result = await testAPIConnection({ provider: 'openai', apiKey: openaiKey });
     setTestStatusOpenAI(result.success ? 'success' : 'error');
@@ -58,7 +60,6 @@ export default function SettingsPage() {
   };
 
   const handleTestUnsplash = async () => {
-    if (!unsplashKey) return;
     setTestStatusUnsplash('loading');
     const result = await testAPIConnection({ provider: 'unsplash', apiKey: unsplashKey });
     setTestStatusUnsplash(result.success ? 'success' : 'error');
@@ -84,6 +85,13 @@ export default function SettingsPage() {
       </header>
 
       <div className="space-y-6">
+        <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 flex gap-3 items-start">
+            <Info className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
+            <p className="text-[10px] text-indigo-700 leading-relaxed font-medium">
+                <strong>Nota del Demo:</strong> Las llaves de API y el conocimiento base ya están pre-cargados en la programación. Solo edita estos campos si deseas usar tus propias credenciales o personalizar las reglas de Pilar.
+            </p>
+        </div>
+
         <Card className="border-none shadow-md rounded-2xl overflow-hidden bg-white">
           <CardHeader className="bg-primary/5 p-6">
             <CardTitle className="text-sm flex items-center justify-between text-primary font-black uppercase tracking-wider">
@@ -91,7 +99,7 @@ export default function SettingsPage() {
               {testStatusOpenAI === 'success' && <CheckCircle className="w-4 h-4 text-green-500" />}
               {testStatusOpenAI === 'error' && <XCircle className="w-4 h-4 text-destructive" />}
             </CardTitle>
-            <CardDescription className="text-xs">Cerebro para análisis visual, razonamiento y estilo.</CardDescription>
+            <CardDescription className="text-xs">Usa la llave global o ingresa una propia para override.</CardDescription>
           </CardHeader>
           <CardContent className="p-6 space-y-4">
             <div className="flex gap-2">
@@ -99,7 +107,7 @@ export default function SettingsPage() {
                 type="password" 
                 value={openaiKey} 
                 onChange={e => setOpenaiKey(e.target.value)} 
-                placeholder="sk-..." 
+                placeholder="Configurada en sistema..." 
                 className="flex-1 rounded-xl h-12"
               />
               <Button variant="outline" size="sm" onClick={handleTestOpenAI} className="rounded-xl border-primary text-primary hover:bg-primary/5">
@@ -116,7 +124,7 @@ export default function SettingsPage() {
               {testStatusUnsplash === 'success' && <CheckCircle className="w-4 h-4 text-green-500" />}
               {testStatusUnsplash === 'error' && <XCircle className="w-4 h-4 text-destructive" />}
             </CardTitle>
-            <CardDescription className="text-xs">Motor para encontrar imágenes reales de prendas sugeridas.</CardDescription>
+            <CardDescription className="text-xs">Motor visual para búsqueda de prendas reales.</CardDescription>
           </CardHeader>
           <CardContent className="p-6 space-y-4">
             <div className="flex gap-2">
@@ -124,32 +132,31 @@ export default function SettingsPage() {
                 type="password" 
                 value={unsplashKey} 
                 onChange={e => setUnsplashKey(e.target.value)} 
-                placeholder="Tu Unsplash Access Key" 
+                placeholder="Configurada en sistema..." 
                 className="flex-1 rounded-xl h-12"
               />
               <Button variant="outline" size="sm" onClick={handleTestUnsplash} className="rounded-xl border-pink-600 text-pink-600 hover:bg-pink-50">
                 {testStatusUnsplash === 'loading' ? <Loader2 className="animate-spin h-4 w-4" /> : "Probar"}
               </Button>
             </div>
-            <p className="text-[9px] text-muted-foreground italic">Si está vacía, se usarán imágenes de respaldo genéricas de moda.</p>
           </CardContent>
         </Card>
 
         <Card className="border-none shadow-md rounded-2xl overflow-hidden bg-white">
           <CardHeader className="bg-indigo-50 p-6">
             <CardTitle className="text-sm flex items-center gap-2 text-indigo-700 font-black uppercase tracking-wider">
-              <BookOpen className="w-4 h-4" /> Área de Conocimiento
+              <BookOpen className="w-4 h-4" /> Área de Conocimiento Maestra
             </CardTitle>
-            <CardDescription className="text-xs">Define las reglas maestras que la IA debe seguir.</CardDescription>
+            <CardDescription className="text-xs">Instrucciones de estilismo de Pilar Cifuentes pre-cargadas.</CardDescription>
           </CardHeader>
           <CardContent className="p-6 space-y-4">
             <div className="space-y-2">
-              <Label className="text-[10px] uppercase font-black text-muted-foreground">Instrucciones de Estilo</Label>
+              <Label className="text-[10px] uppercase font-black text-muted-foreground">Reglas del Sistema</Label>
               <Textarea 
-                placeholder="Ej: Priorizar siempre el estilo minimalista, evitar el color naranja..." 
+                placeholder="Reglas de estilo..." 
                 value={knowledge}
                 onChange={e => setKnowledge(e.target.value)}
-                className="min-h-[150px] rounded-2xl border-indigo-100 bg-indigo-50/20"
+                className="min-h-[200px] rounded-2xl border-indigo-100 bg-indigo-50/20 text-xs leading-relaxed"
               />
             </div>
           </CardContent>
@@ -157,7 +164,7 @@ export default function SettingsPage() {
       </div>
 
       <Button onClick={handleSaveAll} className="w-full h-16 bg-primary text-xl font-bold shadow-2xl rounded-2xl hover:scale-[1.01] transition-transform">
-        <Save className="mr-3 h-6 w-6" /> Guardar Todo
+        <Save className="mr-3 h-6 w-6" /> Actualizar Preferencias
       </Button>
     </div>
   );

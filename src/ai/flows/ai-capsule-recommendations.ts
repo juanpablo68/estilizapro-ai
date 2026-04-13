@@ -1,14 +1,12 @@
 'use server';
 /**
  * @fileOverview Generación de cápsulas de moda con prioridad absoluta al armario local.
- * - Diferenciación garantizada entre los 2 outfits.
- * - Máximo 2 prendas externas por outfit.
- * - Generación de nombres obligatoria y descriptiva.
  */
 
 import { z } from 'genkit';
 import OpenAI from 'openai';
 import { searchUnsplashImages } from '@/services/unsplash';
+import { getOpenAIKey, getUnsplashKey } from '@/ai/genkit';
 
 const WardrobeItemSchema = z.object({
   id: z.string(),
@@ -49,7 +47,7 @@ export type Capsule = z.infer<typeof CapsuleSchema>;
 export type CapsuleItem = z.infer<typeof CapsuleSchema>['items'][number];
 
 export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICapsuleRecommendationsInputSchema>) {
-  const apiKey = input.openaiApiKey || process.env.OPENAI_API_KEY;
+  const apiKey = getOpenAIKey(input.openaiApiKey);
   if (!apiKey) throw new Error("API Key de OpenAI requerida.");
 
   const openai = new OpenAI({ apiKey });
@@ -59,7 +57,7 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
 REGLAS DE ORO:
 1. PRIORIDAD ARMARIO: Usa los ítems de "ARMARIO REAL" abajo. Si la prenda existe, DEBES marcarla como source: "wardrobe" y poner su "id" exacto.
 2. NOMBRADO: Cada ítem DEBE tener un "name" descriptivo en ESPAÑOL. NO lo dejes vacío.
-3. CONTRASTE: Outfit 1 y Outfit 2 deben ser radicalmente diferentes en color y vibra (Ej: uno Formal/Oscuro y otro Casual/Brillante).
+3. CONTRASTE: Outfit 1 y Outfit 2 deben ser radicalmente diferentes en color y vibra.
 4. BÚSQUEDA EXTERNA: Para prendas externas (source: external), genera "searchKeywords" en INGLÉS enfocados en "flat lay product photography" sin personas.
 5. FORMATO: Responde SOLO con un objeto JSON con el array "capsules".
 
@@ -92,7 +90,8 @@ PERFIL USUARIO:
         const finalName = item.name || (item.source === 'wardrobe' ? 'Prenda de Armario' : `Accesorio Sugerido`);
 
         if (item.source === 'external') {
-          const images = await searchUnsplashImages(item.searchKeywords, input.unsplashAccessKey, item.type);
+          const uKey = getUnsplashKey(input.unsplashAccessKey);
+          const images = await searchUnsplashImages(item.searchKeywords, uKey, item.type);
           imageUrl = images.length > 0 ? images[0].url : undefined;
         }
 
