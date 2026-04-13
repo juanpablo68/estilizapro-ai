@@ -9,7 +9,7 @@ const config: CapacitorConfig = {
     androidScheme: 'https',
     // IMPORTANTE: Aquí debes colocar la URL real una vez que despliegues tu app en Firebase.
     // Ejemplo: 'https://estilizapro-ai.web.app'
-    // NO USAR URL DE GITHUB. Debe ser la URL de Hosting de Firebase.
+    // NO USAR URL DE GITHUB. Debe ser la URL de Hosting de Firebase para que la IA funcione.
     url: 'https://tu-app-en-firebase.web.app',
     cleartext: true
   },

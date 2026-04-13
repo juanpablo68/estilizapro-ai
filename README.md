@@ -3,6 +3,12 @@
 
 Este proyecto es el asesor de imagen personal diseñado por **Pilar Cifuentes Catalán**. Utiliza una arquitectura híbrida con Next.js y Capacitor.
 
+## 💰 Guía de Costo Cero (Spark Plan)
+Para este demo académico, Firebase ofrece un nivel gratuito muy generoso:
+- **Hosting**: 10GB de almacenamiento y 360MB de transferencia diaria gratis.
+- **IA/Funciones**: El procesamiento de Server Actions entra dentro de la cuota gratuita de Google Cloud.
+- **Importante**: Solo pagarás por los tokens de OpenAI que consumas (usualmente centavos por muchas pruebas).
+
 ## 📱 Guía para Generar APK (Android)
 
 Sigue estos pasos para convertir tu proyecto web en una aplicación instalable:
@@ -35,7 +41,7 @@ npx cap copy android
 1. En la consola de Firebase, ve al menú **Release & Monitor > App Distribution**.
 2. Selecciona la plataforma **Android**.
 3. Sube el archivo `app-debug.apk`.
-4. Añade los correos de tus evaluadores. Ellos recibirán un link para instalar la app directamente en sus teléfonos.
+4. Añade los correos de tus evaluadores. Ellos recibirán un link para instalar la app directamente en sus teléfonos sin costo alguno.
 
 ---
 © 2024 EstilizaPro AI - Pilar Cifuentes Catalán.
