@@ -4,25 +4,28 @@
 Este proyecto es el asesor de imagen personal diseñado por **Pilar Cifuentes Catalán**.
 
 ## 💰 Guía de Costo Cero (Sin Tarjeta de Crédito)
-Para este demo académico, si no deseas activar el Plan Blaze de Firebase, utilizaremos el **Método del Túnel**. Esto permite que tu celular acceda a la IA de forma segura:
+Para este demo académico, si no deseas activar el Plan Blaze de Firebase, utilizaremos el **Método del Túnel**. Esto permite que tu celular acceda a la IA de forma segura sin pagar hosting:
 
-### 1. Obtener una URL Pública Gratis
-1. Abre una **Terminal** en Firebase Studio.
-2. Instala la herramienta de túnel:
+### 1. ¿Cómo abrir la Terminal?
+1. En la interfaz de **Firebase Studio**, busca el icono `>_` (Terminal) en la barra inferior o lateral.
+2. Haz clic para abrir una nueva pestaña de comandos.
+
+### 2. Obtener una URL Pública Gratis
+1. Instala la herramienta de túnel ejecutando este comando en la terminal:
    ```bash
    npm install -g localtunnel
    ```
-3. Inicia tu servidor de desarrollo (si no está corriendo):
+2. Inicia tu servidor de desarrollo (si no está corriendo):
    ```bash
    npm run dev
    ```
-4. En una **nueva pestaña** de la terminal, crea el túnel (Next.js usa el puerto 9002 aquí):
+3. En una **nueva pestaña** de la terminal (dale al botón `+` en la terminal), crea el túnel (Next.js usa el puerto 9002 aquí):
    ```bash
    lt --port 9002
    ```
-5. Verás una URL como `https://heavy-cats-cry.loca.lt`. **Copia esa URL**.
+4. Verás una URL como `https://heavy-cats-cry.loca.lt`. **Copia esa URL**.
 
-### 2. Configurar el Móvil
+### 3. Configurar el Móvil
 1. Abre el archivo `capacitor.config.ts`.
 2. En la propiedad `url`, pega la dirección que copiaste arriba.
 3. Guarda el archivo.
@@ -32,7 +35,7 @@ Para este demo académico, si no deseas activar el Plan Blaze de Firebase, utili
 ## 📱 Guía para Generar APK (Android)
 
 ### 1. Preparación
-Ejecuta estos comandos en la terminal:
+Ejecuta estos comandos en la terminal abierta:
 ```bash
 npm install
 npm run build
@@ -41,12 +44,12 @@ npx cap add android
 
 ### 2. Generación del APK
 Cada vez que hagas cambios y quieras verlos en el celular:
-1. Sincroniza:
+1. Sincroniza el código:
    ```bash
    npm run build
    npx cap copy android
    ```
-2. Abre el proyecto en Android Studio (debes tenerlo instalado en tu PC local):
+2. Abre el proyecto en **Android Studio** (debes tenerlo instalado en tu PC local):
    ```bash
    npx cap open android
    ```
