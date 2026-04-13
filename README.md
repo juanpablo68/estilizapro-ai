@@ -9,20 +9,20 @@ Sigue estos pasos para convertir tu proyecto web en una aplicación instalable:
 
 ### 1. Preparación en Firebase Console
 1. Entra a tu proyecto en [console.firebase.google.com](https://console.firebase.google.com).
-2. Ve a **Configuración del proyecto** y obtén tu **ID de Proyecto**.
-3. Realiza tu primer despliegue web para obtener tu URL pública (ej. `https://tu-proyecto.web.app`).
+2. Ve a la sección **Hosting** o **App Hosting**.
+3. Realiza tu primer despliegue para obtener tu **URL pública** (ej. `https://tu-proyecto.web.app`).
+4. **Copia esa URL** y pégala en el archivo `capacitor.config.ts` en la propiedad `url`.
 
 ### 2. Configuración del Código
-1. Abre el archivo `capacitor.config.ts`.
-2. En la propiedad `url`, sustituye el placeholder por tu URL de Firebase real.
-3. En la terminal de Firebase Studio, ejecuta:
+1. En la terminal de Firebase Studio, ejecuta:
 ```bash
 npm install
+npm run build
 npx cap add android
 ```
 
 ### 3. Generación del APK
-1. Cada vez que hagas cambios, sincroniza:
+1. Cada vez que hagas cambios en el código, sincroniza el móvil:
 ```bash
 npm run build
 npx cap copy android
