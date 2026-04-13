@@ -7,8 +7,9 @@ const config: CapacitorConfig = {
   webDir: 'out',
   server: {
     androidScheme: 'https',
-    // IMPORTANTE: Durante el demo, si la app está hosteada, 
-    // puedes apuntar a la URL de Firebase App Hosting aquí para que funcionen los Server Actions
+    // IMPORTANTE: Aquí debes colocar la URL real una vez que despliegues tu app en Firebase.
+    // Ejemplo: 'https://estilizapro-ai.web.app'
+    // Esto permite que los Server Actions (IA) funcionen desde el móvil.
     url: 'https://tu-app-en-firebase.web.app',
     cleartext: true
   },
