@@ -151,6 +151,11 @@ export default function AvatarCreationPage() {
 
   if (!mounted) return null;
 
+  // Extracción de rasgos para visualización limpia
+  const eyes = profile.biometricData?.rostro?.ojos?.color_detalle || 'Detectando...';
+  const hair = profile.biometricData?.rostro?.cabello?.color_natural || 'Detectando...';
+  const skin = profile.biometricData?.colorimetria?.tono_piel || 'Detectando...';
+
   return (
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">
       <header className="flex items-center justify-between pt-8">
@@ -246,9 +251,11 @@ export default function AvatarCreationPage() {
                 <CheckCircle className="w-3 h-3" /> Identidad Sincronizada
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] font-black text-primary uppercase tracking-widest">{profile.figureAnalysis}</p>
+                <p className="text-[10px] font-black text-primary uppercase tracking-widest">
+                  Ojos: {eyes} • Cabello: {hair}
+                </p>
                 <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest leading-relaxed">
-                  {profile.colorimetryAnalysis}
+                  Tono de Piel: {skin}
                 </p>
               </div>
             </CardContent>
