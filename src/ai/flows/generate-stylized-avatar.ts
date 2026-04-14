@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview FASE 2: Generación Artística de Avatar Estilizado.
@@ -33,29 +34,28 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     if (!apiKey) throw new Error("API Key de OpenAI requerida.");
 
     const openai = new OpenAI({ apiKey });
-    const bio = input.biometricData || {};
+    const data = input.biometricData || {};
 
-    const gender = bio.genero || 'Femenino';
-    const skin = bio.colorimetria?.tono_piel || 'natural skin tone';
-    const eyes = bio.rostro?.ojos?.color_detalle || 'natural eyes';
-    const hair = bio.rostro?.cabello?.color_natural || 'natural hair';
+    const personType = data.genero || 'Femenino';
+    const skinTone = data.colorimetria?.tono_piel || 'natural';
+    const eyeColor = data.rostro?.ojos?.color_detalle || 'natural';
+    const hairColor = data.rostro?.cabello?.color_natural || 'natural';
 
-    // Prompt optimizado: Se eliminan menciones a "medidas" o "técnico" para evitar que la IA las dibuje
-    const finalPrompt = `
-      A professional full-length standing fashion shot of one single person. 
-      The image captures the entire body from the top of the head to the bottom of the shoes. 
-      The person is standing centrally facing the camera.
-      Style: High-end 3D animation (Pixar-inspired), cinematic lighting, clean vibrant colors. 
-      The person is a ${gender} with ${eyes} eyes and ${hair} hair, having a ${skin} skin tone. 
-      
-      COMPOSITION:
-      - THE ENTIRE FRAME IS FILLED ONLY BY THE PERSON AND A PURE WHITE VOID.
-      - THE BACKGROUND IS COMPLETELY EMPTY, SOLID, AND PURE WHITE (#FFFFFF).
-      - NO TEXT, NO LINES, NO ICONS, NO NUMBERS, NO SYMBOLS.
-      - NO GRIDS, NO MEASUREMENTS, NO TECHNICAL DRAWINGS.
-      - ONLY ONE SINGLE PERSON IS VISIBLE.
-      - THE PERSON MUST BE FULLY VISIBLE FROM HEAD TO TOE, INCLUDING SHOES.
-    `;
+    // Prompt rediseñado: Lenguaje fotográfico puro para evitar diagramas técnicos.
+    // Se usa "Wide shot" y "Empty white space" para forzar el cuerpo completo sin recortes.
+    const finalPrompt = `A high-end professional wide-shot fashion photograph of one single ${personType}. 
+    The image is a full-length shot, showing the entire body clearly from the very top of the head to the very bottom of the shoes. 
+    The person is standing centrally, facing forward in a clean studio.
+    
+    AESTHETIC: High-end 3D animated style (clean, vibrant, cinematic). The person has ${eyeColor} eyes, ${hairColor} hair, and ${skinTone} skin.
+    
+    COMPOSITION: 
+    - THE SUBJECT IS CENTERED WITH PLENTY OF EMPTY WHITE SPACE AROUND THEM TO ENSURE THE FULL BODY IS VISIBLE WITHOUT CLIPPING.
+    - THE BACKGROUND IS A SOLID, PLAIN, EMPTY, PURE WHITE (#FFFFFF) STUDIO WALL.
+    - ABSOLUTELY NO OTHER ELEMENTS IN THE FRAME. 
+    - NO TEXT, NO LINES, NO SYMBOLS, NO NUMBERS, NO GRID, NO MEASUREMENTS.
+    - NO SECONDARY FIGURES, NO MINIATURE MODELS, NO MULTIPLE VIEWS.
+    - JUST ONE SINGLE PERSON STANDING IN A PURE WHITE VOID.`;
 
     try {
       const response = await openai.images.generate({

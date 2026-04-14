@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Pipeline Maestro de Probador Virtual: Realismo fotorrealista.
@@ -21,24 +22,24 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
 
   const openai = new OpenAI({ apiKey });
 
-  const bio = input.biometricData || {};
-  const gender = bio.genero || 'Femenino';
-  const skin = bio.colorimetria?.tono_piel || 'natural skin tone';
-  const eyes = bio.rostro?.ojos?.color_detalle || 'natural eyes';
-  const hair = bio.rostro?.cabello?.color_natural || 'natural hair';
+  const data = input.biometricData || {};
+  const personType = data.genero || 'Femenino';
+  const skinTone = data.colorimetria?.tono_piel || 'natural';
+  const eyeColor = data.rostro?.ojos?.color_detalle || 'natural';
+  const hairColor = data.rostro?.cabello?.color_natural || 'natural';
 
-  // ETAPA 1: RAZONAMIENTO DE MODA
+  // ETAPA 1: RAZONAMIENTO DE MODA (Analítico)
   const analysisResponse = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
       {
         role: "system",
-        content: "Eres un sastre digital de alta costura. Describe detalladamente cómo estas prendas reales se visten sobre una persona, enfocándote en pliegues, sombras naturales de la tela y texturas realistas."
+        content: "Eres un sastre digital. Describe cómo estas prendas se visten sobre una persona real, enfocándote en el ajuste, pliegues y texturas."
       },
       {
         role: "user",
         content: [
-          { type: "text", text: `Describe cómo esta persona (${gender}, ojos ${eyes}, pelo ${hair}) viste este conjunto. Asegura que la ropa se vea real y bien ajustada sobre un cuerpo completo.` },
+          { type: "text", text: `Describe cómo esta persona (${personType}, ojos ${eyeColor}, pelo ${hairColor}) viste este conjunto. Asegura que la ropa se vea real y bien ajustada sobre un cuerpo completo.` },
           ...input.clothingItemsDataUris.map(url => ({ type: "image_url" as const, image_url: { url } })),
           { type: "image_url", image_url: { url: input.avatarDataUri } }
         ],
@@ -48,23 +49,23 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
 
   const detailedDescription = analysisResponse.choices[0].message.content || "un conjunto de moda coordinado";
 
-  // ETAPA 2: GENERACIÓN VISUAL DE ALTA FIDELIDAD
+  // ETAPA 2: GENERACIÓN VISUAL (Fotográfica)
+  // Se eliminan términos como "biometría" del prompt para evitar diagramas.
   const response = await openai.images.generate({
     model: "dall-e-3",
-    prompt: `
-      A professional full-length standing fashion photograph of one single person. 
-      The person is standing centrally against an empty, solid, pure white background (#FFFFFF).
-      The person is a ${gender} with ${eyes} eyes, ${hair} hair, and ${skin} skin.
-      OUTFIT: Wearing exactly this realistic clothing ensemble: ${detailedDescription}. 
-      Style: Modern 3D high-end animation with ultra-realistic fabric textures, cinematic soft lighting.
-      
-      COMPOSITION:
-      - THE PERSON IS FULLY VISIBLE FROM THE TOP OF THE HEAD TO THE BOTTOM OF THE SHOES.
-      - ONLY ONE SINGLE PERSON IN THE FRAME.
-      - BACKGROUND IS ABSOLUTELY PLAIN, SOLID, EMPTY AND PURE WHITE.
-      - NO TEXT, NO LINES, NO GRIDS, NO MEASUREMENTS, NO SYMBOLS.
-      - NO TECHNICAL OVERLAYS, NO DATA FIGURES, NO CHARTS.
-    `,
+    prompt: `A professional wide-shot fashion photograph of one single ${personType} standing centrally.
+    The person is wearing exactly this outfit: ${detailedDescription}.
+    The shot is a full-length view from the top of the head to the bottom of the shoes. 
+    
+    STYLE: High-end 3D character design, Pixar-inspired lighting, realistic fabric textures. 
+    The person has ${eyeColor} eyes, ${hairColor} hair, and ${skinTone} skin.
+    
+    COMPOSITION:
+    - THE SUBJECT IS FULLY VISIBLE FROM HEAD TO TOE, INCLUDING ALL FOOTWEAR.
+    - THE BACKGROUND IS A COMPLETELY PLAIN, SOLID, EMPTY, AND PURE WHITE (#FFFFFF) INFINITE VOID.
+    - ABSOLUTELY NO TEXT, NO LINES, NO GRIDS, NO MEASUREMENTS, NO TECHNICAL OVERLAYS.
+    - NO SECONDARY FIGURES OR MINIATURES IN THE BACKGROUND.
+    - JUST ONE PERSON IN A PURE WHITE ENVIRONMENT.`,
     n: 1,
     size: "1024x1024",
     quality: "hd",
