@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview Pipeline Maestro de Probador Virtual: GPT-4o + DALL-E 3.
+ * @fileOverview Pipeline Maestro de Probador Virtual: Realismo fotorrealista.
  * Garantiza consistencia del avatar y visualización realista de prendas sin elementos técnicos.
  */
 
@@ -33,12 +33,12 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
     messages: [
       {
         role: "system",
-        content: "Eres un sastre digital. Describe cómo estas prendas reales se ajustan a un personaje 3D. Enfócate en texturas de tela, pliegues naturales y combinación de colores."
+        content: "Eres un sastre digital de alta costura. Describe detalladamente cómo estas prendas reales se visten sobre una persona, enfocándote en pliegues, sombras naturales de la tela y texturas realistas (algodón, seda, cuero, etc.)."
       },
       {
         role: "user",
         content: [
-          { type: "text", text: `Describe cómo el personaje (${gender}, ojos ${eyes}, pelo ${hair}) viste este conjunto. Asegura realismo en las texturas.` },
+          { type: "text", text: `Describe cómo esta persona (${gender}, ojos ${eyes}, pelo ${hair}) viste este conjunto. Asegura que la ropa se vea real, tridimensional y bien ajustada.` },
           ...input.clothingItemsDataUris.map(url => ({ type: "image_url" as const, image_url: { url } })),
           { type: "image_url", image_url: { url: input.avatarDataUri } }
         ],
@@ -52,20 +52,21 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
   const response = await openai.images.generate({
     model: "dall-e-3",
     prompt: `
-      A STUNNING FULL-LENGTH FASHION RENDER OF ONE SINGLE PERSON.
-      CHARACTER: THE SAME CONSISTENT ${gender} with ${eyes} eyes, ${hair} hair, and ${skin} skin.
-      OUTFIT: Wearing exactly these items: ${detailedDescription}. 
-      STYLE: Modern 3D character animation (Pixar style) with realistic fabric textures.
+      A STUNNING FULL-LENGTH FASHION MAGAZINE RENDER OF ONE SINGLE PERSON.
+      CHARACTER: A STANDING ${gender} with ${eyes} eyes, ${hair} hair, and ${skin} skin.
+      OUTFIT: Wearing exactly this realistic clothing ensemble: ${detailedDescription}. 
+      STYLE: Modern 3D high-end animation with ultra-realistic fabric textures, cinematic soft lighting.
       
       COMPOSITION:
-      - ONLY ONE PERSON: No side views, no duplicates, no split screen.
-      - FULL BODY SHOT: Head to toe, including shoes. Standing naturally.
-      - BACKGROUND: Absolute plain white #FFFFFF background. No floor textures, no grids, no rulers.
+      - ONLY ONE PERSON IN THE IMAGE. ONE SINGLE POSE.
+      - FULL BODY VIEW FROM HEAD TO TOE. 
+      - BACKGROUND: ABSOLUTELY PLAIN EMPTY WHITE STUDIO BACKGROUND (#FFFFFF). 
       
-      FORBIDDEN ELEMENTS:
-      - NO technical lines, NO measurement markers, NO wireframes.
-      - NO circles around the body, NO HUD, NO labels.
-      - NO architectural backgrounds.
+      STRICT CONSTRAINTS:
+      - NO MEASUREMENTS, NO GRIDS, NO RULERS, NO TECHNICAL SYMBOLS.
+      - NO SPLIT SCREENS, NO MULTIPLE VIEWS, NO DIAGRAMS.
+      - NO NUMBERS, NO HUD, NO TEXT, NO LABELS.
+      - NO HORIZON LINES, NO FLOOR TEXTURES.
     `,
     n: 1,
     size: "1024x1024",

@@ -1,8 +1,8 @@
 
 'use server';
 /**
- * @fileOverview FASE 2: Generación Artística de Avatar Pixar de Cuerpo Completo.
- * Asegura una ÚNICA figura humana, de pie, con fondo blanco puro y CERO ruidos técnicos.
+ * @fileOverview FASE 2: Generación Artística de Avatar Estilizado.
+ * Genera una única figura humana con estética de alta gama, eliminando sesgos técnicos.
  */
 
 import { ai } from '@/ai/genkit';
@@ -40,25 +40,25 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     const eyes = bio.rostro?.ojos?.color_detalle || 'natural eyes';
     const hair = bio.rostro?.cabello?.color_natural || 'natural hair';
 
-    // Prompt rediseñado para ser puramente artístico y evitar interpretaciones técnicas
+    // Prompt puramente artístico para evitar el estilo de "plano técnico"
     const finalPrompt = `
-      A BEAUTIFUL 3D CHARACTER POSTER OF ONE SINGLE PERSON.
-      STYLE: High-end modern 3D character animation (Disney Pixar style), stunning artistic render, cinematic lighting.
-      CHARACTER: A ${gender} with ${eyes} eyes and ${hair} hair. ${skin} skin tone.
+      A CINEMATIC FULL-BODY PORTRAIT OF A SINGLE PERSON.
+      ONE SINGLE CHARACTER STANDING CENTRALLY. 
+      STYLE: High-end 3D character animation (Disney Pixar style), stunning artistic render, cinematic lighting, fashion magazine quality.
+      CHARACTER: A ${gender} with ${eyes} eyes and ${hair} hair. ${skin} skin tone. 
+      WEARING: Simple elegant modern casual clothing.
       
-      COMPOSITION REQUIREMENTS:
-      - ONLY ONE PERSON: One single character must be the only subject. NO duplicates, NO multiple poses, NO side views.
-      - POSITION: Standing upright on their feet, facing forward.
-      - FULL BODY: From head to toe. Shoes must be visible and stylish.
-      - BACKGROUND: Absolute solid #FFFFFF plain white background. No floor lines, no grids, no shadows on the wall, no horizon line.
+      COMPOSITION:
+      - THE PERSON IS THE ONLY SUBJECT IN THE FRAME. 
+      - FULL BODY VIEW FROM HEAD TO TOE. 
+      - STANDING NORMALLY FACING FORWARD.
+      - BACKGROUND: ABSOLUTE EMPTY MINIMALIST SOLID WHITE STUDIO BACKGROUND. 
       
-      STRICT NEGATIVE CONSTRAINTS (FORBIDDEN):
-      - NO RULERS, NO MEASUREMENTS, NO NUMBERS, NO SYMBOLS.
-      - NO TECHNICAL DRAWINGS, NO BLUEPRINTS, NO WIREFRAMES.
-      - NO CHARACTER SHEETS, NO COLLAGES, NO TRIPTYCHS.
-      - NO CIRCLES OR SCAN LINES AROUND THE BODY.
-      - NO TEXT, NO LABELS, NO HUD.
-      - NO BORDERS OR MARGINS.
+      STRICT CONSTRAINTS:
+      - NO GRIDS, NO LINES, NO RULERS, NO MEASUREMENTS.
+      - NO MULTIPLE VIEWS, NO SPLIT SCREEN, NO CHARACTER SHEETS.
+      - NO NUMBERS, NO SYMBOLS, NO HUD, NO TEXT.
+      - NO BLUEPRINTS, NO TECHNICAL DRAWINGS.
     `;
 
     try {
