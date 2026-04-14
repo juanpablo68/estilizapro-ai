@@ -1,9 +1,8 @@
-
 'use server';
 /**
  * @fileOverview FASE 2: Generación Artística de Avatar Estilizado.
- * Genera una única figura humana con estética de alta gama, eliminando sesgos técnicos.
- * Garantiza una toma de cuerpo completo de cabeza a pies.
+ * Genera una única figura humana con estética de alta gama.
+ * Garantiza una toma de cuerpo completo de cabeza a pies sobre fondo blanco inmaculado.
  */
 
 import { ai } from '@/ai/genkit';
@@ -41,23 +40,21 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     const eyes = bio.rostro?.ojos?.color_detalle || 'natural eyes';
     const hair = bio.rostro?.cabello?.color_natural || 'natural hair';
 
-    // Prompt rediseñado para garantizar cuerpo completo sin recortes
+    // Prompt optimizado: Se eliminan menciones a "medidas" o "técnico" para evitar que la IA las dibuje
     const finalPrompt = `
-      A STUNNING FULL-LENGTH STANDING SHOT OF ONE SINGLE PERSON. 
-      THE IMAGE MUST SHOW THE ENTIRE PERSON FROM THE TOP OF THEIR HEAD TO THE VERY BOTTOM OF THEIR SHOES.
-      THE SUBJECT IS STANDING CENTRALLY FACING THE CAMERA IN A FULL HEIGHT VIEW.
-      STYLE: High-end 3D character animation (Disney Pixar style), cinematic lighting, vibrant artistic render.
-      CHARACTER: A ${gender} with ${eyes} eyes and ${hair} hair. ${skin} skin tone.
-      BACKGROUND: ABSOLUTELY PLAIN SOLID EMPTY WHITE STUDIO BACKGROUND (#FFFFFF). 
-
-      STRICT CONSTRAINTS:
-      - THE PERSON MUST BE FULLY VISIBLE IN THE FRAME. DO NOT CROP THE FEET OR THE HEAD.
-      - ONLY ONE PERSON IN THE IMAGE. NO OTHER FIGURES IN THE BACKGROUND.
-      - NO GRIDS, NO LINES, NO RULERS, NO MEASUREMENTS.
-      - NO NUMBERS, NO SYMBOLS, NO HUD, NO TEXT.
-      - NO MULTIPLE VIEWS, NO CHARACTER SHEETS, NO SPLIT SCREENS.
-      - NO BLUEPRINTS, NO TECHNICAL DRAWINGS.
-      - NO OTHER PEOPLE OR MANNEQUINS IN THE BACKGROUND.
+      A professional full-length standing fashion shot of one single person. 
+      The image captures the entire body from the top of the head to the bottom of the shoes. 
+      The person is standing centrally facing the camera.
+      Style: High-end 3D animation (Pixar-inspired), cinematic lighting, clean vibrant colors. 
+      The person is a ${gender} with ${eyes} eyes and ${hair} hair, having a ${skin} skin tone. 
+      
+      COMPOSITION:
+      - THE ENTIRE FRAME IS FILLED ONLY BY THE PERSON AND A PURE WHITE VOID.
+      - THE BACKGROUND IS COMPLETELY EMPTY, SOLID, AND PURE WHITE (#FFFFFF).
+      - NO TEXT, NO LINES, NO ICONS, NO NUMBERS, NO SYMBOLS.
+      - NO GRIDS, NO MEASUREMENTS, NO TECHNICAL DRAWINGS.
+      - ONLY ONE SINGLE PERSON IS VISIBLE.
+      - THE PERSON MUST BE FULLY VISIBLE FROM HEAD TO TOE, INCLUDING SHOES.
     `;
 
     try {

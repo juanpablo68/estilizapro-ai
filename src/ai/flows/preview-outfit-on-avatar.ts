@@ -1,8 +1,7 @@
-
 'use server';
 /**
  * @fileOverview Pipeline Maestro de Probador Virtual: Realismo fotorrealista.
- * Garantiza consistencia del avatar y visualización realista de prendas sin elementos técnicos.
+ * Garantiza consistencia del avatar y visualización realista de prendas.
  * Asegura una toma de cuerpo completo desde la cabeza hasta los zapatos.
  */
 
@@ -49,28 +48,22 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
 
   const detailedDescription = analysisResponse.choices[0].message.content || "un conjunto de moda coordinado";
 
-  // ETAPA 2: GENERACIÓN VISUAL DE ALTA FIDELIDAD SIN ELEMENTOS TÉCNICOS
+  // ETAPA 2: GENERACIÓN VISUAL DE ALTA FIDELIDAD
   const response = await openai.images.generate({
     model: "dall-e-3",
     prompt: `
-      A CINEMATIC FULL-LENGTH STANDING FASHION PHOTOGRAPH OF ONE SINGLE PERSON.
-      THE IMAGE MUST SHOW THE ENTIRE PERSON FROM THE TOP OF THEIR HEAD TO THE VERY BOTTOM OF THEIR SHOES.
-      CHARACTER: A STANDING ${gender} with ${eyes} eyes, ${hair} hair, and ${skin} skin.
+      A professional full-length standing fashion photograph of one single person. 
+      The person is standing centrally against an empty, solid, pure white background (#FFFFFF).
+      The person is a ${gender} with ${eyes} eyes, ${hair} hair, and ${skin} skin.
       OUTFIT: Wearing exactly this realistic clothing ensemble: ${detailedDescription}. 
-      STYLE: Modern 3D high-end animation with ultra-realistic fabric textures, cinematic soft lighting.
+      Style: Modern 3D high-end animation with ultra-realistic fabric textures, cinematic soft lighting.
       
       COMPOSITION:
-      - THE PERSON MUST BE FULLY VISIBLE IN THE FRAME. DO NOT CROP THE FEET O THE HEAD.
-      - ONLY ONE SINGLE PERSON IN THE FRAME. ONE SINGLE POSE.
-      - FULL BODY VIEW FROM HEAD TO TOE, INCLUDING FOOTWEAR. 
-      - STANDING CENTRALLY FACING FORWARD.
-      - BACKGROUND: ABSOLUTELY PLAIN EMPTY SOLID WHITE STUDIO BACKGROUND (#FFFFFF). 
-      
-      STRICT CONSTRAINTS:
-      - NO MEASUREMENTS, NO GRIDS, NO RULERS, NO TECHNICAL SYMBOLS.
-      - NO SPLIT SCREENS, NO MULTIPLE VIEWS, NO DIAGRAMS.
-      - NO NUMBERS, NO HUD, NO TEXT, NO LABELS.
-      - NO OTHER FIGURES OR PEOPLE IN THE BACKGROUND.
+      - THE PERSON IS FULLY VISIBLE FROM THE TOP OF THE HEAD TO THE BOTTOM OF THE SHOES.
+      - ONLY ONE SINGLE PERSON IN THE FRAME.
+      - BACKGROUND IS ABSOLUTELY PLAIN, SOLID, EMPTY AND PURE WHITE.
+      - NO TEXT, NO LINES, NO GRIDS, NO MEASUREMENTS, NO SYMBOLS.
+      - NO TECHNICAL OVERLAYS, NO DATA FIGURES, NO CHARTS.
     `,
     n: 1,
     size: "1024x1024",
