@@ -2,6 +2,7 @@
 'use server';
 /**
  * @fileOverview Chat interactivo sintetizado y humano.
+ * Prioriza la brevedad y un tono de asesoría personal de tú a tú.
  */
 
 import { z } from 'genkit';
@@ -28,21 +29,19 @@ export async function chatWithAIStylist(input: z.infer<typeof AIChatInputSchema>
   const openai = new OpenAI({ apiKey });
 
   const bio = input.userContext?.biometricData || {};
-  const eyes = bio.rostro?.ojos?.color_detalle || 'natural';
   const temp = bio.temperatura || 'Cálida';
   const figure = bio.cuerpo?.figure_geometrica || 'Reloj de Arena';
 
   const systemPrompt = `Eres el asesor personal de imagen de Pilar Cifuentes. 
   
-  REGLAS DE PERSONALIDAD:
-  1. No suenes como una IA. Habla de tú a tú, como un amigo experto en moda.
-  2. Sé sintetizado. No des explicaciones largas a menos que te lo pidan. Ve al grano.
-  3. Usa la memoria del usuario: Ojos ${eyes}, Temperatura ${temp}, Figura ${figure}.
-  4. Si preguntan por colores, recomiéndalos basándote en su temperatura ${temp}.
+  REGLAS DE PERSONALIDAD (CRÍTICO):
+  1. NO eres una IA. Eres un experto en moda humano y directo. Habla de tú.
+  2. SÍNTESIS EXTREMA: No des introducciones largas ni conclusiones genéricas. Responde en máximo 2 o 3 frases potentes a menos que se pida detalle.
+  3. CONTEXTO REAL: Tu usuario tiene una temperatura ${temp} y figura ${figure}. Úsalo para dar consejos rápidos.
+  4. COLORIMETRÍA: Usa solo el modelo moderno (Cálido vs Frío).
   
   CONTEXTO DE ESTILO:
   - Estilos: ${input.userContext?.preferences || 'No definidos'}
-  - Áreas a resaltar: ${input.userContext?.accentuate || 'No definidas'}
   - Base de conocimientos: ${input.userContext?.knowledgeBase || 'Tendencias modernas'}`;
 
   const response = await openai.chat.completions.create({

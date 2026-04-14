@@ -1,8 +1,8 @@
 
 'use server';
 /**
- * @fileOverview FASE 1: Análisis Estructurado Biométrico Quirúrgico.
- * Simplificado a modelo moderno de temperatura (Cálido/Frío).
+ * @fileOverview Análisis Biométrico Quirúrgico.
+ * Clasifica estrictamente en el modelo moderno de temperatura (Cálido/Frío).
  */
 
 import { z } from 'genkit';
@@ -31,18 +31,16 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
     messages: [
       {
         role: "system",
-        content: `Eres un experto en fisionomía y colorimetría profesional. Analiza las fotos para identificar rasgos con precisión.
+        content: `Eres un experto en fisionomía y colorimetría profesional. 
         
-        REGLAS DE IDENTIFICACIÓN:
-        1. GÉNERO: Masculino o Femenino.
-        2. TEMPERATURA DE COLOR: Clasifica estrictamente como "Cálida" (subtonos amarillos/dorados) o "Fría" (subtonos azules/rosados).
-        3. OJOS: Matiz específico (Miel, Hazel, Verde, Azul, etc.).
-        4. CABELLO: Tono natural.
-        5. SILUETA: Figura geométrica (Reloj de Arena, Triángulo, etc.).
+        REGLAS MODERNAS:
+        1. TEMPERATURA: Clasifica exclusivamente como "Cálida" o "Fría".
+        2. SILUETA: Identifica la figura geométrica corporal predominante.
+        3. RASGOS: Identifica color exacto de ojos y cabello.
 
-        RESPONDE EXCLUSIVAMENTE EN JSON:
+        RESPONDE SOLO EN JSON:
         {
-          "genero": "...",
+          "genero": "Masculino/Femenino",
           "temperatura": "Cálida/Fría",
           "colorimetria": {
             "tono_piel": "...",
@@ -60,7 +58,7 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
       {
         role: "user",
         content: [
-          { type: "text", text: "Identifica el género, temperatura de color (Cálida/Fría), color de ojos y silueta completa." },
+          { type: "text", text: "Analiza mi temperatura de color (Cálida/Fría), figura y rasgos faciales." },
           { type: "image_url", image_url: { url: input.facePhotoDataUri } },
           { type: "image_url", image_url: { url: input.figurePhotoDataUri } }
         ],
@@ -72,15 +70,13 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
   const rawContent = response.choices[0].message.content || "{}";
   const content = JSON.parse(rawContent);
   
-  const genero = content.genero || 'No identificado';
   const temperatura = content.temperatura || 'Cálida';
   const figura = content.cuerpo?.figure_geometrica || 'Reloj de Arena';
-  const ojos = content.rostro?.ojos?.color_detalle || 'No identificado';
-  const cabello = content.rostro?.cabello?.color_natural || 'No identificado';
+  const ojos = content.rostro?.ojos?.color_detalle || 'Detectado';
 
   return {
     biometricData: content,
-    figureAnalysis: `Figura: ${figura}`,
-    colorimetryAnalysis: `Paleta ${temperatura} (${genero}, Ojos ${ojos})`
+    figureAnalysis: `Figura ${figura}`,
+    colorimetryAnalysis: `Subtono ${temperatura} (Ojos ${ojos})`
   };
 }

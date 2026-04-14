@@ -1,8 +1,8 @@
 
 'use server';
 /**
- * @fileOverview FASE 2: Generación Artística de Avatar Estilizado.
- * Garantiza una ÚNICA figura de cuerpo completo sin elementos técnicos.
+ * @fileOverview Generación de Avatar Estilizado Profesional.
+ * Blindaje absoluto contra líneas técnicas y figuras múltiples.
  */
 
 import { ai } from '@/ai/genkit';
@@ -39,18 +39,18 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     const hairColor = data.rostro?.cabello?.color_natural || 'natural';
     const skinTemp = data.temperatura || 'Cálida';
 
-    const finalPrompt = `A high-end professional fashion photograph of ONE SINGLE ${personType}. 
-    FULL BODY SHOT: The image shows the entire person from the very top of their head to the very bottom of their shoes. 
-    The subject is standing centrally in a confident fashion pose.
+    const finalPrompt = `High-end professional fashion editorial of ONE SINGLE ${personType}. 
+    FULL LENGTH SHOT: The person is fully visible from the top of the head to the bottom of their shoes. 
+    The subject is standing centrally in a neutral fashion pose.
     
-    AESTHETIC: High-end 3D animated character style. The person has ${hairColor} hair and a ${skinTemp} skin tone.
+    AESTHETIC: Modern 3D stylized character with Pixar-quality lighting. ${hairColor} hair and ${skinTemp} skin tone.
     
-    COMPOSITION: 
-    - THE SUBJECT IS CENTERED WITH PLENTY OF EMPTY SPACE AROUND THEM TO ENSURE NO CLIPPING.
-    - THE BACKGROUND IS A SOLID, PLAIN, EMPTY, PURE WHITE (#FFFFFF) STUDIO ENVIRONMENT.
-    - ABSOLUTELY NO TECHNICAL LINES, NO MEASUREMENTS, NO NUMBERS, NO TEXT, NO RULES, NO GRIDS.
-    - NO SECONDARY FIGURES, NO MULTIPLE VIEWS, NO COLLAGE. JUST ONE SINGLE PERSON.
-    - THE PERSON IS WEARING MODERN STYLISH SHOES.`;
+    COMPOSITION RULES:
+    - THE SUBJECT IS THE ONLY FIGURE IN THE IMAGE. NO SECONDARY MODELS.
+    - BACKGROUND IS A SOLID, PURE, EMPTY, INMACULATE WHITE (#FFFFFF) INFINITE VOID.
+    - ABSOLUTELY NO LINES, NO RULERS, NO MEASUREMENTS, NO NUMBERS, NO GRIDS, NO HORIZON LINES.
+    - NO CHARACTER SHEETS, NO MULTIPLE VIEWS. JUST ONE SINGLE PERSON.
+    - THE PERSON IS WEARING STYLISH MODERN SHOES.`;
 
     try {
       const response = await openai.images.generate({
