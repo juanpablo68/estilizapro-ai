@@ -2,8 +2,7 @@
 'use server';
 /**
  * @fileOverview FASE 2: Generación Artística de Avatar Estilizado.
- * Genera una única figura humana con estética de alta gama.
- * Garantiza una toma de cuerpo completo de cabeza a pies sobre fondo blanco inmaculado.
+ * Garantiza una ÚNICA figura de cuerpo completo sin elementos técnicos.
  */
 
 import { ai } from '@/ai/genkit';
@@ -37,25 +36,21 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     const data = input.biometricData || {};
 
     const personType = data.genero || 'Femenino';
-    const skinTone = data.colorimetria?.tono_piel || 'natural';
-    const eyeColor = data.rostro?.ojos?.color_detalle || 'natural';
     const hairColor = data.rostro?.cabello?.color_natural || 'natural';
+    const skinTemp = data.temperatura || 'Cálida';
 
-    // Prompt rediseñado: Lenguaje fotográfico puro para evitar diagramas técnicos.
-    // Se usa "Wide shot" y "Empty white space" para forzar el cuerpo completo sin recortes.
-    const finalPrompt = `A high-end professional wide-shot fashion photograph of one single ${personType}. 
-    The image is a full-length shot, showing the entire body clearly from the very top of the head to the very bottom of the shoes. 
-    The person is standing centrally, facing forward in a clean studio.
+    const finalPrompt = `A high-end professional fashion photograph of ONE SINGLE ${personType}. 
+    FULL BODY SHOT: The image shows the entire person from the very top of their head to the very bottom of their shoes. 
+    The subject is standing centrally in a confident fashion pose.
     
-    AESTHETIC: High-end 3D animated style (clean, vibrant, cinematic). The person has ${eyeColor} eyes, ${hairColor} hair, and ${skinTone} skin.
+    AESTHETIC: High-end 3D animated character style. The person has ${hairColor} hair and a ${skinTemp} skin tone.
     
     COMPOSITION: 
-    - THE SUBJECT IS CENTERED WITH PLENTY OF EMPTY WHITE SPACE AROUND THEM TO ENSURE THE FULL BODY IS VISIBLE WITHOUT CLIPPING.
-    - THE BACKGROUND IS A SOLID, PLAIN, EMPTY, PURE WHITE (#FFFFFF) STUDIO WALL.
-    - ABSOLUTELY NO OTHER ELEMENTS IN THE FRAME. 
-    - NO TEXT, NO LINES, NO SYMBOLS, NO NUMBERS, NO GRID, NO MEASUREMENTS.
-    - NO SECONDARY FIGURES, NO MINIATURE MODELS, NO MULTIPLE VIEWS.
-    - JUST ONE SINGLE PERSON STANDING IN A PURE WHITE VOID.`;
+    - THE SUBJECT IS CENTERED WITH PLENTY OF EMPTY SPACE AROUND THEM TO ENSURE NO CLIPPING.
+    - THE BACKGROUND IS A SOLID, PLAIN, EMPTY, PURE WHITE (#FFFFFF) STUDIO ENVIRONMENT.
+    - ABSOLUTELY NO TECHNICAL LINES, NO MEASUREMENTS, NO NUMBERS, NO TEXT, NO RULES, NO GRIDS.
+    - NO SECONDARY FIGURES, NO MULTIPLE VIEWS, NO COLLAGE. JUST ONE SINGLE PERSON.
+    - THE PERSON IS WEARING MODERN STYLISH SHOES.`;
 
     try {
       const response = await openai.images.generate({
@@ -69,14 +64,12 @@ const generateStylizedAvatarFlow = ai.defineFlow(
       });
 
       const imageData = response.data[0].b64_json;
-      if (!imageData) throw new Error("Error en la generación visual.");
+      if (!imageData) throw new Error("Error en la generación.");
 
-      return {
-        avatarDataUri: `data:image/png;base64,${imageData}`
-      };
+      return { avatarDataUri: `data:image/png;base64,${imageData}` };
     } catch (error: any) {
       console.error("DALL-E Error:", error);
-      throw new Error(error.message || "Error al generar el avatar visual.");
+      throw new Error(error.message || "Error al generar el avatar.");
     }
   }
 );

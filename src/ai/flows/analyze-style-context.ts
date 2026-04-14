@@ -1,8 +1,8 @@
 
 'use server';
 /**
- * @fileOverview FASE 1: Análisis Estructurado Biométrico Quirúrgico utilizando OpenAI GPT-4o.
- * Se enfoca en obtener etiquetas precisas de género, color de ojos, cabello y piel.
+ * @fileOverview FASE 1: Análisis Estructurado Biométrico Quirúrgico.
+ * Simplificado a modelo moderno de temperatura (Cálido/Frío).
  */
 
 import { z } from 'genkit';
@@ -31,21 +31,22 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
     messages: [
       {
         role: "system",
-        content: `Eres un experto en fisionomía y colorimetría forense. Analiza las fotos para identificar rasgos con precisión absoluta.
+        content: `Eres un experto en fisionomía y colorimetría profesional. Analiza las fotos para identificar rasgos con precisión.
         
         REGLAS DE IDENTIFICACIÓN:
-        1. GÉNERO: Identifica basándote en rasgos fisionómicos reales (Masculino/Femenino). Este es el dato más importante.
-        2. OJOS: Identifica matices claros: Miel, Ámbar, Verde Oliva, Hazel, Azul Acero, Gris, etc.
-        3. CABELLO: Determina el tono exacto (Castaño Claro, Rubio Ceniza, Pelirrojo, Negro Intenso, etc.).
-        4. SILUETA: Identifica la figura geométrica (Reloj de Arena, Triángulo Invertido, Rectángulo, Pera, Óvalo).
+        1. GÉNERO: Masculino o Femenino.
+        2. TEMPERATURA DE COLOR: Clasifica estrictamente como "Cálida" (subtonos amarillos/dorados) o "Fría" (subtonos azules/rosados).
+        3. OJOS: Matiz específico (Miel, Hazel, Verde, Azul, etc.).
+        4. CABELLO: Tono natural.
+        5. SILUETA: Figura geométrica (Reloj de Arena, Triángulo, etc.).
 
         RESPONDE EXCLUSIVAMENTE EN JSON:
         {
-          "genero": "Masculino/Femenino",
+          "genero": "...",
+          "temperatura": "Cálida/Fría",
           "colorimetria": {
             "tono_piel": "...",
-            "subtono": "...",
-            "estacion_sugerida": "..."
+            "subtono_detalle": "..."
           },
           "rostro": {
             "ojos": { "color_detalle": "..." },
@@ -59,7 +60,7 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
       {
         role: "user",
         content: [
-          { type: "text", text: "Identifica el género real, el color exacto de ojos y el tono de cabello. Analiza la silueta de cuerpo completo." },
+          { type: "text", text: "Identifica el género, temperatura de color (Cálida/Fría), color de ojos y silueta completa." },
           { type: "image_url", image_url: { url: input.facePhotoDataUri } },
           { type: "image_url", image_url: { url: input.figurePhotoDataUri } }
         ],
@@ -72,14 +73,14 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
   const content = JSON.parse(rawContent);
   
   const genero = content.genero || 'No identificado';
+  const temperatura = content.temperatura || 'Cálida';
   const figura = content.cuerpo?.figure_geometrica || 'Reloj de Arena';
   const ojos = content.rostro?.ojos?.color_detalle || 'No identificado';
   const cabello = content.rostro?.cabello?.color_natural || 'No identificado';
-  const estacion = content.colorimetria?.estacion_sugerida || 'Otoño';
 
   return {
     biometricData: content,
     figureAnalysis: `Figura: ${figura}`,
-    colorimetryAnalysis: `${estacion} (${genero}, Ojos ${ojos}, Pelo ${cabello})`
+    colorimetryAnalysis: `Paleta ${temperatura} (${genero}, Ojos ${ojos})`
   };
 }

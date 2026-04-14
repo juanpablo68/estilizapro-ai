@@ -1,7 +1,7 @@
+
 'use server';
 /**
- * @fileOverview Chat interactivo con el Asistente de Vestuario con Memoria Total.
- * Utiliza el diagnóstico quirúrgico y las preferencias del usuario para cada respuesta.
+ * @fileOverview Chat interactivo sintetizado y humano.
  */
 
 import { z } from 'genkit';
@@ -23,54 +23,27 @@ const AIChatInputSchema = z.object({
 
 export async function chatWithAIStylist(input: z.infer<typeof AIChatInputSchema>) {
   const apiKey = input.openaiApiKey || process.env.OPENAI_API_KEY;
-  if (!apiKey) throw new Error("API Key de OpenAI requerida para el chat.");
+  if (!apiKey) throw new Error("API Key de OpenAI requerida.");
 
   const openai = new OpenAI({ apiKey });
 
-  // Extracción profunda y segura de la memoria biométrica
   const bio = input.userContext?.biometricData || {};
-  
-  const getBio = (obj: any, keys: string[], fallback: string) => {
-    let curr = obj;
-    for (const k of keys) {
-      if (curr && curr[k]) curr = curr[k];
-      else return fallback;
-    }
-    return typeof curr === 'string' ? curr : fallback;
-  };
+  const eyes = bio.rostro?.ojos?.color_detalle || 'natural';
+  const temp = bio.temperatura || 'Cálida';
+  const figure = bio.cuerpo?.figure_geometrica || 'Reloj de Arena';
 
-  // Mapeo exhaustivo de la identidad del usuario
-  const genero = bio.genero || 'Usuario';
-  const piel = getBio(bio, ['colorimetria', 'tono_piel'], 'Cargando...');
-  const subtono = getBio(bio, ['colorimetria', 'subtono'], 'Cargando...');
-  const ojos = getBio(bio, ['rostro', 'ojos', 'color_detalle'], 'Cargando...');
-  const cabello = getBio(bio, ['rostro', 'cabello', 'color_natural'], 'Cargando...');
-  const estacion = getBio(bio, ['colorimetria', 'estacion_sugerida'], 'Cargando...');
-  const figura = getBio(bio, ['cuerpo', 'figura_geometrica'], input.userContext?.figure || 'Cargando...');
-
-  const systemPrompt = `Eres el "Asistente de Vestuario" de PILAR CIFUENTES. 
+  const systemPrompt = `Eres el asesor personal de imagen de Pilar Cifuentes. 
   
-  TIENES ACCESO A LA MEMORIA BIOMÉTRICA DEL USUARIO. SIEMPRE USA ESTOS DATOS EN TUS CONSEJOS:
-  
-  IDENTIDAD REAL DEL USUARIO:
-  - Género: ${genero}
-  - Tono de Piel: ${piel} (Subtono: ${subtono})
-  - Color de Ojos: ${ojos} (Diagnóstico quirúrgico real)
-  - Color de Cabello: ${cabello} (Tono natural identificado)
-  - Estación de Color: ${estacion}
-  - Figura Corporal: ${figura}
+  REGLAS DE PERSONALIDAD:
+  1. No suenes como una IA. Habla de tú a tú, como un amigo experto en moda.
+  2. Sé sintetizado. No des explicaciones largas a menos que te lo pidan. Ve al grano.
+  3. Usa la memoria del usuario: Ojos ${eyes}, Temperatura ${temp}, Figura ${figure}.
+  4. Si preguntan por colores, recomiéndalos basándote en su temperatura ${temp}.
   
   CONTEXTO DE ESTILO:
-  - Estilos favoritos: ${input.userContext?.preferences || 'No definidos'}
+  - Estilos: ${input.userContext?.preferences || 'No definidos'}
   - Áreas a resaltar: ${input.userContext?.accentuate || 'No definidas'}
-  - Áreas a disimular: ${input.userContext?.minimize || 'No definidas'}
-  - Base de Conocimiento Especializada: ${input.userContext?.knowledgeBase || 'Seguir tendencias modernas'}
-
-  REGLAS DE INTERACCIÓN:
-  1. No digas "no tengo registro" o "no puedo ver tus fotos". Tienes los datos arriba.
-  2. Si el usuario te pregunta "¿de qué color son mis ojos?", responde con el dato específico: "${ojos}".
-  3. Adapta tus sugerencias de ropa basándote estrictamente en su Estación (${estacion}) y Figura (${figura}).
-  4. Tu tono debe ser lujoso, profesional y asertivo.`;
+  - Base de conocimientos: ${input.userContext?.knowledgeBase || 'Tendencias modernas'}`;
 
   const response = await openai.chat.completions.create({
     model: "gpt-4o",
@@ -80,5 +53,5 @@ export async function chatWithAIStylist(input: z.infer<typeof AIChatInputSchema>
     ]
   });
 
-  return response.choices[0].message.content || "Lo siento, no pude procesar tu mensaje.";
+  return response.choices[0].message.content || "Dime, ¿qué look buscamos hoy?";
 }

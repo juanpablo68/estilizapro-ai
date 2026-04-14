@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -50,23 +51,18 @@ export interface UserProfile {
   knowledgeBase: string;
   colorimetryAnalysis?: string;
   figureAnalysis?: string;
-  biometricData?: any; // Memoria HD para la IA
+  biometricData?: any;
   avatarDataUri?: string;
   onboardingComplete: boolean;
   passcode: string;
   purchasedCapsules?: number;
 }
 
-/**
- * Base de Conocimiento Maestra de Pilar Cifuentes Catalán.
- * Estas reglas son las que la IA seguirá por defecto si el usuario no las edita.
- */
 export const DEFAULT_KNOWLEDGE_BASE = `REGLAS MAESTRAS DE ESTILO - PILAR CIFUENTES CATALÁN:
 1. PRIORIDAD ARMARIO: Siempre priorizar prendas que el usuario ya posee.
-2. COLORIMETRÍA: Respetar estrictamente la estación sugerida (Otoño, Primavera, etc.). No sugerir colores que apaguen el rostro.
-3. FIGURA: Para figuras tipo Óvalo o Pera, buscar estructurar hombros. Para Triángulo Invertido, dar volumen a caderas.
-4. ESTÉTICA: Mantener un look lujoso, limpio y profesional. Evitar combinaciones estridentes a menos que el estilo sea 'Streetwear'.
-5. CALZADO: El calzado debe ser coherente con la ocasión (no sugerir tacones para GIMNASIO).`;
+2. COLORIMETRÍA MODERNA: Clasificar en Cálida (dorados/tierra) o Fría (plateados/azules). No usar estaciones obsoletas.
+3. FIGURA: Estructurar silueta según morfología detectada.
+4. TONO: Humano, sintetizado y profesional. Evitar frases robóticas.`;
 
 export const INITIAL_USER_PROFILE: UserProfile = {
   name: '',
