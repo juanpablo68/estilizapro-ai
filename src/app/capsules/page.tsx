@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -7,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, ArrowLeft, Sparkles, LayoutGrid, Trash2, Shirt, Info, FolderHeart, XCircle } from "lucide-react";
+import { Loader2, ArrowLeft, Sparkles, LayoutGrid, Trash2, Shirt, Info, FolderHeart, XCircle, Heart } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
 import { useToast } from "@/hooks/use-toast";
@@ -15,10 +16,14 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
+interface EnrichedCapsule extends Capsule {
+  isFavorite?: boolean;
+}
+
 export default function CapsulesPage() {
   const [profile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
   const [wardrobe] = useLocalStorage<LocalWardrobeItem[]>('estiliza_wardrobe', []);
-  const [savedCapsules, setSavedCapsules] = useLocalStorage<Capsule[]>('estiliza_saved_capsules', []);
+  const [savedCapsules, setSavedCapsules] = useLocalStorage<EnrichedCapsule[]>('estiliza_saved_capsules', []);
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedCapsuleId, setSelectedCapsuleId] = useState<string | null>(null);
@@ -70,7 +75,7 @@ export default function CapsulesPage() {
       
       if (result.capsules && result.capsules.length > 0) {
         setSavedCapsules(prev => {
-           const newList = [...result.capsules, ...prev].slice(0, MAX_OUTFITS);
+           const newList = [...result.capsules.map(c => ({...c, isFavorite: false})), ...prev].slice(0, MAX_OUTFITS);
            return newList;
         });
         setSelectedCapsuleId(result.capsules[0].id);
@@ -94,17 +99,29 @@ export default function CapsulesPage() {
     }
   };
 
+  const toggleFavorite = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSavedCapsules(prev => prev.map(c => 
+      c.id === id ? { ...c, isFavorite: !c.isFavorite } : c
+    ));
+    const capsule = savedCapsules.find(c => c.id === id);
+    if (capsule) {
+      toast({
+        title: !capsule.isFavorite ? "Añadido a favoritos" : "Eliminado de favoritos",
+        duration: 2000,
+      });
+    }
+  };
+
   const getItemImage = (item: CapsuleItem) => {
     if (!item) return null;
 
     if (item.source === 'wardrobe') {
-      // 1. Prioridad: ID Exacto
       if (item.wardrobeItemId) {
         const found = wardrobe.find(w => w.id === item.wardrobeItemId);
         if (found?.imageDataUri) return found.imageDataUri;
       }
       
-      // 2. Respaldo: Nombre con protección de nulabilidad
       const itemNameToSearch = (item.name || "").toLowerCase();
       if (itemNameToSearch) {
         const foundByName = wardrobe.find(w => {
@@ -114,7 +131,6 @@ export default function CapsulesPage() {
         if (foundByName?.imageDataUri) return foundByName.imageDataUri;
       }
 
-      // 3. Respaldo Final: Tipo
       const foundByType = wardrobe.find(w => w.type === item.type);
       if (foundByType?.imageDataUri) return foundByType.imageDataUri;
     }
@@ -225,9 +241,21 @@ export default function CapsulesPage() {
                              );
                           })}
                        </div>
+                       
+                       <Button 
+                          variant="ghost" size="icon" 
+                          className={cn(
+                            "absolute top-1 left-1 h-7 w-7 rounded-full shadow-lg z-10 transition-colors bg-white/80 backdrop-blur-sm",
+                            capsule.isFavorite ? "text-primary" : "text-muted-foreground hover:text-primary"
+                          )}
+                          onClick={(e) => toggleFavorite(capsule.id, e)}
+                        >
+                          <Heart className={cn("w-4 h-4", capsule.isFavorite && "fill-current")} />
+                        </Button>
+
                        <Button 
                           variant="destructive" size="icon" 
-                          className="absolute top-1 right-1 h-7 w-7 rounded-full shadow-lg z-10"
+                          className="absolute top-1 right-1 h-7 w-7 rounded-full shadow-lg z-10 opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={(e) => deleteCapsule(capsule.id, e)}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -247,9 +275,22 @@ export default function CapsulesPage() {
 
       {currentCapsule ? (
         <div className="space-y-6 animate-in fade-in duration-500">
-          <div className="bg-white p-6 rounded-3xl shadow-md border border-primary/10">
-            <h2 className="text-2xl font-headline font-bold">{currentCapsule.name}</h2>
-            <p className="text-xs text-muted-foreground mt-1">{currentCapsule.description}</p>
+          <div className="bg-white p-6 rounded-3xl shadow-md border border-primary/10 flex items-start justify-between">
+            <div className="space-y-1">
+              <h2 className="text-2xl font-headline font-bold">{currentCapsule.name}</h2>
+              <p className="text-xs text-muted-foreground">{currentCapsule.description}</p>
+            </div>
+            <Button 
+              variant="outline" 
+              className={cn(
+                "rounded-2xl gap-2 font-bold",
+                currentCapsule.isFavorite ? "border-primary text-primary bg-primary/5" : "text-muted-foreground"
+              )}
+              onClick={(e) => toggleFavorite(currentCapsule.id, e)}
+            >
+              <Heart className={cn("w-4 h-4", currentCapsule.isFavorite && "fill-current")} />
+              {currentCapsule.isFavorite ? "Favorito" : "Marcar Favorito"}
+            </Button>
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
