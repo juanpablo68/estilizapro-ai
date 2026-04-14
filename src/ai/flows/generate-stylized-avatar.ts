@@ -40,25 +40,22 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     const eyes = bio.rostro?.ojos?.color_detalle || 'natural eyes';
     const hair = bio.rostro?.cabello?.color_natural || 'natural hair';
 
-    // Prompt puramente artístico para evitar el estilo de "plano técnico"
+    // Prompt rediseñado para evitar figuras múltiples y elementos técnicos
     const finalPrompt = `
-      A CINEMATIC FULL-BODY PORTRAIT OF A SINGLE PERSON.
-      ONE SINGLE CHARACTER STANDING CENTRALLY. 
-      STYLE: High-end 3D character animation (Disney Pixar style), stunning artistic render, cinematic lighting, fashion magazine quality.
-      CHARACTER: A ${gender} with ${eyes} eyes and ${hair} hair. ${skin} skin tone. 
-      WEARING: Simple elegant modern casual clothing.
-      
-      COMPOSITION:
-      - THE PERSON IS THE ONLY SUBJECT IN THE FRAME. 
-      - FULL BODY VIEW FROM HEAD TO TOE. 
-      - STANDING NORMALLY FACING FORWARD.
-      - BACKGROUND: ABSOLUTE EMPTY MINIMALIST SOLID WHITE STUDIO BACKGROUND. 
-      
+      A STUNNING ARTISTIC FULL-BODY PORTRAIT OF ONE SINGLE PERSON. 
+      THE SUBJECT IS ONE SINGLE CHARACTER STANDING CENTRALLY FACING THE CAMERA.
+      FULL BODY VIEW FROM HEAD TO TOE, INCLUDING MODERN SHOES.
+      STYLE: High-end 3D character animation (Disney Pixar style), cinematic lighting, vibrant artistic render.
+      CHARACTER: A ${gender} with ${eyes} eyes and ${hair} hair. ${skin} skin tone.
+      BACKGROUND: ABSOLUTELY PLAIN SOLID EMPTY WHITE BACKGROUND (#FFFFFF). 
+
       STRICT CONSTRAINTS:
+      - ONLY ONE PERSON IN THE IMAGE. NO OTHER FIGURES IN THE BACKGROUND.
       - NO GRIDS, NO LINES, NO RULERS, NO MEASUREMENTS.
-      - NO MULTIPLE VIEWS, NO SPLIT SCREEN, NO CHARACTER SHEETS.
       - NO NUMBERS, NO SYMBOLS, NO HUD, NO TEXT.
+      - NO MULTIPLE VIEWS, NO CHARACTER SHEETS, NO SPLIT SCREENS.
       - NO BLUEPRINTS, NO TECHNICAL DRAWINGS.
+      - NO OTHER PEOPLE OR MANNEQUINS IN THE BACKGROUND.
     `;
 
     try {

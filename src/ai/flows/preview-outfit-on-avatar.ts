@@ -33,12 +33,12 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
     messages: [
       {
         role: "system",
-        content: "Eres un sastre digital de alta costura. Describe detalladamente cómo estas prendas reales se visten sobre una persona, enfocándote en pliegues, sombras naturales de la tela y texturas realistas (algodón, seda, cuero, etc.)."
+        content: "Eres un sastre digital de alta costura. Describe detalladamente cómo estas prendas reales se visten sobre una persona, enfocándote en pliegues, sombras naturales de la tela y texturas realistas."
       },
       {
         role: "user",
         content: [
-          { type: "text", text: `Describe cómo esta persona (${gender}, ojos ${eyes}, pelo ${hair}) viste este conjunto. Asegura que la ropa se vea real, tridimensional y bien ajustada.` },
+          { type: "text", text: `Describe cómo esta persona (${gender}, ojos ${eyes}, pelo ${hair}) viste este conjunto. Asegura que la ropa se vea real y bien ajustada.` },
           ...input.clothingItemsDataUris.map(url => ({ type: "image_url" as const, image_url: { url } })),
           { type: "image_url", image_url: { url: input.avatarDataUri } }
         ],
@@ -48,25 +48,26 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
 
   const detailedDescription = analysisResponse.choices[0].message.content || "un conjunto de moda coordinado";
 
-  // ETAPA 2: GENERACIÓN VISUAL DE ALTA FIDELIDAD
+  // ETAPA 2: GENERACIÓN VISUAL DE ALTA FIDELIDAD SIN ELEMENTOS TÉCNICOS
   const response = await openai.images.generate({
     model: "dall-e-3",
     prompt: `
-      A STUNNING FULL-LENGTH FASHION MAGAZINE RENDER OF ONE SINGLE PERSON.
+      A CINEMATIC FULL-LENGTH FASHION MAGAZINE PORTRAIT OF ONE SINGLE PERSON.
       CHARACTER: A STANDING ${gender} with ${eyes} eyes, ${hair} hair, and ${skin} skin.
       OUTFIT: Wearing exactly this realistic clothing ensemble: ${detailedDescription}. 
       STYLE: Modern 3D high-end animation with ultra-realistic fabric textures, cinematic soft lighting.
       
       COMPOSITION:
-      - ONLY ONE PERSON IN THE IMAGE. ONE SINGLE POSE.
-      - FULL BODY VIEW FROM HEAD TO TOE. 
-      - BACKGROUND: ABSOLUTELY PLAIN EMPTY WHITE STUDIO BACKGROUND (#FFFFFF). 
+      - ONLY ONE SINGLE PERSON IN THE FRAME. ONE SINGLE POSE.
+      - FULL BODY VIEW FROM HEAD TO TOE, INCLUDING FOOTWEAR. 
+      - STANDING CENTRALLY FACING FORWARD.
+      - BACKGROUND: ABSOLUTELY PLAIN EMPTY SOLID WHITE STUDIO BACKGROUND (#FFFFFF). 
       
       STRICT CONSTRAINTS:
       - NO MEASUREMENTS, NO GRIDS, NO RULERS, NO TECHNICAL SYMBOLS.
       - NO SPLIT SCREENS, NO MULTIPLE VIEWS, NO DIAGRAMS.
       - NO NUMBERS, NO HUD, NO TEXT, NO LABELS.
-      - NO HORIZON LINES, NO FLOOR TEXTURES.
+      - NO OTHER FIGURES OR PEOPLE IN THE BACKGROUND.
     `,
     n: 1,
     size: "1024x1024",
