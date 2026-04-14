@@ -3,6 +3,7 @@
 /**
  * @fileOverview Pipeline Maestro de Probador Virtual: Realismo fotorrealista.
  * Garantiza consistencia del avatar y visualización realista de prendas sin elementos técnicos.
+ * Asegura una toma de cuerpo completo desde la cabeza hasta los zapatos.
  */
 
 import { z } from 'genkit';
@@ -38,7 +39,7 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
       {
         role: "user",
         content: [
-          { type: "text", text: `Describe cómo esta persona (${gender}, ojos ${eyes}, pelo ${hair}) viste este conjunto. Asegura que la ropa se vea real y bien ajustada.` },
+          { type: "text", text: `Describe cómo esta persona (${gender}, ojos ${eyes}, pelo ${hair}) viste este conjunto. Asegura que la ropa se vea real y bien ajustada sobre un cuerpo completo.` },
           ...input.clothingItemsDataUris.map(url => ({ type: "image_url" as const, image_url: { url } })),
           { type: "image_url", image_url: { url: input.avatarDataUri } }
         ],
@@ -52,12 +53,14 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
   const response = await openai.images.generate({
     model: "dall-e-3",
     prompt: `
-      A CINEMATIC FULL-LENGTH FASHION MAGAZINE PORTRAIT OF ONE SINGLE PERSON.
+      A CINEMATIC FULL-LENGTH STANDING FASHION PHOTOGRAPH OF ONE SINGLE PERSON.
+      THE IMAGE MUST SHOW THE ENTIRE PERSON FROM THE TOP OF THEIR HEAD TO THE VERY BOTTOM OF THEIR SHOES.
       CHARACTER: A STANDING ${gender} with ${eyes} eyes, ${hair} hair, and ${skin} skin.
       OUTFIT: Wearing exactly this realistic clothing ensemble: ${detailedDescription}. 
       STYLE: Modern 3D high-end animation with ultra-realistic fabric textures, cinematic soft lighting.
       
       COMPOSITION:
+      - THE PERSON MUST BE FULLY VISIBLE IN THE FRAME. DO NOT CROP THE FEET O THE HEAD.
       - ONLY ONE SINGLE PERSON IN THE FRAME. ONE SINGLE POSE.
       - FULL BODY VIEW FROM HEAD TO TOE, INCLUDING FOOTWEAR. 
       - STANDING CENTRALLY FACING FORWARD.

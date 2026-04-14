@@ -3,6 +3,7 @@
 /**
  * @fileOverview FASE 2: Generación Artística de Avatar Estilizado.
  * Genera una única figura humana con estética de alta gama, eliminando sesgos técnicos.
+ * Garantiza una toma de cuerpo completo de cabeza a pies.
  */
 
 import { ai } from '@/ai/genkit';
@@ -40,16 +41,17 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     const eyes = bio.rostro?.ojos?.color_detalle || 'natural eyes';
     const hair = bio.rostro?.cabello?.color_natural || 'natural hair';
 
-    // Prompt rediseñado para evitar figuras múltiples y elementos técnicos
+    // Prompt rediseñado para garantizar cuerpo completo sin recortes
     const finalPrompt = `
-      A STUNNING ARTISTIC FULL-BODY PORTRAIT OF ONE SINGLE PERSON. 
-      THE SUBJECT IS ONE SINGLE CHARACTER STANDING CENTRALLY FACING THE CAMERA.
-      FULL BODY VIEW FROM HEAD TO TOE, INCLUDING MODERN SHOES.
+      A STUNNING FULL-LENGTH STANDING SHOT OF ONE SINGLE PERSON. 
+      THE IMAGE MUST SHOW THE ENTIRE PERSON FROM THE TOP OF THEIR HEAD TO THE VERY BOTTOM OF THEIR SHOES.
+      THE SUBJECT IS STANDING CENTRALLY FACING THE CAMERA IN A FULL HEIGHT VIEW.
       STYLE: High-end 3D character animation (Disney Pixar style), cinematic lighting, vibrant artistic render.
       CHARACTER: A ${gender} with ${eyes} eyes and ${hair} hair. ${skin} skin tone.
-      BACKGROUND: ABSOLUTELY PLAIN SOLID EMPTY WHITE BACKGROUND (#FFFFFF). 
+      BACKGROUND: ABSOLUTELY PLAIN SOLID EMPTY WHITE STUDIO BACKGROUND (#FFFFFF). 
 
       STRICT CONSTRAINTS:
+      - THE PERSON MUST BE FULLY VISIBLE IN THE FRAME. DO NOT CROP THE FEET OR THE HEAD.
       - ONLY ONE PERSON IN THE IMAGE. NO OTHER FIGURES IN THE BACKGROUND.
       - NO GRIDS, NO LINES, NO RULERS, NO MEASUREMENTS.
       - NO NUMBERS, NO SYMBOLS, NO HUD, NO TEXT.
