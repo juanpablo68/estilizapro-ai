@@ -1,8 +1,8 @@
-
 'use server';
 /**
  * @fileOverview Análisis Biométrico Quirúrgico.
  * Clasifica estrictamente en el modelo moderno de temperatura (Cálido/Frío).
+ * Extrae rasgos físicos exactos para fidelidad visual.
  */
 
 import { z } from 'genkit';
@@ -31,20 +31,21 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
     messages: [
       {
         role: "system",
-        content: `Eres un experto en fisionomía y colorimetría profesional. 
+        content: `Eres un experto en fisionomía y colorimetría profesional de alta gama. 
         
-        REGLAS MODERNAS:
-        1. TEMPERATURA: Clasifica exclusivamente como "Cálida" o "Fría".
-        2. SILUETA: Identifica la figura geométrica corporal predominante.
-        3. RASGOS: Identifica color exacto de ojos y cabello.
+        REGLAS DE IDENTIFICACIÓN:
+        1. RASGOS ÉTNICOS Y PIEL: Identifica con precisión el tono de piel real (ej. Muy claro, Blanco, Trigueño, Moreno, etc.) y rasgos faciales.
+        2. TEMPERATURA: Clasifica exclusivamente como "Cálida" o "Fría".
+        3. SILUETA: Identifica la figura geométrica corporal predominante.
+        4. CABELLO Y OJOS: Identifica el color natural exacto.
 
         RESPONDE SOLO EN JSON:
         {
           "genero": "Masculino/Femenino",
           "temperatura": "Cálida/Fría",
           "colorimetria": {
-            "tono_piel": "...",
-            "subtono_detalle": "..."
+            "tono_piel": "Ej: Piel blanca muy clara / Fair skin",
+            "subtono_detalle": "Detalle técnico breve"
           },
           "rostro": {
             "ojos": { "color_detalle": "..." },
@@ -58,7 +59,7 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
       {
         role: "user",
         content: [
-          { type: "text", text: "Analiza mi temperatura de color (Cálida/Fría), figura y rasgos faciales." },
+          { type: "text", text: "Analiza mi temperatura de color, figura y rasgos físicos exactos para generar un avatar idéntico a mí." },
           { type: "image_url", image_url: { url: input.facePhotoDataUri } },
           { type: "image_url", image_url: { url: input.figurePhotoDataUri } }
         ],
@@ -72,11 +73,11 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
   
   const temperatura = content.temperatura || 'Cálida';
   const figura = content.cuerpo?.figure_geometrica || 'Reloj de Arena';
-  const ojos = content.rostro?.ojos?.color_detalle || 'Detectado';
+  const piel = content.colorimetria?.tono_piel || 'Blanca';
 
   return {
     biometricData: content,
     figureAnalysis: `Figura ${figura}`,
-    colorimetryAnalysis: `Subtono ${temperatura} (Ojos ${ojos})`
+    colorimetryAnalysis: `Subtono ${temperatura} (${piel})`
   };
 }

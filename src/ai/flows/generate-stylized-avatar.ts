@@ -1,8 +1,7 @@
-
 'use server';
 /**
- * @fileOverview Generación de Avatar Estilizado Profesional.
- * Blindaje absoluto contra líneas técnicas y figuras múltiples.
+ * @fileOverview Generación de Avatar Estilizado Profesional con alta fidelidad biométrica.
+ * Garantiza coincidencia de rasgos y limpieza absoluta del fondo.
  */
 
 import { ai } from '@/ai/genkit';
@@ -37,20 +36,28 @@ const generateStylizedAvatarFlow = ai.defineFlow(
 
     const personType = data.genero || 'Femenino';
     const hairColor = data.rostro?.cabello?.color_natural || 'natural';
-    const skinTemp = data.temperatura || 'Cálida';
+    const skinTone = data.colorimetria?.tono_piel || 'light skin';
+    const eyeColor = data.rostro?.ojos?.color_detalle || 'natural eyes';
 
-    const finalPrompt = `High-end professional fashion editorial of ONE SINGLE ${personType}. 
-    FULL LENGTH SHOT: The person is fully visible from the top of the head to the bottom of their shoes. 
-    The subject is standing centrally in a neutral fashion pose.
+    const finalPrompt = `A high-end professional fashion editorial photograph of ONE SINGLE ${personType}. 
     
-    AESTHETIC: Modern 3D stylized character with Pixar-quality lighting. ${hairColor} hair and ${skinTemp} skin tone.
+    PHYSICAL TRAITS (MANDATORY):
+    - Skin tone: ${skinTone}.
+    - Hair: ${hairColor}.
+    - Eyes: ${eyeColor}.
+    - Style: Modern 3D stylized character with Pixar-quality lighting.
     
-    COMPOSITION RULES:
-    - THE SUBJECT IS THE ONLY FIGURE IN THE IMAGE. NO SECONDARY MODELS.
-    - BACKGROUND IS A SOLID, PURE, EMPTY, INMACULATE WHITE (#FFFFFF) INFINITE VOID.
-    - ABSOLUTELY NO LINES, NO RULERS, NO MEASUREMENTS, NO NUMBERS, NO GRIDS, NO HORIZON LINES.
-    - NO CHARACTER SHEETS, NO MULTIPLE VIEWS. JUST ONE SINGLE PERSON.
-    - THE PERSON IS WEARING STYLISH MODERN SHOES.`;
+    COMPOSITION:
+    - FULL LENGTH SHOT: The subject is fully visible from the top of the head to the bottom of their shoes. 
+    - Standing centrally in a neutral, stylish fashion pose.
+    - Wearing modern, minimalist fashion clothing and footwear.
+    
+    ENVIRONMENT & RULES:
+    - THE SUBJECT IS THE ONLY FIGURE IN THE IMAGE. NO SECONDARY MODELS OR DIAGRAMS.
+    - BACKGROUND: A PURE, SOLID, UNIFORM, AND EMPTY WHITE (#FFFFFF) INFINITE VOID.
+    - ABSOLUTELY NO TECHNICAL LINES, NO RULERS, NO MEASUREMENTS, NO NUMBERS, NO GRIDS, NO CHARTS.
+    - NO TEXT, NO HORIZON LINES, NO SYMBOLS.
+    - THE IMAGE IS CLEAN, ARTISTIC, AND MINIMALIST.`;
 
     try {
       const response = await openai.images.generate({
@@ -64,12 +71,12 @@ const generateStylizedAvatarFlow = ai.defineFlow(
       });
 
       const imageData = response.data[0].b64_json;
-      if (!imageData) throw new Error("Error en la generación.");
+      if (!imageData) throw new Error("Error en la generación visual.");
 
       return { avatarDataUri: `data:image/png;base64,${imageData}` };
     } catch (error: any) {
       console.error("DALL-E Error:", error);
-      throw new Error(error.message || "Error al generar el avatar.");
+      throw new Error(error.message || "Error al generar el avatar estilizado.");
     }
   }
 );
