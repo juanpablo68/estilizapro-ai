@@ -11,6 +11,7 @@ import OpenAI from 'openai';
 const GenerateGroomingPreviewInputSchema = z.object({
   description: z.string(),
   biometricData: z.any(),
+  hasBeard: z.boolean().optional(),
   openaiApiKey: z.string().optional(),
 });
 
@@ -24,6 +25,14 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
   const personType = data.genero || 'Femenino';
   const hairColor = data.rostro?.cabello?.color_natural || 'natural';
   const skinTone = data.colorimetria?.tono_piel || 'light skin';
+  const hasBeard = input.hasBeard || false;
+
+  let facialHairInstruction = "";
+  if (personType === 'Masculino') {
+    facialHairInstruction = hasBeard 
+      ? "The man has a well-groomed, professional beard or stubble as described." 
+      : "The man is clean-shaven, with smooth skin and no facial hair.";
+  }
 
   const finalPrompt = `A high-end professional beauty editorial close-up portrait of ONE SINGLE ${personType}.
   
@@ -32,6 +41,7 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
   PHYSICAL TRAITS:
   - Skin tone: ${skinTone}.
   - Natural Hair color: ${hairColor}.
+  ${facialHairInstruction}
   
   COMPOSITION:
   - Close-up shot focusing on the face and hair.

@@ -9,7 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Send, Sparkles, Loader2, Camera, Palette, Scissors, Trash2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { ArrowLeft, Send, Sparkles, Loader2, Camera, Palette, Scissors, User } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
 import { useToast } from "@/hooks/use-toast";
@@ -34,6 +36,8 @@ export default function GroomingAssistantPage() {
   const { toast } = useToast();
   const router = useRouter();
 
+  const isMale = profile.biometricData?.genero === 'Masculino';
+
   useEffect(() => {
     setMounted(true);
     const credits = Number(profile.groomingCredits) || 0;
@@ -43,7 +47,7 @@ export default function GroomingAssistantPage() {
     }
 
     setMessages([
-      { role: 'assistant', content: `Estudio Visagista abierto. Tienes una temperatura ${profile.colorimetryAnalysis || 'Cálida'} y piel ${profile.biometricData?.colorimetria?.tono_piel || 'natural'}. ¿Qué look de peinado y maquillaje buscamos para tu evento de tipo ${eventType}?` }
+      { role: 'assistant', content: `Estudio Visagista abierto. Tienes una temperatura ${profile.colorimetryAnalysis || 'Cálida'} y piel ${profile.biometricData?.colorimetria?.tono_piel || 'natural'}. ¿Qué look de peinado y ${isMale ? 'cuidado facial' : 'maquillaje'} buscamos para tu evento de tipo ${eventType}?` }
     ]);
   }, []);
 
@@ -56,7 +60,6 @@ export default function GroomingAssistantPage() {
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
     
-    // Al primer mensaje/interacción, consumimos el crédito
     if (!hasConsumedCredit) {
       setProfile(prev => ({ ...prev, groomingCredits: Math.max(0, (prev.groomingCredits || 0) - 1) }));
       setHasConsumedCredit(true);
@@ -76,6 +79,7 @@ export default function GroomingAssistantPage() {
         userContext: {
           biometricData: profile.biometricData,
           colorimetry: profile.colorimetryAnalysis,
+          hasBeard: profile.hasBeard,
         },
         openaiApiKey: openaiKey
       });
@@ -96,6 +100,7 @@ export default function GroomingAssistantPage() {
       const result = await generateGroomingPreview({
         description,
         biometricData: profile.biometricData,
+        hasBeard: profile.hasBeard,
         openaiApiKey: openaiKey
       });
       setResultImage(result.previewImageDataUri);
@@ -117,17 +122,17 @@ export default function GroomingAssistantPage() {
         </Link>
         <div className="flex-1">
           <h1 className="text-2xl font-headline font-bold">Estudio Visagista</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Asesoría de Peinado & Maquillaje</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Asesoría de Peinado & {isMale ? 'Grooming' : 'Maquillaje'}</p>
         </div>
         <div className="bg-indigo-50 px-4 py-1 rounded-full border border-indigo-100">
-           <span className="text-[10px] font-black text-indigo-700 uppercase">Solicitud en Curso</span>
+           <span className="text-[10px] font-black text-indigo-700 uppercase">Sesión Activa</span>
         </div>
       </header>
 
       <div className="grid lg:grid-cols-12 gap-8 items-start">
         <div className="lg:col-span-7 space-y-6 h-[700px] flex flex-col">
           <Card className="border-none shadow-xl bg-white rounded-3xl p-6">
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col md:flex-row md:items-center gap-6">
               <div className="flex-1 space-y-1">
                 <span className="text-[10px] font-black text-primary uppercase">Ocasión</span>
                 <Select value={eventType} onValueChange={setEventType}>
@@ -140,9 +145,23 @@ export default function GroomingAssistantPage() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {isMale && (
+                <div className="flex items-center gap-3 bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/50">
+                  <Switch 
+                    id="beard-mode" 
+                    checked={profile.hasBeard} 
+                    onCheckedChange={(checked) => setProfile({...profile, hasBeard: checked})}
+                  />
+                  <Label htmlFor="beard-mode" className="text-[10px] font-black uppercase tracking-widest cursor-pointer">
+                    {profile.hasBeard ? 'Tengo Barba' : 'Sin Barba'}
+                  </Label>
+                </div>
+              )}
+
               <div className="flex items-center gap-2 bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100">
                 <Palette className="w-4 h-4 text-indigo-600" />
-                <span className="text-[10px] font-bold text-indigo-700 uppercase">{profile.colorimetryAnalysis || 'Detectando'}</span>
+                <span className="text-[10px] font-bold text-indigo-700 uppercase">{profile.colorimetryAnalysis || 'Cálida'}</span>
               </div>
             </div>
           </Card>
@@ -158,17 +177,17 @@ export default function GroomingAssistantPage() {
                   </div>
                 </div>
               ))}
-              {loading && <div className="flex justify-start"><Loader2 className="w-6 h-6 animate-spin text-indigo-600" /></div>}
+              {loading && <div className="flex justify-start p-2"><Loader2 className="w-6 h-6 animate-spin text-indigo-600" /></div>}
             </div>
             <div className="p-4 border-t flex gap-2 bg-white">
               <Input 
-                placeholder="Describe el look que buscas..." 
+                placeholder={isMale ? "Dime si buscas un estilo de barba o peinado..." : "Describe el look de maquillaje o peinado..."}
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && sendMessage()}
                 className="rounded-xl h-12"
               />
-              <Button onClick={sendMessage} size="icon" className="rounded-xl h-12 w-12 bg-indigo-600 hover:bg-indigo-700"><Send /></Button>
+              <Button onClick={sendMessage} size="icon" className="rounded-xl h-12 w-12 bg-indigo-600 hover:bg-indigo-700 shadow-md"><Send /></Button>
             </div>
           </Card>
         </div>
@@ -184,14 +203,14 @@ export default function GroomingAssistantPage() {
                 <div className="absolute bottom-6 right-6">
                   <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg border border-indigo-100 flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-indigo-600" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600">IA Generativa Estética</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600">Visualización Maestro</span>
                   </div>
                 </div>
               </div>
             ) : previewing ? (
               <div className="w-full h-full flex flex-col items-center justify-center bg-muted/20 space-y-4">
                 <Loader2 className="w-12 h-12 animate-spin text-indigo-600" />
-                <p className="text-xs font-bold text-indigo-600 animate-pulse">Renderizando Visagismo...</p>
+                <p className="text-xs font-bold text-indigo-600 animate-pulse">Analizando Visagismo...</p>
               </div>
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center p-12 text-center bg-muted/5 space-y-6">
@@ -201,7 +220,7 @@ export default function GroomingAssistantPage() {
                  <div className="space-y-2">
                     <h3 className="font-bold">Proyección Visual</h3>
                     <p className="text-[10px] text-muted-foreground leading-relaxed">
-                      Envía un mensaje para activar el análisis. La IA proyectará el peinado y maquillaje sobre tu rostro.
+                      Envía un mensaje para activar el análisis. {isMale ? 'La IA proyectará el peinado y cuidado de barba sobre tu avatar.' : 'La IA proyectará el peinado y maquillaje sobre tu rostro.'}
                     </p>
                  </div>
               </div>
