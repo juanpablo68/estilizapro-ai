@@ -79,8 +79,6 @@ export default function CapsulesPage() {
         });
         setSelectedCapsuleId(result.capsules[0].id);
         toast({ title: "¡Outfit Generado!", description: `Se ha creado 1 look para ${gender} con accesorios.` });
-      } else {
-        toast({ variant: "destructive", title: "Error", description: "La IA no pudo generar el outfit. Revisa tu configuración de API." });
       }
     } catch (err: any) {
       console.error(err);
@@ -99,7 +97,8 @@ export default function CapsulesPage() {
   };
 
   const handleGroomingAction = () => {
-    if (profile.purchasedGrooming) {
+    const credits = Number(profile.groomingCredits) || 0;
+    if (credits > 0) {
       router.push('/grooming');
     } else {
       router.push('/purchase-grooming');
@@ -120,13 +119,6 @@ export default function CapsulesPage() {
     setSavedCapsules(prev => prev.map(c => 
       c.id === id ? { ...c, isFavorite: !c.isFavorite } : c
     ));
-    const capsule = savedCapsules.find(c => c.id === id);
-    if (capsule) {
-      toast({
-        title: !capsule.isFavorite ? "Añadido a favoritos" : "Eliminado de favoritos",
-        duration: 2000,
-      });
-    }
   };
 
   const getItemImage = (item: CapsuleItem) => {
@@ -159,7 +151,7 @@ export default function CapsulesPage() {
           onClick={handleGroomingAction}
           className="rounded-xl border-primary text-primary font-bold gap-2 bg-white hover:bg-primary/5 shadow-sm"
         >
-          <Sparkle className="w-4 h-4" /> Peinado y Maquillaje
+          <Sparkle className="w-4 h-4" /> {Number(profile.groomingCredits) > 0 ? `Visagismo (${profile.groomingCredits})` : 'Visagismo ($0.50)'}
         </Button>
       </header>
 
@@ -267,7 +259,7 @@ export default function CapsulesPage() {
         </ScrollArea>
       )}
 
-      {currentCapsule ? (
+      {currentCapsule && (
         <div className="space-y-6 animate-in fade-in duration-500">
           <div className="bg-white p-6 rounded-3xl shadow-md flex items-start justify-between border border-primary/10">
             <div className="space-y-1">
@@ -286,11 +278,6 @@ export default function CapsulesPage() {
                     {img ? (
                       <Image src={img} alt={item.name} fill className="object-cover" unoptimized />
                     ) : <Shirt className="w-8 h-8 text-muted-foreground/30" />}
-                    <div className="absolute top-2 left-2">
-                      <div className={cn("text-[8px] font-black px-2 py-1 rounded-full text-white shadow-sm", item.source === 'wardrobe' ? 'bg-green-500' : 'bg-primary')}>
-                        {item.source === 'wardrobe' ? 'MI ARMARIO' : 'SUGERIDO'}
-                      </div>
-                    </div>
                   </div>
                   <CardContent className="p-3">
                     <p className="font-bold text-[10px] truncate uppercase">{item.name}</p>
@@ -300,11 +287,6 @@ export default function CapsulesPage() {
               );
             })}
           </div>
-        </div>
-      ) : (
-        <div className="py-20 text-center opacity-20">
-           <Shirt className="w-16 h-16 mx-auto mb-4" />
-           <p className="font-bold uppercase tracking-widest text-xs">Define tu estilo y crea tu primer outfit</p>
         </div>
       )}
     </div>
