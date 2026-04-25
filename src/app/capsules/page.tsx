@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -7,13 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, ArrowLeft, Sparkles, LayoutGrid, Trash2, Shirt, Info, FolderHeart, XCircle, Heart } from "lucide-react";
+import { Loader2, ArrowLeft, Sparkles, LayoutGrid, Trash2, Shirt, Info, FolderHeart, XCircle, Heart, PlusCircle } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
 
 interface EnrichedCapsule extends Capsule {
   isFavorite?: boolean;
@@ -35,7 +37,9 @@ export default function CapsulesPage() {
 
   const purchasedCount = Number(profile.purchasedCapsules) || 0;
   const MAX_OUTFITS = 10 + (purchasedCount * 6);
-  const isLimitReached = savedCapsules.length >= MAX_OUTFITS;
+  const currentCount = savedCapsules.length;
+  const isLimitReached = currentCount >= MAX_OUTFITS;
+  const progressValue = (currentCount / MAX_OUTFITS) * 100;
 
   useEffect(() => {
     setMounted(true);
@@ -46,14 +50,17 @@ export default function CapsulesPage() {
 
   const generateCapsules = async () => {
     if (isLimitReached) {
-      toast({ variant: "destructive", title: "Límite alcanzado", description: "Adquiere más espacio para generar nuevos outfits." });
+      toast({ 
+        variant: "destructive", 
+        title: "Límite alcanzado", 
+        description: "Adquiere más espacio para generar nuevos outfits en la sección de compra." 
+      });
       return;
     }
 
     const openaiKey = localStorage.getItem('openai_api_key');
     const unsplashKey = localStorage.getItem('unsplash_access_key');
     
-    // Si no hay key en localStorage, pasamos null para que el servidor use la env var
     const finalOpenAIKey = openaiKey && openaiKey.trim() !== '' ? openaiKey : undefined;
     const finalUnsplashKey = unsplashKey && unsplashKey.trim() !== '' ? unsplashKey : undefined;
 
@@ -134,10 +141,15 @@ export default function CapsulesPage() {
         <Link href="/dashboard">
           <Button variant="ghost" size="icon" className="rounded-full"><ArrowLeft /></Button>
         </Link>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-headline font-bold">Capsulizador AI</h1>
           <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Estilo {profile.biometricData?.genero || 'Personalizado'}</p>
         </div>
+        <Link href="/purchase">
+           <Button variant="outline" size="sm" className="rounded-xl border-primary text-primary font-bold gap-2">
+             <PlusCircle className="w-4 h-4" /> Comprar Espacio
+           </Button>
+        </Link>
       </header>
 
       <Card className="border-none shadow-xl bg-white rounded-[2rem]">
@@ -167,6 +179,22 @@ export default function CapsulesPage() {
               </Select>
             </div>
           </div>
+
+          <div className="space-y-3">
+            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+              <span className="text-muted-foreground">Capacidad de Outfits</span>
+              <span className={cn(isLimitReached ? "text-destructive" : "text-primary")}>
+                {currentCount} / {MAX_OUTFITS}
+              </span>
+            </div>
+            <Progress value={progressValue} className="h-2 rounded-full" />
+            {isLimitReached && (
+              <p className="text-[10px] text-destructive font-bold text-center animate-pulse">
+                Límite alcanzado. Elimina outfits viejos o compra más espacio.
+              </p>
+            )}
+          </div>
+
           <Button 
             onClick={generateCapsules} 
             disabled={loading || isLimitReached} 
