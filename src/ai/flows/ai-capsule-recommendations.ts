@@ -104,7 +104,6 @@ RESPONDE ÚNICAMENTE CON ESTE FORMATO JSON:
 
         if (item.source === 'external') {
           const uKey = input.unsplashAccessKey || process.env.UNSPLASH_ACCESS_KEY;
-          // Inyectamos el género en la búsqueda para asegurar consistencia
           const genderTerm = genderContext === 'Masculino' ? 'men' : 'women';
           const query = `${genderTerm} ${item.searchKeywords}`;
           const images = await searchUnsplashImages(query, uKey, item.type);

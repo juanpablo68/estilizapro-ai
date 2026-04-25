@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Servicio de búsqueda visual de moda optimizado para Unsplash.
- * Técnica de "Producto Puro": Elimina cualquier rastro humano (rostros, manos, piel).
+ * Prioriza la visualización de producto puro.
  */
 
 export interface UnsplashImage {
@@ -17,21 +17,15 @@ export async function searchUnsplashImages(query: string, accessKey?: string, it
     return [];
   }
 
-  /**
-   * REFINAMIENTO QUIRÚRGICO DE PRODUCTO
-   * Usamos términos de industria para evitar modelos humanos.
-   * "Flat lay": Prenda sobre superficie plana.
-   * "Ghost mannequin": Prenda con forma pero sin cuerpo visible.
-   * "Isolated on white": Fondo limpio.
-   */
-  const refinedQuery = `${query} fashion product photography flat lay ghost mannequin isolated on white`.trim();
+  // Añadimos términos de producto para intentar evitar modelos, pero sin filtros agresivos que rompan la búsqueda
+  const refinedQuery = `${query} fashion product flat lay`.trim();
 
   try {
     const response = await fetch(
-      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(refinedQuery)}&per_page=15&orientation=portrait&content_filter=high`,
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(refinedQuery)}&per_page=10&orientation=portrait&content_filter=high`,
       {
         headers: { Authorization: `Client-ID ${key}` },
-        next: { revalidate: 86400 } // Cache por 24 horas
+        next: { revalidate: 86400 }
       }
     );
 
@@ -40,30 +34,7 @@ export async function searchUnsplashImages(query: string, accessKey?: string, it
     const data = await response.json();
     
     if (data.results && data.results.length > 0) {
-      /**
-       * LISTA NEGRA DE CONTENIDO HUMANO
-       * Descartamos imágenes que mencionen cualquier parte del cuerpo o presencia humana.
-       */
-      const forbiddenWords = [
-        'person', 'face', 'woman', 'man', 'girl', 'boy', 'model', 'people', 
-        'portrait', 'skin', 'hand', 'arm', 'leg', 'foot', 'wearing', 'body',
-        'smile', 'couple', 'human', 'finger', 'shoulder', 'neck'
-      ];
-      
-      const filteredResults = data.results.filter((result: any) => {
-        const desc = (result.alt_description || "").toLowerCase();
-        const tags = (result.tags || []).map((t: any) => t.title.toLowerCase()).join(' ');
-        
-        // No debe contener palabras prohibidas en descripción ni etiquetas
-        const isForbidden = forbiddenWords.some(word => desc.includes(word) || tags.includes(word));
-        return !isForbidden;
-      });
-
-      // Si el filtrado nos deja sin nada, usamos los resultados originales pero 
-      // priorizamos los que tengan menos probabilidad de tener personas.
-      const finalResults = filteredResults.length > 0 ? filteredResults : data.results;
-
-      return finalResults.map((result: any) => ({
+      return data.results.map((result: any) => ({
         id: result.id,
         url: result.urls.regular,
         description: result.alt_description || query
