@@ -55,13 +55,13 @@ export default function PaymentGroomingPage() {
         <Button variant="ghost" size="icon" onClick={() => router.back()} disabled={processing}>
           <ArrowLeft />
         </Button>
-        <h1 className="text-2xl font-headline font-bold">Checkout Estético</h1>
+        <h1 className="text-2xl font-headline font-bold text-primary">Checkout Estético</h1>
       </header>
 
       {completed ? (
         <div className="flex flex-col items-center justify-center space-y-6 py-20 animate-in zoom-in duration-500">
-          <div className="w-24 h-24 bg-indigo-100 rounded-full flex items-center justify-center">
-            <CheckCircle2 className="w-16 h-16 text-indigo-600" />
+          <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center">
+            <CheckCircle2 className="w-16 h-16 text-primary" />
           </div>
           <div className="text-center space-y-2">
             <h2 className="text-2xl font-bold">¡Solicitud Lista!</h2>
@@ -70,19 +70,19 @@ export default function PaymentGroomingPage() {
         </div>
       ) : (
         <Card className="border-none shadow-2xl rounded-[2.5rem] overflow-hidden bg-white">
-          <CardHeader className="bg-indigo-50 pb-8">
+          <CardHeader className="bg-primary/5 pb-8">
             <div className="flex justify-between items-center mb-4">
                <CardTitle className="text-xl">Resumen</CardTitle>
-               <ShieldCheck className="w-6 h-6 text-indigo-600" />
+               <ShieldCheck className="w-6 h-6 text-primary" />
             </div>
-            <div className="flex justify-between items-end border-b border-indigo-100 pb-4">
+            <div className="flex justify-between items-end border-b border-primary/10 pb-4">
               <div className="space-y-1">
                 <span className="block text-sm font-medium text-muted-foreground flex items-center gap-2">
                   <Scissors className="w-4 h-4" /> Asesoría Peinado/Maquillaje (x1)
                 </span>
-                <span className="block text-[10px] text-indigo-600 font-bold uppercase tracking-widest">Pago por solicitud</span>
+                <span className="block text-[10px] text-primary font-bold uppercase tracking-widest">Pago por solicitud</span>
               </div>
-              <span className="text-2xl font-black text-indigo-600">$0.50 USD</span>
+              <span className="text-2xl font-black text-primary">$0.50 USD</span>
             </div>
           </CardHeader>
           <CardContent className="p-8 space-y-8">
@@ -99,7 +99,7 @@ export default function PaymentGroomingPage() {
                 <div className="flex items-center space-x-4 border p-4 rounded-2xl cursor-pointer hover:bg-muted/30 transition-colors">
                   <RadioGroupItem value="paypal" id="paypal" />
                   <Label htmlFor="paypal" className="flex-1 flex items-center gap-3 cursor-pointer">
-                    <Wallet className="w-5 h-5 text-indigo-600" />
+                    <Wallet className="w-5 h-5 text-orange-500" />
                     <span className="font-bold">PayPal</span>
                   </Label>
                 </div>
@@ -107,7 +107,7 @@ export default function PaymentGroomingPage() {
             </div>
 
             <Button 
-              className="w-full h-16 bg-indigo-600 text-white font-black text-xl rounded-2xl shadow-xl hover:scale-[1.02] transition-transform"
+              className="w-full h-16 bg-primary text-white font-black text-xl rounded-2xl shadow-xl hover:scale-[1.02] transition-transform"
               onClick={handlePayment}
               disabled={processing}
             >

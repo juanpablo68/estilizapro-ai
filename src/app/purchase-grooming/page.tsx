@@ -25,10 +25,10 @@ export default function PurchaseGroomingPage() {
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft />
         </Button>
-        <h1 className="text-2xl font-headline font-bold">Solicitud Estética</h1>
+        <h1 className="text-2xl font-headline font-bold text-primary">Solicitud Estética</h1>
       </header>
 
-      <Card className="bg-gradient-to-br from-indigo-600 to-indigo-400 text-white border-none shadow-2xl rounded-[2.5rem] overflow-hidden">
+      <Card className="bg-gradient-to-br from-primary to-primary/70 text-white border-none shadow-2xl rounded-[2.5rem] overflow-hidden">
         <CardHeader className="pb-8">
           <div className="flex justify-between items-center mb-6">
              <div className="p-3 bg-white/20 rounded-2xl">
@@ -65,7 +65,7 @@ export default function PurchaseGroomingPage() {
           </div>
 
           <Button 
-            className="w-full h-16 bg-white text-indigo-600 font-black text-xl rounded-2xl shadow-xl hover:scale-[1.02] transition-transform"
+            className="w-full h-16 bg-white text-primary font-black text-xl rounded-2xl shadow-xl hover:scale-[1.02] transition-transform"
             onClick={() => router.push('/payment-grooming')}
           >
             <ShoppingCart className="mr-2 w-6 h-6" /> Comprar Solicitud
