@@ -28,49 +28,55 @@ export default function PurchaseGroomingPage() {
         <h1 className="text-2xl font-headline font-bold text-primary">Solicitud Estética</h1>
       </header>
 
-      <Card className="bg-gradient-to-br from-primary to-primary/70 text-white border-none shadow-2xl rounded-[2.5rem] overflow-hidden">
-        <CardHeader className="pb-8">
+      <Card className="border-none shadow-2xl rounded-[2.5rem] overflow-hidden bg-white ring-1 ring-primary/5">
+        <CardHeader className="bg-primary/5 pb-8 border-b border-primary/10">
           <div className="flex justify-between items-center mb-6">
-             <div className="p-3 bg-white/20 rounded-2xl">
-                <Sparkles className="w-8 h-8" />
+             <div className="p-3 bg-white rounded-2xl shadow-sm border border-primary/10">
+                <Sparkles className="w-8 h-8 text-primary" />
              </div>
-             <ShieldCheck className="w-6 h-6 opacity-50" />
+             <ShieldCheck className="w-6 h-6 text-primary/30" />
           </div>
-          <CardTitle className="text-3xl font-headline">Peinado y Maquillaje AI</CardTitle>
-          <CardDescription className="text-white/80 text-lg">
-            Asesoría visagista profesional por solicitud.
+          <CardTitle className="text-3xl font-headline text-foreground">Peinado y Maquillaje AI</CardTitle>
+          <CardDescription className="text-muted-foreground text-lg">
+            Asesoría visagista profesional personalizada por solicitud.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-8">
+        <CardContent className="p-8 space-y-8">
           <div className="space-y-4">
-             <div className="flex items-center gap-4 bg-white/10 p-4 rounded-2xl">
-                <Palette className="w-6 h-6" />
+             <div className="flex items-center gap-4 bg-muted/20 p-5 rounded-[1.5rem] border border-transparent hover:border-primary/20 transition-colors">
+                <div className="p-3 bg-white rounded-xl shadow-sm">
+                  <Palette className="w-6 h-6 text-primary" />
+                </div>
                 <div className="text-sm">
-                  <p className="font-bold">Análisis Facial</p>
-                  <p className="opacity-70 text-xs">Recomendaciones basadas en tu colorimetría real.</p>
+                  <p className="font-bold text-foreground">Análisis Facial HD</p>
+                  <p className="text-muted-foreground text-xs">Recomendaciones basadas en tu colorimetría y fisionomía real.</p>
                 </div>
              </div>
-             <div className="flex items-center gap-4 bg-white/10 p-4 rounded-2xl">
-                <Scissors className="w-6 h-6" />
+             <div className="flex items-center gap-4 bg-muted/20 p-5 rounded-[1.5rem] border border-transparent hover:border-primary/20 transition-colors">
+                <div className="p-3 bg-white rounded-xl shadow-sm">
+                  <Scissors className="w-6 h-6 text-primary" />
+                </div>
                 <div className="text-sm">
-                  <p className="font-bold">Visagismo AI</p>
-                  <p className="opacity-70 text-xs">Diseño de peinado ideal para tu tipo de rostro.</p>
+                  <p className="font-bold text-foreground">Visagismo AI Maestro</p>
+                  <p className="text-muted-foreground text-xs">Diseño de peinado y cuidado de piel ideal para tu tipo de rostro.</p>
                 </div>
              </div>
           </div>
 
-          <div className="flex justify-between items-center border-t border-white/10 pt-6">
-            <span className="text-sm font-medium">Costo por solicitud</span>
-            <span className="text-4xl font-black">$0.50 USD</span>
+          <div className="flex justify-between items-center border-t border-primary/10 pt-6">
+            <span className="text-sm font-medium text-muted-foreground">Costo por solicitud</span>
+            <span className="text-4xl font-black text-primary">$0.50 USD</span>
           </div>
 
           <Button 
-            className="w-full h-16 bg-white text-primary font-black text-xl rounded-2xl shadow-xl hover:scale-[1.02] transition-transform"
+            className="w-full h-16 bg-primary text-white font-black text-xl rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform"
             onClick={() => router.push('/payment-grooming')}
           >
             <ShoppingCart className="mr-2 w-6 h-6" /> Comprar Solicitud
           </Button>
-          <p className="text-[10px] text-center opacity-60 italic">* El acceso es válido para una sola sesión de asesoría completa.</p>
+          <p className="text-[10px] text-center text-muted-foreground/60 italic leading-relaxed px-8">
+            * El acceso es válido para una sola sesión de asesoría completa con generación de imagen incluida.
+          </p>
         </CardContent>
       </Card>
     </div>
