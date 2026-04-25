@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -8,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, ArrowLeft, Sparkles, Trash2, Shirt, Heart, PlusCircle } from "lucide-react";
+import { Loader2, ArrowLeft, Sparkles, Trash2, Shirt, Heart, PlusCircle, Sparkle } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
 import { useToast } from "@/hooks/use-toast";
@@ -97,6 +98,14 @@ export default function CapsulesPage() {
     }
   };
 
+  const handleGroomingAction = () => {
+    if (profile.purchasedGrooming) {
+      router.push('/grooming');
+    } else {
+      router.push('/purchase-grooming');
+    }
+  };
+
   const deleteCapsule = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     const filtered = savedCapsules.filter(c => c.id !== id);
@@ -144,6 +153,14 @@ export default function CapsulesPage() {
           <h1 className="text-2xl font-headline font-bold">Capsulizador AI</h1>
           <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Estilo {profile.biometricData?.genero || 'Personalizado'}</p>
         </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleGroomingAction}
+          className="rounded-xl border-primary text-primary font-bold gap-2 bg-white hover:bg-primary/5 shadow-sm"
+        >
+          <Sparkle className="w-4 h-4" /> Peinado y Maquillaje
+        </Button>
       </header>
 
       <Card className="border-none shadow-xl bg-white rounded-[2rem]">

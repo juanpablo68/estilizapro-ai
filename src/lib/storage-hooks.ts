@@ -56,6 +56,7 @@ export interface UserProfile {
   onboardingComplete: boolean;
   passcode: string;
   purchasedCapsules?: number;
+  purchasedGrooming?: boolean;
 }
 
 export const DEFAULT_KNOWLEDGE_BASE = `REGLAS MAESTRAS DE ESTILO - PILAR CIFUENTES CATALÁN:
@@ -78,4 +79,5 @@ export const INITIAL_USER_PROFILE: UserProfile = {
   onboardingComplete: false,
   passcode: '1,2,3,4',
   purchasedCapsules: 0,
+  purchasedGrooming: false,
 };
