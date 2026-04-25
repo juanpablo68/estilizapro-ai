@@ -53,10 +53,9 @@ export default function CapsulesPage() {
     const openaiKey = localStorage.getItem('openai_api_key');
     const unsplashKey = localStorage.getItem('unsplash_access_key');
     
-    if (!openaiKey) {
-      toast({ variant: "destructive", title: "API Key Faltante", description: "Configura tu OpenAI Key en Ajustes." });
-      return;
-    }
+    // Si no hay key en localStorage, pasamos null para que el servidor use la env var
+    const finalOpenAIKey = openaiKey && openaiKey.trim() !== '' ? openaiKey : undefined;
+    const finalUnsplashKey = unsplashKey && unsplashKey.trim() !== '' ? unsplashKey : undefined;
 
     setLoading(true);
     try {
@@ -70,8 +69,8 @@ export default function CapsulesPage() {
         eventType: params.eventType,
         weatherConditions: params.weather,
         wardrobeItems: wardrobe.map(i => ({ id: i.id, name: i.name || 'Prenda', type: i.type })),
-        openaiApiKey: openaiKey,
-        unsplashAccessKey: unsplashKey || undefined,
+        openaiApiKey: finalOpenAIKey,
+        unsplashAccessKey: finalUnsplashKey,
       });
       
       if (result.capsules && result.capsules.length > 0) {
@@ -82,10 +81,11 @@ export default function CapsulesPage() {
         setSelectedCapsuleId(result.capsules[0].id);
         toast({ title: "¡Outfits Generados!", description: `Se han creado looks para ${gender} con accesorios.` });
       } else {
-        toast({ variant: "destructive", title: "Error", description: "La IA no pudo procesar la solicitud." });
+        toast({ variant: "destructive", title: "Error", description: "La IA no pudo generar outfits. Revisa tu configuración de API." });
       }
     } catch (err: any) {
-      toast({ variant: "destructive", title: "Error del Sistema", description: err.message });
+      console.error(err);
+      toast({ variant: "destructive", title: "Error del Sistema", description: err.message || "Error al conectar con la IA." });
     } finally {
       setLoading(false);
     }
