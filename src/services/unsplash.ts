@@ -17,12 +17,12 @@ export async function searchUnsplashImages(query: string, accessKey?: string, it
     return [];
   }
 
-  // Añadimos términos de producto para intentar evitar modelos, pero sin filtros agresivos que rompan la búsqueda
-  const refinedQuery = `${query} fashion product flat lay`.trim();
+  // Búsqueda simplificada y estable
+  const refinedQuery = `${query} product`.trim();
 
   try {
     const response = await fetch(
-      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(refinedQuery)}&per_page=10&orientation=portrait&content_filter=high`,
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(refinedQuery)}&per_page=5&orientation=portrait`,
       {
         headers: { Authorization: `Client-ID ${key}` },
         next: { revalidate: 86400 }

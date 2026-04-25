@@ -37,7 +37,7 @@ const CapsuleSchema = z.object({
     type: z.enum(['top', 'bottom', 'dress', 'outerwear', 'shoe', 'accessory']),
     source: z.enum(['wardrobe', 'external']),
     wardrobeItemId: z.string().optional().describe('ID del armario si aplica'),
-    searchKeywords: z.string().describe('English keywords for Unsplash product: e.g. "luxury leather watch" or "cotton t-shirt flat lay"'),
+    searchKeywords: z.string().describe('English keywords for Unsplash: e.g. "luxury leather watch"'),
   })),
 });
 
@@ -55,36 +55,37 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
   const openai = new OpenAI({ apiKey });
   const genderContext = input.gender || 'Femenino';
 
-  const prompt = `Actúa como el Stylist Maestro de Pilar Cifuentes Catalán. Crea exactamente 1 outfit coordinado para: "${input.eventType}" en clima: "${input.weatherConditions}".
+  const prompt = `Actúa como el Stylist Maestro de Pilar Cifuentes Catalán. 
+  Crea exactamente 1 outfit coordinado para: "${input.eventType}" en clima: "${input.weatherConditions}".
 
-REGLAS DE COMPOSICIÓN (OBLIGATORIAS):
-1. GÉNERO: El usuario es ${genderContext}. TODO debe ser estrictamente para este género.
-2. CANTIDAD: El outfit DEBE tener exactamente 6 ítems/imágenes en total.
-3. ACCESORIOS: Es OBLIGATORIO que incluya al menos 2 accesorios (type: "accessory") específicos para ${genderContext}.
-4. SIN HUMANOS: Las búsquedas externas DEBEN enfocarse en fotografía de producto puro (flat lay/isolated).
+  REGLAS OBLIGATORIAS:
+  1. GÉNERO: El usuario es ${genderContext}. Todo debe ser exclusivamente para este género.
+  2. COMPOSICIÓN: El outfit DEBE tener exactamente 6 elementos en total.
+  3. ACCESORIOS: Es OBLIGATORIO que incluyas por lo menos 2 accesorios (type: "accessory").
+  4. SIN HUMANOS: Las descripciones para imágenes externas deben ser de producto (ej: "watch on white background", "isolated shirt").
+  
+  ARMARIO REAL (Prioridad):
+  ${input.wardrobeItems.length > 0 ? JSON.stringify(input.wardrobeItems) : "Vacío. Usa solo source: 'external'."}
 
-ARMARIO REAL: Prioriza estos ítems si encajan. Marca source: "wardrobe" e indica su ID.
-ARMARIO: ${input.wardrobeItems.length > 0 ? JSON.stringify(input.wardrobeItems) : "Vacío. Usa solo source: 'external'."}
-
-RESPONDE ÚNICAMENTE CON ESTE FORMATO JSON:
-{
-  "capsules": [
-    {
-      "name": "Nombre del Look",
-      "description": "Explicación",
-      "items": [
-        { "name": "Prenda 1", "type": "top", "source": "wardrobe/external", "wardrobeItemId": "...", "searchKeywords": "men blue shirt product shot" },
-        ... (exactamente 6 items, incluyendo al menos 2 accesorios)
-      ]
-    }
-  ]
-}`;
+  RESPONDE SOLO EN FORMATO JSON:
+  {
+    "capsules": [
+      {
+        "name": "Nombre",
+        "description": "Explicación",
+        "items": [
+          { "name": "Prenda", "type": "top/bottom/etc", "source": "wardrobe/external", "wardrobeItemId": "...", "searchKeywords": "product keywords" }
+          ... (6 items en total, mínimo 2 accesorios)
+        ]
+      }
+    ]
+  }`;
 
   try {
     const finalResponse = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
-        { role: "system", content: "Experto en estilismo profesional. Prioriza la pureza visual del producto sin modelos humanos." },
+        { role: "system", content: "Experto en estilismo profesional y fotografía de producto." },
         { role: "user", content: prompt }
       ],
       response_format: { type: "json_object" }
@@ -95,7 +96,7 @@ RESPONDE ÚNICAMENTE CON ESTE FORMATO JSON:
     const date = new Date().toISOString();
     
     if (!content.capsules || !Array.isArray(content.capsules)) {
-      throw new Error("Formato de respuesta AI inválido.");
+      throw new Error("Respuesta inválida de la IA.");
     }
 
     const processedCapsules = await Promise.all(content.capsules.map(async (capsule: any, cIdx: number) => {
@@ -127,7 +128,7 @@ RESPONDE ÚNICAMENTE CON ESTE FORMATO JSON:
 
     return { capsules: processedCapsules };
   } catch (e: any) {
-    console.error("Error en Capsulizador AI:", e);
-    throw new Error(`Error al generar cápsulas: ${e.message}`);
+    console.error("Error en Capsulizador:", e);
+    throw new Error(`Error al generar: ${e.message}`);
   }
 }
