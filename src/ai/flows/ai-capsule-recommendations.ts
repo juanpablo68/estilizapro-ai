@@ -2,7 +2,7 @@
 /**
  * @fileOverview Generación de cápsulas de moda con prioridad absoluta al armario local.
  * Garantiza 6 ítems por outfit, 2 accesorios y respeto total al género detectado.
- * Optimizado para evitar errores de parseo JSON y tiempos de espera.
+ * Optimizado para generar exactamente 1 outfit por solicitud para consistencia del contador.
  */
 
 import { z } from 'genkit';
@@ -56,12 +56,12 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
   const openai = new OpenAI({ apiKey });
   const genderContext = input.gender || 'Femenino';
 
-  const prompt = `Actúa como el Stylist Maestro de Pilar Cifuentes Catalán. Crea exactamente 2 outfits (cápsulas) para: "${input.eventType}" en clima: "${input.weatherConditions}".
+  const prompt = `Actúa como el Stylist Maestro de Pilar Cifuentes Catalán. Crea exactamente 1 outfit (cápsula) para: "${input.eventType}" en clima: "${input.weatherConditions}".
 
 REGLAS CRÍTICAS DE ESTRUCTURA:
 1. GÉNERO: El usuario es ${genderContext}. TODO debe ser estrictamente para ${genderContext}.
-2. CANTIDAD: Cada outfit DEBE tener exactamente 6 ítems en total.
-3. ACCESORIOS: Es OBLIGATORIO que cada outfit incluya exactamente 2 accesorios (type: "accessory") específicos para ${genderContext}.
+2. CANTIDAD: El outfit DEBE tener exactamente 6 ítems en total.
+3. ACCESORIOS: Es OBLIGATORIO que el outfit incluya exactamente 2 accesorios (type: "accessory") específicos para ${genderContext}.
 4. ARMARIO REAL: Prioriza estos ítems si encajan. Marca source: "wardrobe" e indica su ID.
    ARMARIO: ${input.wardrobeItems.length > 0 ? JSON.stringify(input.wardrobeItems) : "Vacío. Usa solo source: 'external'."}
 
@@ -108,7 +108,6 @@ RESPONDE ÚNICAMENTE CON ESTE FORMATO JSON:
 
         if (item.source === 'external') {
           const uKey = input.unsplashAccessKey || process.env.UNSPLASH_ACCESS_KEY;
-          // Inyectamos el género en la búsqueda de Unsplash para mayor precisión
           const genderTerm = genderContext === 'Masculino' ? 'men' : 'women';
           const query = `${genderTerm} ${item.searchKeywords}`;
           const images = await searchUnsplashImages(query, uKey, item.type);

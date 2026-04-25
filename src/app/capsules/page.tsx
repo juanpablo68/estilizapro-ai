@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -78,9 +77,9 @@ export default function CapsulesPage() {
            return newList;
         });
         setSelectedCapsuleId(result.capsules[0].id);
-        toast({ title: "¡Outfits Generados!", description: `Se han creado looks para ${gender} con accesorios.` });
+        toast({ title: "¡Outfit Generado!", description: `Se ha creado 1 look para ${gender} con accesorios.` });
       } else {
-        toast({ variant: "destructive", title: "Error", description: "La IA no pudo generar outfits. Revisa tu configuración de API." });
+        toast({ variant: "destructive", title: "Error", description: "La IA no pudo generar el outfit. Revisa tu configuración de API." });
       }
     } catch (err: any) {
       console.error(err);
