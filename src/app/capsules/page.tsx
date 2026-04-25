@@ -151,7 +151,7 @@ export default function CapsulesPage() {
           onClick={handleGroomingAction}
           className="rounded-xl border-primary text-primary font-bold gap-2 bg-white hover:bg-primary/5 shadow-sm"
         >
-          <Sparkle className="w-4 h-4" /> {Number(profile.groomingCredits) > 0 ? `Visagismo (${profile.groomingCredits})` : 'Visagismo ($0.50)'}
+          <Sparkle className="w-4 h-4" /> {Number(profile.groomingCredits) > 0 ? `Peinado y Maquillaje (${profile.groomingCredits})` : 'Peinado y Maquillaje ($0.50)'}
         </Button>
       </header>
 
