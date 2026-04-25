@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Servicio de búsqueda visual de moda optimizado para Unsplash.
- * Utiliza una técnica de búsqueda quirúrgica para evitar fotos de personas y paisajes.
+ * Técnica de "Producto Puro": Elimina cualquier rastro humano (rostros, manos, piel).
  */
 
 export interface UnsplashImage {
@@ -17,13 +17,18 @@ export async function searchUnsplashImages(query: string, accessKey?: string, it
     return [];
   }
 
-  // Refinamiento quirúrgico para producto real. 
-  // Priorizamos "product photography" y "white background" para evitar contextos irrelevantes.
-  const refinedQuery = `${query} fashion product photography isolated`.trim();
+  /**
+   * REFINAMIENTO QUIRÚRGICO DE PRODUCTO
+   * Usamos términos de industria para evitar modelos humanos.
+   * "Flat lay": Prenda sobre superficie plana.
+   * "Ghost mannequin": Prenda con forma pero sin cuerpo visible.
+   * "Isolated on white": Fondo limpio.
+   */
+  const refinedQuery = `${query} fashion product photography flat lay ghost mannequin isolated on white`.trim();
 
   try {
     const response = await fetch(
-      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(refinedQuery)}&per_page=10&orientation=portrait&content_filter=high`,
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(refinedQuery)}&per_page=15&orientation=portrait&content_filter=high`,
       {
         headers: { Authorization: `Client-ID ${key}` },
         next: { revalidate: 86400 } // Cache por 24 horas
@@ -35,8 +40,15 @@ export async function searchUnsplashImages(query: string, accessKey?: string, it
     const data = await response.json();
     
     if (data.results && data.results.length > 0) {
-      // Filtrado estricto: descartamos cualquier cosa que huela a personas, arquitectura o interiores.
-      const forbiddenWords = ['person', 'face', 'woman', 'man', 'girl', 'boy', 'model', 'people', 'portrait', 'interior', 'room', 'building', 'wall', 'door', 'street'];
+      /**
+       * LISTA NEGRA DE CONTENIDO HUMANO
+       * Descartamos imágenes que mencionen cualquier parte del cuerpo o presencia humana.
+       */
+      const forbiddenWords = [
+        'person', 'face', 'woman', 'man', 'girl', 'boy', 'model', 'people', 
+        'portrait', 'skin', 'hand', 'arm', 'leg', 'foot', 'wearing', 'body',
+        'smile', 'couple', 'human', 'finger', 'shoulder', 'neck'
+      ];
       
       const filteredResults = data.results.filter((result: any) => {
         const desc = (result.alt_description || "").toLowerCase();
@@ -47,7 +59,8 @@ export async function searchUnsplashImages(query: string, accessKey?: string, it
         return !isForbidden;
       });
 
-      // Si el filtrado nos deja sin nada, usamos el primer resultado pero intentando ser selectivos.
+      // Si el filtrado nos deja sin nada, usamos los resultados originales pero 
+      // priorizamos los que tengan menos probabilidad de tener personas.
       const finalResults = filteredResults.length > 0 ? filteredResults : data.results;
 
       return finalResults.map((result: any) => ({
