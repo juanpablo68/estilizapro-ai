@@ -2,6 +2,7 @@
 "use client"
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE, WardrobeItem as LocalWardrobeItem } from '@/lib/storage-hooks';
 import { receiveAICapsuleRecommendations, Capsule, CapsuleItem } from '@/ai/flows/ai-capsule-recommendations';
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ interface EnrichedCapsule extends Capsule {
 }
 
 export default function CapsulesPage() {
+  const router = useRouter();
   const [profile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
   const [wardrobe] = useLocalStorage<LocalWardrobeItem[]>('estiliza_wardrobe', []);
   const [savedCapsules, setSavedCapsules] = useLocalStorage<EnrichedCapsule[]>('estiliza_saved_capsules', []);
@@ -39,7 +41,7 @@ export default function CapsulesPage() {
   const MAX_OUTFITS = 10 + (purchasedCount * 6);
   const currentCount = savedCapsules.length;
   const isLimitReached = currentCount >= MAX_OUTFITS;
-  const progressValue = (currentCount / MAX_OUTFITS) * 100;
+  const progressValue = Math.min((currentCount / MAX_OUTFITS) * 100, 100);
 
   useEffect(() => {
     setMounted(true);
@@ -49,15 +51,6 @@ export default function CapsulesPage() {
   }, [savedCapsules, selectedCapsuleId]);
 
   const generateCapsules = async () => {
-    if (isLimitReached) {
-      toast({ 
-        variant: "destructive", 
-        title: "Límite alcanzado", 
-        description: "Adquiere más espacio para generar nuevos outfits en la sección de compra." 
-      });
-      return;
-    }
-
     const openaiKey = localStorage.getItem('openai_api_key');
     const unsplashKey = localStorage.getItem('unsplash_access_key');
     
@@ -95,6 +88,14 @@ export default function CapsulesPage() {
       toast({ variant: "destructive", title: "Error del Sistema", description: err.message || "Error al conectar con la IA." });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleMainAction = () => {
+    if (isLimitReached) {
+      router.push('/purchase');
+    } else {
+      generateCapsules();
     }
   };
 
@@ -189,18 +190,27 @@ export default function CapsulesPage() {
             </div>
             <Progress value={progressValue} className="h-2 rounded-full" />
             {isLimitReached && (
-              <p className="text-[10px] text-destructive font-bold text-center animate-pulse">
-                Límite alcanzado. Elimina outfits viejos o compra más espacio.
+              <p className="text-[10px] text-destructive font-bold text-center animate-pulse leading-relaxed px-4">
+                Has llegado a la cantidad máxima de Outfits que permite tu cápsula actual.
               </p>
             )}
           </div>
 
           <Button 
-            onClick={generateCapsules} 
-            disabled={loading || isLimitReached} 
-            className="w-full h-14 bg-primary text-white font-bold rounded-2xl shadow-lg"
+            onClick={handleMainAction} 
+            disabled={loading} 
+            className={cn(
+              "w-full h-14 font-bold rounded-2xl shadow-lg transition-all",
+              isLimitReached ? "bg-secondary hover:bg-secondary/90" : "bg-primary"
+            )}
           >
-            {loading ? <><Loader2 className="mr-2 animate-spin" /> Creando Look {profile.biometricData?.genero}...</> : <><Sparkles className="mr-2" /> Crear Outfits</>}
+            {loading ? (
+              <><Loader2 className="mr-2 animate-spin" /> Procesando...</>
+            ) : isLimitReached ? (
+              <><PlusCircle className="mr-2" /> Cápsula Adicional (+6 Looks)</>
+            ) : (
+              <><Sparkles className="mr-2" /> Crear Outfits</>
+            )}
           </Button>
         </CardContent>
       </Card>
