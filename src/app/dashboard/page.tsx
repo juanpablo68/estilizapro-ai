@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -29,9 +28,9 @@ export default function DashboardPage() {
   const actions = [
     { name: 'Armario', icon: Shirt, color: 'text-primary', bg: 'bg-primary/10', href: '/wardrobe' },
     { name: 'Cápsulas', icon: Layers, color: 'text-secondary', bg: 'bg-secondary/10', href: '/capsules' },
-    { name: 'Asistente de Vestuario', icon: MessageCircle, color: 'text-pink-600', bg: 'bg-pink-50', href: '/chat' },
-    { name: 'Probador Virtual', icon: UserCircle, color: 'text-indigo-600', bg: 'bg-indigo-50', href: '/preview' },
-    { name: 'Más Cápsulas', icon: PlusCircle, color: 'text-orange-600', bg: 'bg-orange-50', href: '/purchase' },
+    { name: 'Asistente de Vestuario', icon: MessageCircle, color: 'text-primary', bg: 'bg-primary/5', href: '/chat' },
+    { name: 'Probador Virtual', icon: UserCircle, color: 'text-secondary', bg: 'bg-secondary/5', href: '/preview' },
+    { name: 'Más Cápsulas', icon: PlusCircle, color: 'text-primary', bg: 'bg-primary/5', href: '/purchase' },
     { name: 'CONFIGURAR APIS', icon: Settings, color: 'text-white', bg: 'bg-primary', href: '/settings', highlight: true },
   ];
 

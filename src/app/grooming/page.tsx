@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useRef, useEffect } from 'react';
@@ -124,8 +123,8 @@ export default function GroomingAssistantPage() {
           <h1 className="text-2xl font-headline font-bold">Estudio Visagista</h1>
           <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Asesoría de Peinado & {isMale ? 'Grooming' : 'Maquillaje'}</p>
         </div>
-        <div className="bg-indigo-50 px-4 py-1 rounded-full border border-indigo-100">
-           <span className="text-[10px] font-black text-indigo-700 uppercase">Sesión Activa</span>
+        <div className="bg-primary/5 px-4 py-1 rounded-full border border-primary/10">
+           <span className="text-[10px] font-black text-primary uppercase">Sesión Activa</span>
         </div>
       </header>
 
@@ -147,7 +146,7 @@ export default function GroomingAssistantPage() {
               </div>
 
               {isMale && (
-                <div className="flex items-center gap-3 bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/50">
+                <div className="flex items-center gap-3 bg-primary/5 p-3 rounded-xl border border-primary/10">
                   <Switch 
                     id="beard-mode" 
                     checked={profile.hasBeard} 
@@ -159,9 +158,9 @@ export default function GroomingAssistantPage() {
                 </div>
               )}
 
-              <div className="flex items-center gap-2 bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100">
-                <Palette className="w-4 h-4 text-indigo-600" />
-                <span className="text-[10px] font-bold text-indigo-700 uppercase">{profile.colorimetryAnalysis || 'Cálida'}</span>
+              <div className="flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-xl border border-primary/20">
+                <Palette className="w-4 h-4 text-primary" />
+                <span className="text-[10px] font-bold text-primary uppercase">{profile.colorimetryAnalysis || 'Cálida'}</span>
               </div>
             </div>
           </Card>
@@ -171,13 +170,13 @@ export default function GroomingAssistantPage() {
               {messages.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${
-                    msg.role === 'user' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-foreground border shadow-sm'
+                    msg.role === 'user' ? 'bg-primary text-white shadow-md' : 'bg-white text-foreground border shadow-sm'
                   }`}>
                     {msg.content}
                   </div>
                 </div>
               ))}
-              {loading && <div className="flex justify-start p-2"><Loader2 className="w-6 h-6 animate-spin text-indigo-600" /></div>}
+              {loading && <div className="flex justify-start p-2"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>}
             </div>
             <div className="p-4 border-t flex gap-2 bg-white">
               <Input 
@@ -187,35 +186,35 @@ export default function GroomingAssistantPage() {
                 onKeyDown={e => e.key === 'Enter' && sendMessage()}
                 className="rounded-xl h-12"
               />
-              <Button onClick={sendMessage} size="icon" className="rounded-xl h-12 w-12 bg-indigo-600 hover:bg-indigo-700 shadow-md"><Send /></Button>
+              <Button onClick={sendMessage} size="icon" className="rounded-xl h-12 w-12 bg-primary hover:bg-primary/90 shadow-md"><Send /></Button>
             </div>
           </Card>
         </div>
 
         <div className="lg:col-span-5 space-y-6">
            <h2 className="text-lg font-bold flex items-center gap-2">
-            <Camera className="w-5 h-5 text-indigo-600" /> Espejo Digital
+            <Camera className="w-5 h-5 text-primary" /> Espejo Digital
            </h2>
-           <Card className="aspect-[3/4] w-full overflow-hidden relative shadow-2xl border-none ring-[12px] ring-indigo-50 rounded-[3rem] bg-white">
+           <Card className="aspect-[3/4] w-full overflow-hidden relative shadow-2xl border-none ring-[12px] ring-primary/5 rounded-[3rem] bg-white">
             {resultImage ? (
               <div className="animate-in fade-in zoom-in duration-700 h-full w-full">
                 <Image src={resultImage} alt="Grooming Resultado" fill className="object-cover" unoptimized />
                 <div className="absolute bottom-6 right-6">
-                  <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg border border-indigo-100 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-indigo-600" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600">Visualización Maestro</span>
+                  <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg border border-primary/20 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-primary">Visualización Maestro</span>
                   </div>
                 </div>
               </div>
             ) : previewing ? (
               <div className="w-full h-full flex flex-col items-center justify-center bg-muted/20 space-y-4">
-                <Loader2 className="w-12 h-12 animate-spin text-indigo-600" />
-                <p className="text-xs font-bold text-indigo-600 animate-pulse">Analizando Visagismo...</p>
+                <Loader2 className="w-12 h-12 animate-spin text-primary" />
+                <p className="text-xs font-bold text-primary animate-pulse">Analizando Visagismo...</p>
               </div>
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center p-12 text-center bg-muted/5 space-y-6">
                  <div className="p-8 bg-white rounded-full shadow-lg">
-                    <Scissors className="w-12 h-12 text-indigo-600" />
+                    <Scissors className="w-12 h-12 text-primary" />
                  </div>
                  <div className="space-y-2">
                     <h3 className="font-bold">Proyección Visual</h3>

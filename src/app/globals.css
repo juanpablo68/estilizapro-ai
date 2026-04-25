@@ -4,39 +4,39 @@
 
 @layer base {
   :root {
-    /* Background: Subtly warm lavender-grey #F2F0F5 */
-    --background: 260 15% 95%;
-    --foreground: 240 50% 15%;
+    /* Background: Light Creamy Beige #FCF9F5 */
+    --background: 34 30% 98%;
+    --foreground: 240 10% 15%;
     
     --card: 0 0% 100%;
-    --card-foreground: 240 50% 15%;
+    --card-foreground: 240 10% 15%;
     
     --popover: 0 0% 100%;
-    --popover-foreground: 240 50% 15%;
+    --popover-foreground: 240 10% 15%;
     
-    /* Primary: Dominant Pink #FF69B4 (H: 330, S: 100%, L: 71%) */
-    --primary: 330 100% 71%;
+    /* Primary: Beige Arena #C39A65 (H: 34, S: 45%, L: 58%) */
+    --primary: 34 45% 58%;
     --primary-foreground: 0 0% 100%;
     
-    /* Secondary: Deep Ocean Blue #292999 (H: 240, S: 58%, L: 38%) */
-    --secondary: 240 58% 38%;
+    /* Secondary: Deep Earth Brown #5D4037 */
+    --secondary: 16 25% 31%;
     --secondary-foreground: 0 0% 100%;
     
-    --muted: 260 10% 90%;
-    --muted-foreground: 240 20% 40%;
+    --muted: 34 10% 90%;
+    --muted-foreground: 34 15% 40%;
     
-    /* Accent used for interactions, mapping to deep blue for contrast */
-    --accent: 240 58% 38%;
+    /* Accent: Matching Beige Arena for consistency */
+    --accent: 34 45% 58%;
     --accent-foreground: 0 0% 100%;
     
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     
-    --border: 240 10% 85%;
-    --input: 240 10% 85%;
-    --ring: 330 100% 71%;
+    --border: 34 15% 85%;
+    --input: 34 15% 85%;
+    --ring: 34 45% 58%;
     
-    --radius: 0.75rem;
+    --radius: 1rem;
   }
 }
 

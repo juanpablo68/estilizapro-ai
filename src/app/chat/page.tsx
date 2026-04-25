@@ -91,9 +91,9 @@ export default function ChatPage() {
           </div>
         </div>
         {(profile.knowledgeBase || profile.biometricData) && (
-          <div className="flex items-center gap-1.5 bg-indigo-50 px-3 py-1.5 rounded-full">
-            <BookOpen className="w-3.5 h-3.5 text-indigo-600" />
-            <span className="text-[10px] font-black text-indigo-700 uppercase">Contexto Sincronizado</span>
+          <div className="flex items-center gap-1.5 bg-primary/5 px-3 py-1.5 rounded-full border border-primary/10">
+            <BookOpen className="w-3.5 h-3.5 text-primary" />
+            <span className="text-[10px] font-black text-primary uppercase">Contexto Sincronizado</span>
           </div>
         )}
       </header>
