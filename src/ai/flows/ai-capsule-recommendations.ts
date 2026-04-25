@@ -1,6 +1,7 @@
 'use server';
 /**
  * @fileOverview Generación de cápsulas de moda con prioridad absoluta al armario local.
+ * Ahora genera 6 ítems por outfit, garantizando 2 accesorios y respeto total al género.
  */
 
 import { z } from 'genkit';
@@ -18,6 +19,7 @@ const AICapsuleRecommendationsInputSchema = z.object({
   stylePreferences: z.any(),
   colorimetryAnalysis: z.string(),
   figureAnalysis: z.string(),
+  gender: z.string().optional(),
   knowledgeBase: z.string().optional(),
   eventType: z.string(),
   weatherConditions: z.string(),
@@ -35,7 +37,7 @@ const CapsuleSchema = z.object({
     type: z.enum(['top', 'bottom', 'dress', 'outerwear', 'shoe', 'accessory']),
     source: z.enum(['wardrobe', 'external']),
     wardrobeItemId: z.string().optional().describe('El ID EXACTO del objeto del armario'),
-    searchKeywords: z.string().describe('English keywords for Unsplash API. Use product-only descriptions like "flat lay fashion product photography"'),
+    searchKeywords: z.string().describe('English keywords for Unsplash API. Use product-only descriptions like "mens luxury watch" or "womens leather bag"'),
   })),
 });
 
@@ -52,19 +54,23 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
 
   const openai = new OpenAI({ apiKey });
 
+  const genderContext = input.gender || 'Femenino';
+
   const prompt = `Actúa como el Stylist Maestro de Pilar Cifuentes Catalán. Crea 2 outfits (cápsulas) para: "${input.eventType}" y clima: "${input.weatherConditions}".
 
-REGLAS DE ORO:
-1. PRIORIDAD ARMARIO: Usa los ítems de "ARMARIO REAL" abajo. Si la prenda existe, DEBES marcarla como source: "wardrobe" y poner su "id" exacto.
-2. NOMBRADO: Cada ítem DEBE tener un "name" descriptivo en ESPAÑOL. NO lo dejes vacío.
-3. CONTRASTE: Outfit 1 y Outfit 2 deben ser radicalmente diferentes en color y vibra.
-4. BÚSQUEDA EXTERNA: Para prendas externas (source: external), genera "searchKeywords" en INGLÉS enfocados en "flat lay product photography" sin personas.
-5. FORMATO: Responde SOLO con un objeto JSON con el array "capsules".
+REGLAS CRÍTICAS DE COMPOSICIÓN:
+1. CANTIDAD: Cada outfit DEBE tener exactamente entre 5 y 6 ítems para un look completo.
+2. ACCESORIOS: Es OBLIGATORIO que cada outfit incluya al menos 2 accesorios (accessory).
+3. GÉNERO: El usuario es de género ${genderContext}. TODO lo sugerido (prendas y accesorios) DEBE ser estrictamente para ${genderContext}. No mezcles estilos de géneros opuestos.
+4. PRIORIDAD ARMARIO: Usa los ítems de "ARMARIO REAL" abajo. Si la prenda existe, DEBES marcarla como source: "wardrobe" y poner su "id" exacto.
+5. NOMBRADO: Cada ítem DEBE tener un "name" descriptivo en ESPAÑOL.
+6. BÚSQUEDA EXTERNA: Para prendas externas, genera "searchKeywords" en INGLÉS incluyendo el género (ej. "men's watch" o "women's handbag") enfocados en "flat lay product photography" sin personas.
 
 ARMARIO REAL DISPONIBLE:
 ${input.wardrobeItems.length > 0 ? JSON.stringify(input.wardrobeItems) : "Vacío. Sugiere outfits externos."}
 
 PERFIL USUARIO:
+- Género: ${genderContext}
 - Figura: ${input.figureAnalysis}
 - Color: ${input.colorimetryAnalysis}
 - Guía de estilo: ${input.knowledgeBase || 'Seguir tendencias modernas'}`;

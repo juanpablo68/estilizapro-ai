@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -65,6 +64,7 @@ export default function CapsulesPage() {
         stylePreferences: profile.stylePreferences,
         colorimetryAnalysis: profile.colorimetryAnalysis || 'No definida',
         figureAnalysis: profile.figureAnalysis || 'No definida',
+        gender: profile.biometricData?.genero || 'Femenino',
         knowledgeBase: profile.knowledgeBase,
         eventType: params.eventType,
         weatherConditions: params.weather,
@@ -79,7 +79,7 @@ export default function CapsulesPage() {
            return newList;
         });
         setSelectedCapsuleId(result.capsules[0].id);
-        toast({ title: "¡Outfits Generados!", description: "Se han creado propuestas variadas y únicas." });
+        toast({ title: "¡Outfits Generados!", description: "Se han creado propuestas variadas y únicas con accesorios específicos." });
       } else {
         toast({ variant: "destructive", title: "Error", description: "La IA no pudo generar outfits satisfactorios." });
       }
@@ -293,7 +293,7 @@ export default function CapsulesPage() {
             </Button>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {currentCapsule.items.map((item, idx) => {
               const img = getItemImage(item);
               const itemName = item.name || "Sin nombre";
