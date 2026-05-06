@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -13,15 +12,15 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 
+// Revertido a calidad estándar estable para evitar problemas de LocalStorage
 const resizeImage = (base64Str: string): Promise<string> => {
   return new Promise((resolve) => {
     const img = new window.Image();
     img.src = base64Str;
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      // Reducimos a 600px para maximizar capacidad de LocalStorage y evitar errores de red
-      const MAX_WIDTH = 600;
-      const MAX_HEIGHT = 600;
+      const MAX_WIDTH = 800;
+      const MAX_HEIGHT = 800;
       let width = img.width;
       let height = img.height;
 
@@ -76,7 +75,7 @@ export default function WardrobePage() {
       toast({
         variant: "destructive",
         title: "Datos incompletos",
-        description: "Por favor, añade un nombre y una foto a la prenda."
+        description: "Añade un nombre y una foto."
       });
       return;
     }
@@ -90,28 +89,18 @@ export default function WardrobePage() {
       dateAdded: new Date().toISOString(),
     };
     
-    try {
-      setItems([item, ...items]);
-      toast({
-        title: "Prenda Guardada",
-        description: `${newItem.name} ha sido añadida a tu armario.`
-      });
-      setAdding(false);
-      setNewItem({ name: '', type: 'top', imageDataUri: '' });
-    } catch (e) {
-      toast({
-        variant: "destructive",
-        title: "Armario Lleno",
-        description: "No hay espacio suficiente en el almacenamiento local. Intenta eliminar algunas prendas."
-      });
-    }
+    setItems([item, ...items]);
+    toast({
+      title: "Guardado",
+      description: `${newItem.name} añadida al armario.`
+    });
+    setAdding(false);
+    setNewItem({ name: '', type: 'top', imageDataUri: '' });
   };
 
   const deleteItem = (id: string) => {
     setItems(items.filter(i => i.id !== id));
-    toast({
-      title: "Prenda Eliminada",
-    });
+    toast({ title: "Eliminado" });
   };
 
   if (!mounted) return null;
@@ -133,7 +122,7 @@ export default function WardrobePage() {
             </h2>
             
             <div className="space-y-6">
-              <div className="relative aspect-square w-full max-w-[280px] mx-auto bg-muted rounded-2xl flex items-center justify-center overflow-hidden border-2 border-dashed border-primary/20 hover:border-primary/50 transition-colors">
+              <div className="relative aspect-square w-full max-w-[280px] mx-auto bg-muted rounded-2xl flex items-center justify-center overflow-hidden border-2 border-dashed border-primary/20">
                 {loading ? (
                   <Loader2 className="w-10 h-10 animate-spin text-primary" />
                 ) : newItem.imageDataUri ? (
@@ -142,14 +131,14 @@ export default function WardrobePage() {
                     <Button 
                       variant="secondary" 
                       size="icon" 
-                      className="absolute top-2 right-2 rounded-full shadow-md"
+                      className="absolute top-2 right-2 rounded-full"
                       onClick={() => setNewItem({...newItem, imageDataUri: ''})}
                     >
                       ×
                     </Button>
                   </>
                 ) : (
-                  <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full text-center p-4">
+                  <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full p-4">
                     <Camera className="w-12 h-12 text-muted-foreground mb-3" />
                     <span className="text-sm font-bold text-muted-foreground">SUBIR FOTO</span>
                     <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
@@ -158,9 +147,9 @@ export default function WardrobePage() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-black text-muted-foreground">Nombre de la prenda</Label>
+                <Label className="text-[10px] uppercase font-black">Nombre</Label>
                 <Input 
-                  placeholder="Ej: Blazer Lino Crudo" 
+                  placeholder="Ej: Camisa Blanca" 
                   value={newItem.name} 
                   onChange={e => setNewItem({...newItem, name: e.target.value})}
                   className="rounded-xl h-12"
@@ -168,16 +157,16 @@ export default function WardrobePage() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-black text-muted-foreground">Categoría</Label>
+                <Label className="text-[10px] uppercase font-black">Categoría</Label>
                 <Select value={newItem.type} onValueChange={v => setNewItem({...newItem, type: v})}>
                   <SelectTrigger className="rounded-xl h-12">
-                    <SelectValue placeholder="Tipo de prenda" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="top">Superior (Camiseta, Blusa)</SelectItem>
-                    <SelectItem value="bottom">Inferior (Pantalón, Falda)</SelectItem>
+                    <SelectItem value="top">Superior</SelectItem>
+                    <SelectItem value="bottom">Inferior</SelectItem>
                     <SelectItem value="dress">Vestido</SelectItem>
-                    <SelectItem value="outerwear">Exterior (Chaqueta, Abrigo)</SelectItem>
+                    <SelectItem value="outerwear">Exterior</SelectItem>
                     <SelectItem value="shoe">Calzado</SelectItem>
                     <SelectItem value="accessory">Accesorio</SelectItem>
                   </SelectContent>
@@ -186,45 +175,40 @@ export default function WardrobePage() {
 
               <div className="flex gap-4 pt-4">
                 <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={() => setAdding(false)}>Cancelar</Button>
-                <Button className="flex-1 h-12 rounded-xl bg-primary font-bold shadow-lg" onClick={addItem}>Guardar Prenda</Button>
+                <Button className="flex-1 h-12 rounded-xl bg-primary font-bold shadow-lg" onClick={addItem}>Guardar</Button>
               </div>
             </div>
           </CardContent>
         </Card>
       ) : (
         <>
-          <Button onClick={() => setAdding(true)} className="w-full h-14 bg-primary shadow-xl rounded-2xl font-bold text-lg sticky top-4 z-10 hover:scale-[1.02] transition-transform">
+          <Button onClick={() => setAdding(true)} className="w-full h-14 bg-primary shadow-xl rounded-2xl font-bold text-lg sticky top-4 z-10">
             <Plus className="mr-2" /> Añadir al Armario
           </Button>
 
           {items.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center space-y-4">
-              <div className="p-10 bg-muted/30 rounded-full">
-                <Shirt className="w-20 h-20 text-muted-foreground/40" />
-              </div>
-              <div className="space-y-1">
-                <p className="font-bold text-muted-foreground">Tu armario está vacío</p>
-                <p className="text-xs text-muted-foreground/60 max-w-[200px]">Empieza a fotografiar tu ropa para que la IA pueda crear tus looks.</p>
-              </div>
+              <Shirt className="w-20 h-20 text-muted-foreground/40" />
+              <p className="font-bold text-muted-foreground">Tu armario está vacío</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {items.map(item => (
-                <Card key={item.id} className="overflow-hidden border-none shadow-md group rounded-2xl bg-white hover:shadow-xl transition-all">
+                <Card key={item.id} className="overflow-hidden border-none shadow-md group rounded-2xl bg-white">
                   <div className="relative aspect-[3/4] bg-muted">
-                    <Image src={item.imageDataUri} alt={item.name || "Prenda de armario"} fill className="object-cover" />
+                    <Image src={item.imageDataUri} alt={item.name} fill className="object-cover" />
                     <Button 
                       variant="destructive" 
                       size="icon" 
-                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 rounded-full shadow-lg"
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 h-8 w-8 rounded-full"
                       onClick={() => deleteItem(item.id)}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
-                  <CardContent className="p-4 bg-white">
-                    <p className="font-bold text-xs truncate uppercase tracking-tight">{item.name}</p>
-                    <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest mt-1 text-primary/70">{item.type}</p>
+                  <CardContent className="p-4">
+                    <p className="font-bold text-xs truncate uppercase">{item.name}</p>
+                    <p className="text-[9px] text-primary/70 uppercase font-black mt-1">{item.type}</p>
                   </CardContent>
                 </Card>
               ))}

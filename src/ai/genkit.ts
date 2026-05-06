@@ -14,13 +14,16 @@ export const ai = genkit({
  * Jerarquía: Input del flujo -> LocalStorage (manual usuario) -> Variable de Entorno (programación).
  */
 export function getOpenAIKey(manualKey?: string) {
+  // 1. Prioridad absoluta: Llave pasada directamente (desde el cliente)
   if (manualKey && manualKey.trim() !== '') return manualKey;
   
+  // 2. Intento de recuperación desde LocalStorage (solo si se ejecuta en cliente, poco probable en flows)
   if (typeof window !== 'undefined') {
     const local = localStorage.getItem('openai_api_key');
     if (local && local.trim() !== '') return local;
   }
   
+  // 3. Fallback final: Variable de entorno del servidor (Configuración Global)
   return process.env.OPENAI_API_KEY;
 }
 

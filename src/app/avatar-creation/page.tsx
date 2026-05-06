@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -14,8 +13,8 @@ import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from 'next/link';
 
-// Función de redimensionamiento optimizada para túneles y OpenAI Vision
-const resizeImage = (base64Str: string, maxWidth = 512, maxHeight = 512): Promise<string> => {
+// Revertido a calidad estándar estable
+const resizeImage = (base64Str: string, maxWidth = 800, maxHeight = 800): Promise<string> => {
   return new Promise((resolve) => {
     const img = new window.Image();
     img.src = base64Str;
@@ -43,8 +42,7 @@ const resizeImage = (base64Str: string, maxWidth = 512, maxHeight = 512): Promis
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, 0, 0, width, height);
       }
-      // Usamos JPEG 0.7 para minimizar el tamaño del payload sin perder rasgos clave
-      resolve(canvas.toDataURL('image/jpeg', 0.7));
+      resolve(canvas.toDataURL('image/jpeg', 0.8));
     };
   });
 };
@@ -72,9 +70,7 @@ export default function AvatarCreationPage() {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = async () => {
-        const base64String = reader.result as string;
-        // Reducimos a 512px para máxima compatibilidad con túneles
-        const optimized = await resizeImage(base64String, 512, 512);
+        const optimized = await resizeImage(reader.result as string);
         if (type === 'face') setFacePhoto(optimized);
         else setFigurePhoto(optimized);
       };
@@ -92,13 +88,12 @@ export default function AvatarCreationPage() {
       return;
     }
 
-    // Intentamos recuperar la llave local si existe, de lo contrario la IA usará la del servidor
     const localKey = localStorage.getItem('openai_api_key');
     const openaiKey = localKey && localKey.trim() !== '' ? localKey : undefined;
 
     setLoading(true);
     try {
-      setLoadingStatus('Iniciando Análisis Quirúrgico...');
+      setLoadingStatus('Análisis Biométrico...');
       const analysis = await analyzeStyleContext({
         facePhotoDataUri: facePhoto,
         figurePhotoDataUri: figurePhoto,
@@ -114,33 +109,30 @@ export default function AvatarCreationPage() {
       
       setProfile(updatedProfile);
 
-      setLoadingStatus('Generando Avatar 3D (DALL-E)...');
+      setLoadingStatus('Creando Avatar 3D...');
       const result = await generateStylizedAvatar({
         biometricData: analysis.biometricData,
         openaiApiKey: openaiKey
       });
       
       if (!result.avatarDataUri) {
-        throw new Error("La IA no devolvió la imagen del avatar. Revisa tu conexión.");
+        throw new Error("La IA no devolvió el avatar. Verifica la conexión.");
       }
 
-      setLoadingStatus('Finalizando...');
-      // Optimizamos el avatar generado para almacenamiento local
-      const optimizedAvatar = await resizeImage(result.avatarDataUri, 800, 1000);
-      
-      setGeneratedAvatar(optimizedAvatar);
-      setProfile({ ...updatedProfile, avatarDataUri: optimizedAvatar });
+      const finalAvatar = await resizeImage(result.avatarDataUri, 800, 1000);
+      setGeneratedAvatar(finalAvatar);
+      setProfile({ ...updatedProfile, avatarDataUri: finalAvatar });
       
       toast({
-        title: "¡Diagnóstico Finalizado!",
-        description: "Tu fisionomía real ha sido cargada en el Asistente.",
+        title: "¡Diagnóstico Completo!",
+        description: "Tu identidad Pixar ha sido generada.",
       });
     } catch (error: any) {
-      console.error("Procesamiento Avatar Error:", error);
+      console.error("Avatar Creation Error:", error);
       toast({
         variant: "destructive",
         title: "Error de IA",
-        description: error.message || "No se pudo conectar con el motor de IA. Verifica tu llave en Ajustes.",
+        description: error.message || "Error al conectar con el servidor de IA.",
       });
     } finally {
       setLoading(false);
@@ -153,10 +145,6 @@ export default function AvatarCreationPage() {
   };
 
   if (!mounted) return null;
-
-  const eyes = profile.biometricData?.rostro?.ojos?.color_detalle || 'Detectando...';
-  const hair = profile.biometricData?.rostro?.cabello?.color_natural || 'Detectando...';
-  const skin = profile.biometricData?.colorimetria?.tono_piel || 'Detectando...';
 
   return (
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">
@@ -171,7 +159,7 @@ export default function AvatarCreationPage() {
           </div>
         </div>
         <Link href="/settings">
-          <Button variant="outline" size="sm" className="rounded-xl border-primary text-primary font-bold gap-2 bg-white hover:bg-primary/5 shadow-sm">
+          <Button variant="outline" size="sm" className="rounded-xl border-primary text-primary font-bold gap-2 bg-white">
             <Settings className="w-4 h-4" /> Configuración
           </Button>
         </Link>
@@ -254,10 +242,10 @@ export default function AvatarCreationPage() {
               </div>
               <div className="space-y-1">
                 <p className="text-[10px] font-black text-primary uppercase tracking-widest">
-                  Ojos: {eyes} • Cabello: {hair}
+                  Ojos: {profile.biometricData?.rostro?.ojos?.color_detalle || 'Detectado'} • Cabello: {profile.biometricData?.rostro?.cabello?.color_natural || 'Detectado'}
                 </p>
                 <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest leading-relaxed">
-                  Tono de Piel: {skin}
+                  Tono de Piel: {profile.biometricData?.colorimetria?.tono_piel || 'Detectado'}
                 </p>
               </div>
             </CardContent>
