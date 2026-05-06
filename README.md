@@ -1,63 +1,31 @@
 
-# EstilizaPro AI - Manual de Producción Móvil (Costo Cero)
+# EstilizaPro AI - Guía de Lanzamiento Público 🚀
 
-Este proyecto es el asesor de imagen personal diseñado por **Pilar Cifuentes Catalán**.
+Este proyecto está optimizado para funcionar en la nube de forma gratuita. Sigue estos pasos para compartir tu link.
 
-## 💰 Guía de Costo Cero (Sin Tarjeta de Crédito)
-Para este demo académico, si no deseas activar el Plan Blaze de Firebase, utilizaremos el **Método del Túnel**. Esto permite que tu celular acceda a la IA de forma segura sin pagar hosting:
-
-### 1. ¿Cómo abrir la Terminal?
-1. En la interfaz de **Firebase Studio**, busca el icono `>_` (Terminal) en la barra inferior o lateral.
-2. Haz clic para abrir una nueva pestaña de comandos.
-
-### 2. Obtener una URL Pública Gratis
-1. Instala la herramienta de túnel ejecutando este comando en la terminal:
+## 📦 1. Subir a GitHub (Tu Bóveda)
+1. Crea un repositorio nuevo en [GitHub](https://github.com) llamado `estilizapro-ai`.
+2. Abre la terminal aquí en Firebase Studio y ejecuta:
    ```bash
-   npm install -g localtunnel
+   git init
+   git add .
+   git commit -m "feat: versión de lanzamiento"
+   git branch -M main
+   git remote add origin https://github.com/TU_USUARIO/estilizapro-ai.git
+   git push -u origin main
    ```
-2. Inicia tu servidor de desarrollo (si no está corriendo):
-   ```bash
-   npm run dev
-   ```
-3. En una **nueva pestaña** de la terminal (dale al botón `+` en la terminal), crea el túnel (Next.js usa el puerto 9002 aquí):
-   ```bash
-   lt --port 9002
-   ```
-4. Verás una URL como `https://heavy-cats-cry.loca.lt`. **Copia esa URL**.
+   *(Reemplaza TU_USUARIO por tu nombre real de GitHub).*
 
-### 3. Configurar el Móvil
-1. Abre el archivo `capacitor.config.ts`.
-2. En la propiedad `url`, pega la dirección que copiaste arriba.
-3. Guarda el archivo.
+## 🌐 2. Desplegar en Vercel (Tu Link Público)
+1. Entra a [Vercel](https://vercel.com) y conecta tu cuenta de GitHub.
+2. Selecciona el repositorio `estilizapro-ai`.
+3. **PASO CRÍTICO (Seguridad)**: En la configuración del proyecto, busca **"Environment Variables"** y añade:
+   *   `OPENAI_API_KEY`: (Pega tu llave sk-...)
+   *   `UNSPLASH_ACCESS_KEY`: (Pega tu llave de Unsplash)
+4. Haz clic en **Deploy**.
 
----
-
-## 📱 Guía para Generar APK (Android)
-
-### 1. Preparación
-Ejecuta estos comandos en la terminal abierta:
-```bash
-npm install
-npm run build
-npx cap add android
-```
-
-### 2. Generación del APK
-Cada vez que hagas cambios y quieras verlos en el celular:
-1. Sincroniza el código:
-   ```bash
-   npm run build
-   npx cap copy android
-   ```
-2. Abre el proyecto en **Android Studio** (debes tenerlo instalado en tu PC local):
-   ```bash
-   npx cap open android
-   ```
-3. En Android Studio: Ve a `Build > Build Bundle(s) / APK(s) > Build APK(s)`.
-4. El archivo final estará en: `android/app/build/outputs/apk/debug/app-debug.apk`.
-
-### 3. Distribución (Sin Tiendas)
-Sube el archivo `app-debug.apk` a **Firebase App Distribution** en tu consola de Firebase (Menú: Release & Monitor). Añade los correos de tus evaluadores y ellos podrán instalar la app gratis.
+## 📱 3. Actualizar tu App Móvil
+Una vez que Vercel te dé tu URL (ej: `https://estilizapro.vercel.app`), recuerda actualizarla en tu archivo `capacitor.config.ts` en la propiedad `url` para que tu APK apunte al servidor real y no al túnel local.
 
 ---
 © 2024 EstilizaPro AI - Pilar Cifuentes Catalán.
