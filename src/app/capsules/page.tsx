@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -36,7 +37,7 @@ export default function CapsulesPage() {
   });
 
   const purchasedCount = Number(profile.purchasedCapsules) || 0;
-  const MAX_OUTFITS = 10 + (purchasedCount * 6);
+  const MAX_OUTFITS = 2 + (purchasedCount * 6);
   const currentCount = savedCapsules.length;
   const isLimitReached = currentCount >= MAX_OUTFITS;
   const progressValue = Math.min((currentCount / MAX_OUTFITS) * 100, 100);

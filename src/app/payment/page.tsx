@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -80,7 +81,7 @@ export default function PaymentPage() {
             <div className="flex justify-between items-end border-b border-primary/10 pb-4">
               <div className="space-y-1">
                 <span className="block text-sm font-medium text-muted-foreground">Cápsula Adicional AI (+6 Outfits)</span>
-                <span className="block text-[10px] text-primary font-bold">NUEVA CAPACIDAD: {10 + (Number(profile.purchasedCapsules || 0) + 1) * 6} TOTAL</span>
+                <span className="block text-[10px] text-primary font-bold">NUEVA CAPACIDAD: {2 + (Number(profile.purchasedCapsules || 0) + 1) * 6} TOTAL</span>
               </div>
               <span className="text-2xl font-black text-primary">$3.00 USD</span>
             </div>
