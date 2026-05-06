@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -14,26 +13,24 @@ import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from 'next/link';
 
-const resizeImage = (base64Str: string): Promise<string> => {
+const resizeImage = (base64Str: string, maxWidth = 800, maxHeight = 1200): Promise<string> => {
   return new Promise((resolve) => {
     const img = new window.Image();
     img.src = base64Str;
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      const MAX_WIDTH = 800;
-      const MAX_HEIGHT = 1200; 
       let width = img.width;
       let height = img.height;
 
       if (width > height) {
-        if (width > MAX_WIDTH) {
-          height *= MAX_WIDTH / width;
-          width = MAX_WIDTH;
+        if (width > maxWidth) {
+          height *= maxWidth / width;
+          width = maxWidth;
         }
       } else {
-        if (height > MAX_HEIGHT) {
-          width *= MAX_HEIGHT / height;
-          height = MAX_HEIGHT;
+        if (height > maxHeight) {
+          width *= maxHeight / height;
+          height = maxHeight;
         }
       }
       canvas.width = width;
@@ -69,7 +66,7 @@ export default function AvatarCreationPage() {
       const reader = new FileReader();
       reader.onloadend = async () => {
         const base64String = reader.result as string;
-        const optimized = await resizeImage(base64String);
+        const optimized = await resizeImage(base64String, 600, 800);
         if (type === 'face') setFacePhoto(optimized);
         else setFigurePhoto(optimized);
       };
@@ -108,14 +105,18 @@ export default function AvatarCreationPage() {
       
       setProfile(updatedProfile);
 
-      setLoadingStatus('Generando Avatar 3D de Cuerpo Completo...');
+      setLoadingStatus('Generando Avatar 3D (DALL-E)...');
       const result = await generateStylizedAvatar({
         biometricData: analysis.biometricData,
         openaiApiKey: openaiKey
       });
       
-      setLoadingStatus('Sincronizando Identidad...');
-      const optimizedAvatar = await resizeImage(result.avatarDataUri);
+      if (!result.avatarDataUri) {
+        throw new Error("No se pudo obtener la imagen del avatar.");
+      }
+
+      setLoadingStatus('Optimizando Imagen...');
+      const optimizedAvatar = await resizeImage(result.avatarDataUri, 800, 1000);
       
       setGeneratedAvatar(optimizedAvatar);
       setProfile({ ...updatedProfile, avatarDataUri: optimizedAvatar });
@@ -125,11 +126,11 @@ export default function AvatarCreationPage() {
         description: "Tu fisionomía real ha sido cargada en el Asistente.",
       });
     } catch (error: any) {
-      console.error(error);
+      console.error("Procesamiento Avatar Error:", error);
       toast({
         variant: "destructive",
-        title: "Error en Procesamiento",
-        description: error.message || "No se pudo conectar con la IA. Verifica tu conexión.",
+        title: "Error de IA",
+        description: error.message || "No se pudo conectar con el motor de IA.",
       });
     } finally {
       setLoading(false);

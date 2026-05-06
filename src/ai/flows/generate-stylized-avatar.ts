@@ -4,7 +4,7 @@
  * Garantiza coincidencia de rasgos y limpieza absoluta del fondo.
  */
 
-import { ai } from '@/ai/genkit';
+import { ai, getOpenAIKey } from '@/ai/genkit';
 import { z } from 'genkit';
 import OpenAI from 'openai';
 
@@ -28,8 +28,10 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     outputSchema: GenerateStylizedAvatarOutputSchema,
   },
   async (input) => {
-    const apiKey = input.openaiApiKey || process.env.OPENAI_API_KEY;
-    if (!apiKey) throw new Error("API Key de OpenAI requerida.");
+    const apiKey = getOpenAIKey(input.openaiApiKey);
+    if (!apiKey || apiKey.trim() === '') {
+      throw new Error("API Key de OpenAI no disponible para generación visual.");
+    }
 
     const openai = new OpenAI({ apiKey });
     const data = input.biometricData || {};
@@ -71,12 +73,12 @@ const generateStylizedAvatarFlow = ai.defineFlow(
       });
 
       const imageData = response.data[0].b64_json;
-      if (!imageData) throw new Error("Error en la generación visual.");
+      if (!imageData) throw new Error("La IA no devolvió datos de imagen.");
 
       return { avatarDataUri: `data:image/png;base64,${imageData}` };
     } catch (error: any) {
-      console.error("DALL-E Error:", error);
-      throw new Error(error.message || "Error al generar el avatar estilizado.");
+      console.error("DALL-E Generation Error:", error);
+      throw new Error(error.message || "Error al generar el avatar estilizado visualmente.");
     }
   }
 );
