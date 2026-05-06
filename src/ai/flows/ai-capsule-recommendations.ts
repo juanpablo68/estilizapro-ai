@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Generación de cápsulas de moda con prioridad absoluta al armario local.
@@ -8,6 +9,7 @@
 import { z } from 'genkit';
 import OpenAI from 'openai';
 import { searchUnsplashImages } from '@/services/unsplash';
+import { getOpenAIKey, getUnsplashKey } from '@/ai/genkit';
 
 const WardrobeItemSchema = z.object({
   id: z.string(),
@@ -49,7 +51,7 @@ export type Capsule = z.infer<typeof CapsuleSchema>;
 export type CapsuleItem = z.infer<typeof CapsuleSchema>['items'][number];
 
 export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICapsuleRecommendationsInputSchema>) {
-  const apiKey = input.openaiApiKey || process.env.OPENAI_API_KEY;
+  const apiKey = getOpenAIKey(input.openaiApiKey);
   if (!apiKey) throw new Error("API Key de OpenAI requerida.");
 
   const openai = new OpenAI({ apiKey });
@@ -104,7 +106,7 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
         let imageUrl = undefined;
 
         if (item.source === 'external') {
-          const uKey = input.unsplashAccessKey || process.env.UNSPLASH_ACCESS_KEY;
+          const uKey = getUnsplashKey(input.unsplashAccessKey);
           const genderTerm = genderContext === 'Masculino' ? 'men' : 'women';
           const query = `${genderTerm} ${item.searchKeywords}`;
           const images = await searchUnsplashImages(query, uKey, item.type);

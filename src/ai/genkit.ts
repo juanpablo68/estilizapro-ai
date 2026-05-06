@@ -1,3 +1,4 @@
+
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 
@@ -15,12 +16,16 @@ export const ai = genkit({
  */
 export function getOpenAIKey(manualKey?: string) {
   // 1. Prioridad absoluta: Llave pasada directamente (desde el cliente)
-  if (manualKey && manualKey.trim() !== '') return manualKey;
+  if (manualKey && manualKey.trim() !== '' && manualKey !== 'undefined') return manualKey;
   
-  // 2. Intento de recuperación desde LocalStorage (solo si se ejecuta en cliente, poco probable en flows)
+  // 2. Intento de recuperación desde LocalStorage (solo si se ejecuta en cliente)
   if (typeof window !== 'undefined') {
-    const local = localStorage.getItem('openai_api_key');
-    if (local && local.trim() !== '') return local;
+    try {
+      const local = localStorage.getItem('openai_api_key');
+      if (local && local.trim() !== '' && local !== 'undefined') return local;
+    } catch (e) {
+      // Ignorar errores de acceso a storage
+    }
   }
   
   // 3. Fallback final: Variable de entorno del servidor (Configuración Global)
@@ -28,11 +33,15 @@ export function getOpenAIKey(manualKey?: string) {
 }
 
 export function getUnsplashKey(manualKey?: string) {
-  if (manualKey && manualKey.trim() !== '') return manualKey;
+  if (manualKey && manualKey.trim() !== '' && manualKey !== 'undefined') return manualKey;
 
   if (typeof window !== 'undefined') {
-    const local = localStorage.getItem('unsplash_access_key');
-    if (local && local.trim() !== '') return local;
+    try {
+      const local = localStorage.getItem('unsplash_access_key');
+      if (local && local.trim() !== '' && local !== 'undefined') return local;
+    } catch (e) {
+      // Ignorar errores
+    }
   }
 
   return process.env.UNSPLASH_ACCESS_KEY;

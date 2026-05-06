@@ -7,6 +7,7 @@
 
 import { z } from 'genkit';
 import OpenAI from 'openai';
+import { getOpenAIKey } from '@/ai/genkit';
 
 const AIChatInputSchema = z.object({
   message: z.string(),
@@ -23,8 +24,8 @@ const AIChatInputSchema = z.object({
 });
 
 export async function chatWithAIStylist(input: z.infer<typeof AIChatInputSchema>) {
-  const apiKey = input.openaiApiKey || process.env.OPENAI_API_KEY;
-  if (!apiKey) throw new Error("API Key de OpenAI requerida.");
+  const apiKey = getOpenAIKey(input.openaiApiKey);
+  if (!apiKey) throw new Error("No se detectó una API Key de OpenAI válida.");
 
   const openai = new OpenAI({ apiKey });
 

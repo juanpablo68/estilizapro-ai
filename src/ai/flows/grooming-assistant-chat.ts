@@ -8,6 +8,7 @@
 
 import { z } from 'genkit';
 import OpenAI from 'openai';
+import { getOpenAIKey } from '@/ai/genkit';
 
 const GroomingChatInputSchema = z.object({
   message: z.string(),
@@ -21,7 +22,7 @@ const GroomingChatInputSchema = z.object({
 });
 
 export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingChatInputSchema>) {
-  const apiKey = input.openaiApiKey || process.env.OPENAI_API_KEY;
+  const apiKey = getOpenAIKey(input.openaiApiKey);
   if (!apiKey) throw new Error("API Key de OpenAI requerida.");
 
   const openai = new OpenAI({ apiKey });
