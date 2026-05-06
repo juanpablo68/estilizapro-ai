@@ -87,15 +87,8 @@ export default function AvatarCreationPage() {
       return;
     }
 
-    const openaiKey = localStorage.getItem('openai_api_key') || undefined;
-    if (!openaiKey) {
-      toast({
-        variant: "destructive",
-        title: "Configuración Requerida",
-        description: "Por favor, configura tu API Key de OpenAI en Ajustes antes de continuar.",
-      });
-      return;
-    }
+    const localKey = localStorage.getItem('openai_api_key');
+    const openaiKey = localKey && localKey.trim() !== '' ? localKey : undefined;
 
     setLoading(true);
     try {
@@ -106,7 +99,6 @@ export default function AvatarCreationPage() {
         openaiApiKey: openaiKey
       });
 
-      // Guardado inmediato de la memoria biométrica HD
       const updatedProfile = { 
         ...profile, 
         biometricData: analysis.biometricData,
@@ -137,7 +129,7 @@ export default function AvatarCreationPage() {
       toast({
         variant: "destructive",
         title: "Error en Procesamiento",
-        description: error.message || "Revisa tu conexión o API Key.",
+        description: error.message || "No se pudo conectar con la IA. Verifica tu conexión.",
       });
     } finally {
       setLoading(false);
@@ -151,7 +143,6 @@ export default function AvatarCreationPage() {
 
   if (!mounted) return null;
 
-  // Extracción de rasgos para visualización limpia
   const eyes = profile.biometricData?.rostro?.ojos?.color_detalle || 'Detectando...';
   const hair = profile.biometricData?.rostro?.cabello?.color_natural || 'Detectando...';
   const skin = profile.biometricData?.colorimetria?.tono_piel || 'Detectando...';
@@ -170,7 +161,7 @@ export default function AvatarCreationPage() {
         </div>
         <Link href="/settings">
           <Button variant="outline" size="sm" className="rounded-xl border-primary text-primary font-bold gap-2 bg-white hover:bg-primary/5 shadow-sm">
-            <Settings className="w-4 h-4" /> Configurar APIs
+            <Settings className="w-4 h-4" /> Configuración
           </Button>
         </Link>
       </header>
@@ -266,7 +257,7 @@ export default function AvatarCreationPage() {
               <RefreshCw className="mr-2 w-4 h-4" /> Re-analizar
             </Button>
             <Button className="flex-1 bg-primary font-bold shadow-md h-12 rounded-xl" onClick={handleProceed}>
-              Ir al Chat →
+              Ir al Dashboard →
             </Button>
           </div>
         </div>

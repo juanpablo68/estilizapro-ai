@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -39,15 +40,8 @@ export default function PreviewPage() {
   const handlePreview = async () => {
     if (!profile.avatarDataUri || selectedItems.length === 0) return;
     
-    const openaiKey = localStorage.getItem('openai_api_key') || undefined;
-    if (!openaiKey) {
-      toast({
-        variant: "destructive",
-        title: "API Key Faltante",
-        description: "Configura tu OpenAI Key en Ajustes para activar el pipeline maestro.",
-      });
-      return;
-    }
+    const localKey = localStorage.getItem('openai_api_key');
+    const openaiKey = localKey && localKey.trim() !== '' ? localKey : undefined;
 
     setPreviewing(true);
     setResultImage(null);
@@ -55,7 +49,7 @@ export default function PreviewPage() {
       const result = await previewOutfitOnAvatar({
         avatarDataUri: profile.avatarDataUri,
         clothingItemsDataUris: selectedItems.map(i => i.imageDataUri),
-        biometricData: profile.biometricData, // Pasamos la memoria biométrica para consistencia
+        biometricData: profile.biometricData,
         openaiApiKey: openaiKey
       });
       setResultImage(result.previewImageDataUri);
@@ -84,7 +78,7 @@ export default function PreviewPage() {
           <Button variant="ghost" size="icon" className="rounded-full"><ArrowLeft /></Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-headline font-bold">Probador Virtual</h1>
+          <h1 className="text-2xl font-headline font-bold text-primary">Probador Virtual</h1>
           <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Prueba conjuntos completos con IA</p>
         </div>
       </header>
@@ -101,7 +95,6 @@ export default function PreviewPage() {
       )}
 
       <div className="grid lg:grid-cols-12 gap-8 items-start">
-        {/* Selección de Prenda */}
         <div className="lg:col-span-4 space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold flex items-center gap-2"><Shirt className="w-5 h-5 text-primary" /> Mi Armario</h2>
@@ -159,9 +152,8 @@ export default function PreviewPage() {
           </Button>
         </div>
 
-        {/* Visualización del Resultado */}
         <div className="lg:col-span-8 space-y-6">
-          <h2 className="text-lg font-bold flex items-center gap-2"><User className="w-5 h-5 text-primary" /> Visualización de Cuerpo Completo</h2>
+          <h2 className="text-lg font-bold flex items-center gap-2"><User className="w-5 h-5 text-primary" /> Visualización AI</h2>
           <Card className="aspect-[4/5] w-full max-w-[500px] mx-auto overflow-hidden relative shadow-2xl border-none ring-[12px] ring-primary/5 rounded-[3rem] bg-white">
             {resultImage ? (
               <div className="animate-in fade-in zoom-in duration-700 h-full w-full">
@@ -169,7 +161,7 @@ export default function PreviewPage() {
                 <div className="absolute bottom-6 right-6">
                   <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg border border-primary/20 flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-primary" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-primary">Pipeline Multimodal Activo</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-primary">Alta Fidelidad</span>
                   </div>
                 </div>
               </div>
@@ -180,7 +172,7 @@ export default function PreviewPage() {
                   <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-primary" />
                 </div>
                 <div className="text-center space-y-1">
-                  <p className="text-sm font-bold text-primary">GPT-4o Coordinando Conjunto...</p>
+                  <p className="text-sm font-bold text-primary">Coordinando Conjunto...</p>
                   <p className="text-[10px] text-muted-foreground px-12">Integrando capas y texturas reales sobre tu avatar</p>
                 </div>
               </div>
