@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from 'react';
@@ -9,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const STYLE_OPTIONS = ["Minimalista", "Bohemio", "Clásico", "Streetwear", "Romántico", "Vintage", "Deportivo"];
 const COLORS_OPTIONS = ["Negro", "Blanco", "Azul", "Rojo", "Verde", "Pasteles", "Neutros"];
@@ -38,7 +40,12 @@ export default function OnboardingPage() {
     });
   };
 
-  const nextStep = () => setStep(s => s + 1);
+  const nextStep = () => {
+    if (step === 1 && !formData.name) {
+      return; // Podríamos añadir un toast aquí si fuera necesario
+    }
+    setStep(s => s + 1);
+  };
   const prevStep = () => setStep(s => s - 1);
 
   const finishOnboarding = () => {
@@ -53,26 +60,47 @@ export default function OnboardingPage() {
         <p className="text-muted-foreground text-sm">Paso {step} de 3</p>
       </div>
 
-      <Card className="shadow-lg border-none">
+      <Card className="shadow-lg border-none bg-white">
         <CardContent className="pt-6">
           {step === 1 && (
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="name">¿Cómo te llamas?</Label>
+            <div className="space-y-8">
+              <div className="space-y-3">
+                <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-primary">¿Cómo te llamas?</Label>
                 <Input 
                   id="name" 
                   placeholder="Tu nombre" 
                   value={formData.name} 
                   onChange={e => setFormData({...formData, name: e.target.value})}
+                  className="h-12 rounded-xl"
                 />
               </div>
+
+              <div className="space-y-3">
+                <Label className="text-xs font-black uppercase tracking-widest text-primary">¿Cuál es tu género?</Label>
+                <RadioGroup 
+                  value={formData.gender} 
+                  onValueChange={(v: 'Femenino' | 'Masculino') => setFormData({...formData, gender: v})}
+                  className="grid grid-cols-2 gap-4"
+                >
+                  <div className={`flex items-center space-x-3 p-4 rounded-xl border-2 transition-all cursor-pointer ${formData.gender === 'Femenino' ? 'border-primary bg-primary/5' : 'border-muted bg-transparent'}`} onClick={() => setFormData({...formData, gender: 'Femenino'})}>
+                    <RadioGroupItem value="Femenino" id="femenino" />
+                    <Label htmlFor="femenino" className="font-bold cursor-pointer">Femenino</Label>
+                  </div>
+                  <div className={`flex items-center space-x-3 p-4 rounded-xl border-2 transition-all cursor-pointer ${formData.gender === 'Masculino' ? 'border-primary bg-primary/5' : 'border-muted bg-transparent'}`} onClick={() => setFormData({...formData, gender: 'Masculino'})}>
+                    <RadioGroupItem value="Masculino" id="masculino" />
+                    <Label htmlFor="masculino" className="font-bold cursor-pointer">Masculino</Label>
+                  </div>
+                </RadioGroup>
+                <p className="text-[10px] text-muted-foreground italic">Esto nos ayudará a seleccionar la base de tu avatar y las prendas ideales.</p>
+              </div>
+
               <div className="space-y-4">
-                <Label>¿Cuáles son tus estilos favoritos?</Label>
+                <Label className="text-xs font-black uppercase tracking-widest text-primary">¿Tus estilos favoritos?</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {STYLE_OPTIONS.map(style => (
-                    <div key={style} className="flex items-center space-x-2 p-3 bg-muted rounded-lg cursor-pointer" onClick={() => toggleList('preferredStyles', style)}>
+                    <div key={style} className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => toggleList('preferredStyles', style)}>
                       <Checkbox checked={formData.stylePreferences.preferredStyles.includes(style)} />
-                      <span className="text-sm">{style}</span>
+                      <span className="text-sm font-medium">{style}</span>
                     </div>
                   ))}
                 </div>
@@ -83,24 +111,24 @@ export default function OnboardingPage() {
           {step === 2 && (
             <div className="space-y-6">
               <div className="space-y-4">
-                <Label>Tus colores predilectos:</Label>
+                <Label className="text-xs font-black uppercase tracking-widest text-primary">Tus colores predilectos:</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {COLORS_OPTIONS.map(color => (
-                    <div key={color} className="flex items-center space-x-2 p-3 bg-muted rounded-lg cursor-pointer" onClick={() => toggleList('favoriteColors', color)}>
+                    <div key={color} className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => toggleList('favoriteColors', color)}>
                       <Checkbox checked={formData.stylePreferences.favoriteColors.includes(color)} />
-                      <span className="text-sm">{color}</span>
+                      <span className="text-sm font-medium">{color}</span>
                     </div>
                   ))}
                 </div>
               </div>
               <Separator />
               <div className="space-y-4">
-                <Label>¿Qué ocasiones son más comunes para ti?</Label>
+                <Label className="text-xs font-black uppercase tracking-widest text-primary">Ocasiones frecuentes:</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {OCCASIONS.map(occ => (
-                    <div key={occ} className="flex items-center space-x-2 p-3 bg-muted rounded-lg cursor-pointer" onClick={() => toggleList('occasionPreferences', occ)}>
+                    <div key={occ} className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => toggleList('occasionPreferences', occ)}>
                       <Checkbox checked={formData.stylePreferences.occasionPreferences.includes(occ)} />
-                      <span className="text-sm">{occ}</span>
+                      <span className="text-sm font-medium">{occ}</span>
                     </div>
                   ))}
                 </div>
@@ -111,24 +139,24 @@ export default function OnboardingPage() {
           {step === 3 && (
             <div className="space-y-6">
               <div className="space-y-4">
-                <Label>¿Qué partes de tu cuerpo te gusta resaltar?</Label>
+                <Label className="text-xs font-black uppercase tracking-widest text-primary">¿Qué partes resaltar?</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {BODY_FOCUS.map(part => (
-                    <div key={part} className="flex items-center space-x-2 p-3 bg-muted rounded-lg cursor-pointer" onClick={() => toggleList('bodyPartsToAccentuate', part)}>
+                    <div key={part} className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => toggleList('bodyPartsToAccentuate', part)}>
                       <Checkbox checked={formData.stylePreferences.bodyPartsToAccentuate.includes(part)} />
-                      <span className="text-sm">{part}</span>
+                      <span className="text-sm font-medium">{part}</span>
                     </div>
                   ))}
                 </div>
               </div>
               <Separator />
               <div className="space-y-4">
-                <Label>¿Qué partes prefieres disimular?</Label>
+                <Label className="text-xs font-black uppercase tracking-widest text-primary">¿Qué partes disimular?</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {BODY_FOCUS.map(part => (
-                    <div key={part} className="flex items-center space-x-2 p-3 bg-muted rounded-lg cursor-pointer" onClick={() => toggleList('bodyPartsToMinimize', part)}>
+                    <div key={part} className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => toggleList('bodyPartsToMinimize', part)}>
                       <Checkbox checked={formData.stylePreferences.bodyPartsToMinimize.includes(part)} />
-                      <span className="text-sm">{part}</span>
+                      <span className="text-sm font-medium">{part}</span>
                     </div>
                   ))}
                 </div>
@@ -138,14 +166,14 @@ export default function OnboardingPage() {
         </CardContent>
       </Card>
 
-      <div className="flex justify-between gap-4">
+      <div className="flex justify-between gap-4 pb-10">
         {step > 1 && (
-          <Button variant="outline" onClick={prevStep} className="flex-1">Anterior</Button>
+          <Button variant="outline" onClick={prevStep} className="flex-1 h-12 rounded-xl">Anterior</Button>
         )}
         {step < 3 ? (
-          <Button onClick={nextStep} className="flex-1 bg-primary text-white">Siguiente</Button>
+          <Button onClick={nextStep} disabled={step === 1 && !formData.name} className="flex-1 h-12 rounded-xl bg-primary text-white font-bold">Siguiente</Button>
         ) : (
-          <Button onClick={finishOnboarding} className="flex-1 bg-primary text-white">Finalizar Perfil</Button>
+          <Button onClick={finishOnboarding} className="flex-1 h-12 rounded-xl bg-primary text-white font-bold shadow-lg">Finalizar Perfil</Button>
         )}
       </div>
     </div>

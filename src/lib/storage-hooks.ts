@@ -40,6 +40,7 @@ export interface WardrobeItem {
 
 export interface UserProfile {
   name: string;
+  gender: 'Femenino' | 'Masculino';
   stylePreferences: {
     favoriteColors: string[];
     preferredStyles: string[];
@@ -69,6 +70,7 @@ export const DEFAULT_KNOWLEDGE_BASE = `REGLAS MAESTRAS DE ESTILO - PILAR CIFUENT
 
 export const INITIAL_USER_PROFILE: UserProfile = {
   name: '',
+  gender: 'Femenino',
   stylePreferences: {
     favoriteColors: [],
     preferredStyles: [],
