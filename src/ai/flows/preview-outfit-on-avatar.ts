@@ -7,6 +7,7 @@
 
 import { z } from 'genkit';
 import OpenAI from 'openai';
+import { getOpenAIKey } from '@/ai/genkit';
 
 const PreviewOutfitOnAvatarInputSchema = z.object({
   avatarDataUri: z.string(),
@@ -16,7 +17,7 @@ const PreviewOutfitOnAvatarInputSchema = z.object({
 });
 
 export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitOnAvatarInputSchema>) {
-  const apiKey = input.openaiApiKey || process.env.OPENAI_API_KEY;
+  const apiKey = getOpenAIKey(input.openaiApiKey);
   if (!apiKey) throw new Error("API Key de OpenAI requerida.");
 
   const openai = new OpenAI({ apiKey });

@@ -4,7 +4,7 @@
  * @fileOverview Generación visual de maquillaje y peinado sobre el rostro del avatar.
  */
 
-import { ai } from '@/ai/genkit';
+import { ai, getOpenAIKey } from '@/ai/genkit';
 import { z } from 'genkit';
 import OpenAI from 'openai';
 
@@ -16,7 +16,7 @@ const GenerateGroomingPreviewInputSchema = z.object({
 });
 
 export async function generateGroomingPreview(input: z.infer<typeof GenerateGroomingPreviewInputSchema>) {
-  const apiKey = input.openaiApiKey || process.env.OPENAI_API_KEY;
+  const apiKey = getOpenAIKey(input.openaiApiKey);
   if (!apiKey) throw new Error("API Key de OpenAI requerida.");
 
   const openai = new OpenAI({ apiKey });
