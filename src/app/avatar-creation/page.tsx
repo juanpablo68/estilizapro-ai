@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -13,7 +14,8 @@ import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from 'next/link';
 
-const resizeImage = (base64Str: string, maxWidth = 800, maxHeight = 1200): Promise<string> => {
+// Función de redimensionamiento optimizada para túneles y OpenAI Vision
+const resizeImage = (base64Str: string, maxWidth = 512, maxHeight = 512): Promise<string> => {
   return new Promise((resolve) => {
     const img = new window.Image();
     img.src = base64Str;
@@ -36,8 +38,13 @@ const resizeImage = (base64Str: string, maxWidth = 800, maxHeight = 1200): Promi
       canvas.width = width;
       canvas.height = height;
       const ctx = canvas.getContext('2d');
-      ctx?.drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL('image/jpeg', 0.8));
+      if (ctx) {
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, width, height);
+      }
+      // Usamos JPEG 0.7 para minimizar el tamaño del payload sin perder rasgos clave
+      resolve(canvas.toDataURL('image/jpeg', 0.7));
     };
   });
 };
@@ -66,7 +73,8 @@ export default function AvatarCreationPage() {
       const reader = new FileReader();
       reader.onloadend = async () => {
         const base64String = reader.result as string;
-        const optimized = await resizeImage(base64String, 600, 800);
+        // Reducimos a 512px para máxima compatibilidad con túneles
+        const optimized = await resizeImage(base64String, 512, 512);
         if (type === 'face') setFacePhoto(optimized);
         else setFigurePhoto(optimized);
       };
@@ -84,6 +92,7 @@ export default function AvatarCreationPage() {
       return;
     }
 
+    // Intentamos recuperar la llave local si existe, de lo contrario la IA usará la del servidor
     const localKey = localStorage.getItem('openai_api_key');
     const openaiKey = localKey && localKey.trim() !== '' ? localKey : undefined;
 
@@ -112,10 +121,11 @@ export default function AvatarCreationPage() {
       });
       
       if (!result.avatarDataUri) {
-        throw new Error("No se pudo obtener la imagen del avatar.");
+        throw new Error("La IA no devolvió la imagen del avatar. Revisa tu conexión.");
       }
 
-      setLoadingStatus('Optimizando Imagen...');
+      setLoadingStatus('Finalizando...');
+      // Optimizamos el avatar generado para almacenamiento local
       const optimizedAvatar = await resizeImage(result.avatarDataUri, 800, 1000);
       
       setGeneratedAvatar(optimizedAvatar);
@@ -130,7 +140,7 @@ export default function AvatarCreationPage() {
       toast({
         variant: "destructive",
         title: "Error de IA",
-        description: error.message || "No se pudo conectar con el motor de IA.",
+        description: error.message || "No se pudo conectar con el motor de IA. Verifica tu llave en Ajustes.",
       });
     } finally {
       setLoading(false);
@@ -185,7 +195,7 @@ export default function AvatarCreationPage() {
                     <div className="space-y-2 text-center">
                         {facePhoto ? (
                             <div className="relative h-40 w-32 rounded-lg overflow-hidden border-2 border-primary shadow-sm">
-                                <Image src={facePhoto} alt="Face" fill className="object-cover" />
+                                <Image src={facePhoto} alt="Face" fill className="object-cover" unoptimized />
                                 <Button variant="secondary" size="icon" className="absolute top-1 right-1 h-6 w-6 rounded-full" onClick={() => setFacePhoto(null)}>×</Button>
                             </div>
                         ) : (
@@ -200,7 +210,7 @@ export default function AvatarCreationPage() {
                     <div className="space-y-2 text-center">
                         {figurePhoto ? (
                             <div className="relative h-40 w-32 rounded-lg overflow-hidden border-2 border-primary shadow-sm">
-                                <Image src={figurePhoto} alt="Figure" fill className="object-cover" />
+                                <Image src={figurePhoto} alt="Figure" fill className="object-cover" unoptimized />
                                 <Button variant="secondary" size="icon" className="absolute top-1 right-1 h-6 w-6 rounded-full" onClick={() => setFigurePhoto(null)}>×</Button>
                             </div>
                         ) : (

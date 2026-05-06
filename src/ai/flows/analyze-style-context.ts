@@ -1,8 +1,8 @@
+
 'use server';
 /**
  * @fileOverview Análisis Biométrico Quirúrgico.
- * Clasifica estrictamente en el modelo moderno de temperatura (Cálido/Frío).
- * Extrae rasgos físicos exactos para fidelidad visual.
+ * Optimizado para minimizar el peso de la petición y manejar errores de conexión en túneles.
  */
 
 import { z } from 'genkit';
@@ -25,12 +25,13 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
   const apiKey = getOpenAIKey(input.openaiApiKey);
   
   if (!apiKey || apiKey.trim() === '') {
-    throw new Error("No se detectó una API Key de OpenAI válida. Configúrala en 'Ajustes' o en el entorno.");
+    throw new Error("No se detectó una API Key de OpenAI válida. Asegúrate de que la variable OPENAI_API_KEY esté configurada en el servidor o en los Ajustes de la app.");
   }
 
   const openai = new OpenAI({ apiKey });
 
   try {
+    // OpenAI Vision soporta imágenes en base64 directamente
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -39,7 +40,7 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
           content: `Eres un experto en fisionomía y colorimetría profesional de alta gama. 
           
           REGLAS DE IDENTIFICACIÓN:
-          1. RASGOS ÉTNICOS Y PIEL: Identifica con precisión el tono de piel real (ej. Muy claro, Blanco, Trigueño, Moreno, etc.) y rasgos faciales.
+          1. RASGOS ÉTNICOS Y PIEL: Identifica con precisión el tono de piel real y rasgos faciales.
           2. TEMPERATURA: Clasifica exclusivamente como "Cálida" o "Fría".
           3. SILUETA: Identifica la figura geométrica corporal predominante.
           4. CABELLO Y OJOS: Identifica el color natural exacto.
@@ -49,7 +50,7 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
             "genero": "Masculino/Femenino",
             "temperatura": "Cálida/Fría",
             "colorimetria": {
-              "tono_piel": "Ej: Piel blanca muy clara / Fair skin",
+              "tono_piel": "Ej: Piel blanca muy clara",
               "subtono_detalle": "Detalle técnico breve"
             },
             "rostro": {
@@ -64,7 +65,7 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
         {
           role: "user",
           content: [
-            { type: "text", text: "Analiza mi temperatura de color, figura y rasgos físicos exactos para generar un avatar idéntico a mí." },
+            { type: "text", text: "Analiza mi temperatura de color, figura y rasgos físicos para mi avatar." },
             { type: "image_url", image_url: { url: input.facePhotoDataUri } },
             { type: "image_url", image_url: { url: input.figurePhotoDataUri } }
           ],
@@ -86,7 +87,10 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
       colorimetryAnalysis: `Subtono ${temperatura} (${piel})`
     };
   } catch (error: any) {
-    console.error("Error en Análisis de Estilo:", error);
-    throw new Error(error.message || "Error al analizar las imágenes.");
+    console.error("Error crítico en el servidor al llamar a OpenAI Vision:", error);
+    if (error.status === 401) {
+      throw new Error("Llave de API de OpenAI inválida o expirada.");
+    }
+    throw new Error(error.message || "Error al procesar las imágenes en la IA. Verifica tu conexión a internet.");
   }
 }
