@@ -30,4 +30,4 @@ Ignora los mensajes amarillos o de error de "bash prompt", lo importante es ejec
    - **Key:** `UNSPLASH_ACCESS_KEY` | **Value:** (Tu clave jMm...)
 4. Haz clic en **Deploy**.
 
-¡Listo! Vercel te dará un link profesional tipo `estilizapro-ai.vercel.app`.
+¡Listo! Vercel te dará un link profesional tipo `estilizapro-ai.vercel.app`.# estilizapro-ai
