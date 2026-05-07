@@ -1,15 +1,14 @@
+# EstilizaPro AI - Guía de Lanzamiento en Vercel 🚀
 
-# EstilizaPro AI - Guía de Lanzamiento Público 🚀
+Este proyecto está listo para ser publicado. Sigue estos pasos para obtener tu link público y que la IA funcione para todos.
 
-Este proyecto está optimizado para funcionar en la nube de forma gratuita. Sigue estos pasos para compartir tu link.
-
-## 📦 1. Subir a GitHub (Tu Bóveda)
-1. Crea un repositorio nuevo en [GitHub](https://github.com) llamado `estilizapro-ai`.
-2. Abre la terminal aquí en Firebase Studio y ejecuta:
+## 📦 1. Subir tu código a GitHub
+1. Crea un repositorio **Público** o **Privado** en [GitHub](https://github.com) llamado `estilizapro-ai`.
+2. Abre la terminal aquí en Firebase Studio y ejecuta estos comandos uno por uno:
    ```bash
    git init
    git add .
-   git commit -m "feat: versión de lanzamiento"
+   git commit -m "feat: versión final de lanzamiento"
    git branch -M main
    git remote add origin https://github.com/TU_USUARIO/estilizapro-ai.git
    git push -u origin main
@@ -18,14 +17,14 @@ Este proyecto está optimizado para funcionar en la nube de forma gratuita. Sigu
 
 ## 🌐 2. Desplegar en Vercel (Tu Link Público)
 1. Entra a [Vercel](https://vercel.com) y conecta tu cuenta de GitHub.
-2. Selecciona el repositorio `estilizapro-ai`.
-3. **PASO CRÍTICO (Seguridad)**: En la configuración del proyecto, busca **"Environment Variables"** y añade:
-   *   `OPENAI_API_KEY`: (Pega tu llave sk-...)
-   *   `UNSPLASH_ACCESS_KEY`: (Pega tu llave de Unsplash)
+2. Haz clic en **"Add New"** > **"Project"** y selecciona `estilizapro-ai`.
+3. **PASO CRÍTICO (Configurar la IA)**: Antes de darle al botón "Deploy", busca la sección **"Environment Variables"** y añade estas dos llaves:
+   *   **Nombre:** `OPENAI_API_KEY` | **Valor:** (Pega tu llave sk-...)
+   *   **Nombre:** `UNSPLASH_ACCESS_KEY` | **Valor:** (Pega tu llave de Unsplash)
 4. Haz clic en **Deploy**.
 
-## 📱 3. Actualizar tu App Móvil
-Una vez que Vercel te dé tu URL (ej: `https://estilizapro.vercel.app`), recuerda actualizarla en tu archivo `capacitor.config.ts` en la propiedad `url` para que tu APK apunte al servidor real y no al túnel local.
+## 📱 3. ¡Listo!
+Vercel te dará una URL (ej: `https://estilizapro.vercel.app`). Este link es el que puedes compartir con cualquier usuario. La IA funcionará automáticamente gracias a las variables que configuraste en el paso anterior.
 
 ---
 © 2024 EstilizaPro AI - Pilar Cifuentes Catalán.
