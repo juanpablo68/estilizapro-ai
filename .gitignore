@@ -1,17 +1,20 @@
 # Dependencias
-node_modules/
+node_modules
+.next
+out
+build
 
-# Next.js
-.next/
-out/
-
-# Variables de Entorno (SEGURIDAD)
+# Configuración local (Seguridad)
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# Otros
+# Archivos de sistema
 .DS_Store
 *.log
+.firebase
+firebase-debug.log
+firestore-debug.log
+ui-debug.log

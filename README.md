@@ -3,7 +3,7 @@
 Sigue estos pasos en orden para tener tu app funcionando en un link público.
 
 ## 📦 Paso 1: Subir a GitHub (Vía Terminal)
-Ignora los mensajes amarillos o de error de "bash prompt", lo importante es ejecutar estos comandos:
+Ignora los mensajes amarillos o de error de "bash prompt", lo importante es ejecutar estos comandos uno por uno:
 
 1. **Prepara los archivos:**
    ```bash
@@ -23,10 +23,11 @@ Ignora los mensajes amarillos o de error de "bash prompt", lo importante es ejec
    ```
 
 ## 🌐 Paso 2: Desplegar en Vercel (La "Energía" de la App)
-1. Ve a [Vercel.com](https://vercel.com) e importa tu repositorio de GitHub.
-2. **CRÍTICO (Variables de Entorno):** Antes de dar clic en "Deploy", busca la sección **Environment Variables** y añade estas dos:
+1. Ve a [Vercel.com](https://vercel.com) e inicia sesión con tu GitHub.
+2. Importa tu repositorio `estilizapro-ai`.
+3. **CRÍTICO (Variables de Entorno):** Antes de dar clic en "Deploy", busca la sección **Environment Variables** y añade estas dos:
    - **Key:** `OPENAI_API_KEY` | **Value:** (Tu clave sk-...)
    - **Key:** `UNSPLASH_ACCESS_KEY` | **Value:** (Tu clave jMm...)
-3. Haz clic en **Deploy**.
+4. Haz clic en **Deploy**.
 
-¡Listo! Vercel te dará un link profesional.
+¡Listo! Vercel te dará un link profesional tipo `estilizapro-ai.vercel.app`.
