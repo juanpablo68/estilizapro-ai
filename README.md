@@ -1,30 +1,30 @@
-# EstilizaPro AI - Guía de Lanzamiento en Vercel 🚀
+# 🚀 EstilizaPro AI - Guía de Lanzamiento Rápido
 
-Este proyecto está listo para ser publicado. Sigue estos pasos para obtener tu link público y que la IA funcione para todos.
+Sigue estos pasos para tener tu aplicación funcionando en un link público.
 
-## 📦 1. Subir tu código a GitHub
-1. Crea un repositorio **Público** o **Privado** en [GitHub](https://github.com) llamado `estilizapro-ai`.
-2. Abre la terminal aquí en Firebase Studio y ejecuta estos comandos uno por uno:
+## 📦 Paso 1: Subir a GitHub
+1. Abre la **Terminal** (la ventana negra al final de esta pantalla).
+2. Copia y pega estos comandos uno por uno (reemplaza `TU_USUARIO` con tu nombre de GitHub):
    ```bash
    git init
    git add .
-   git commit -m "feat: versión final de lanzamiento"
+   git commit -m "Lanzamiento oficial EstilizaPro"
    git branch -M main
    git remote add origin https://github.com/TU_USUARIO/estilizapro-ai.git
    git push -u origin main
    ```
-   *(Reemplaza TU_USUARIO por tu nombre real de GitHub).*
 
-## 🌐 2. Desplegar en Vercel (Tu Link Público)
-1. Entra a [Vercel](https://vercel.com) y conecta tu cuenta de GitHub.
-2. Haz clic en **"Add New"** > **"Project"** y selecciona `estilizapro-ai`.
-3. **PASO CRÍTICO (Configurar la IA)**: Antes de darle al botón "Deploy", busca la sección **"Environment Variables"** y añade estas dos llaves:
-   *   **Nombre:** `OPENAI_API_KEY` | **Valor:** (Pega tu llave sk-...)
-   *   **Nombre:** `UNSPLASH_ACCESS_KEY` | **Valor:** (Pega tu llave de Unsplash)
-4. Haz clic en **Deploy**.
+## 🌐 Paso 2: Desplegar en Vercel
+1. Ve a [Vercel.com](https://vercel.com) e inicia sesión con tu cuenta de GitHub.
+2. Haz clic en **"Add New"** > **"Project"**.
+3. Selecciona el repositorio `estilizapro-ai`.
+4. **IMPORTANTE (Variables de Entorno)**: Antes de darle a "Deploy", busca la sección **"Environment Variables"** y añade estas dos:
+   *   `OPENAI_API_KEY` = (Pega tu sk-...)
+   *   `UNSPLASH_ACCESS_KEY` = (Pega tu clave de Unsplash)
+5. Haz clic en **"Deploy"**.
 
-## 📱 3. ¡Listo!
-Vercel te dará una URL (ej: `https://estilizapro.vercel.app`). Este link es el que puedes compartir con cualquier usuario. La IA funcionará automáticamente gracias a las variables que configuraste en el paso anterior.
+## ✅ Paso 3: ¡Listo!
+Vercel te dará una URL (ej: `estilizapro.vercel.app`). ¡Ese es tu link para compartir con el mundo!
 
 ---
-© 2024 EstilizaPro AI - Pilar Cifuentes Catalán.
+*Nota: Los cambios que hagas en Firebase Studio no se verán en Vercel hasta que vuelvas a usar los comandos `git add .`, `git commit` y `git push`.*

@@ -4,13 +4,13 @@ node_modules
 out
 build
 
-# Configuración local y llaves (IMPORTANTE: NO SUBIR A GITHUB)
+# Configuración local y LLAVES PRIVADAS (No subir a GitHub)
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# Archivos de sistema
+# Archivos del sistema
 .DS_Store
 *.log
