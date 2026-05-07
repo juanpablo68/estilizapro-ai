@@ -31,3 +31,4 @@ Ignora los mensajes amarillos o de error de "bash prompt", lo importante es ejec
 4. Haz clic en **Deploy**.
 
 ¡Listo! Vercel te dará un link profesional tipo `estilizapro-ai.vercel.app`.# estilizapro-ai
+# estilizapro-ai
