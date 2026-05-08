@@ -1,14 +1,17 @@
 
 # 🚀 EstilizaPro AI - Guía de Lanzamiento Final
 
-Sigue estos pasos en la **Terminal** (la ventana negra de abajo) para publicar tu app.
+Sigue estos pasos en la **Terminal** para publicar tu app. 
 
-### 🛑 IMPORTANTE: Si ves el símbolo `>` en la terminal, presiona `Ctrl + C` para limpiar.
+### 🛑 SI TE DIO ERROR "REJECTED" O "FETCH FIRST":
+Copia y pega este comando y presiona Enter:
+```bash
+git push -f origin main
+```
+*(Esto obligará a GitHub a aceptar todo tu código de Firebase).*
 
-## 📦 Paso 1: Enviar a GitHub
-Copia y pega estos comandos **uno por uno** y presiona Enter después de cada uno. **NO escribas la palabra "bash"**.
-
-1. **Prepara todo el proyecto:**
+## 📦 Proceso Completo (Si empiezas de cero)
+1. **Prepara los archivos:**
    ```bash
    git add .
    ```
@@ -16,23 +19,14 @@ Copia y pega estos comandos **uno por uno** y presiona Enter después de cada un
    ```bash
    git commit -m "Versión Final EstilizaPro"
    ```
-3. **Asegura la rama principal:**
+3. **Sube el código (Forzado para evitar errores):**
    ```bash
-   git branch -M main
+   git push -f origin main
    ```
-4. **Conecta con tu cuenta:** (Si sale error de que ya existe, ignóralo y sigue al paso 5)
-   ```bash
-   git remote add origin https://github.com/juanpablo68/estilizapro-ai.git
-   ```
-5. **Sube el código:**
-   ```bash
-   git push -u origin main
-   ```
-   *(Te pedirá tu usuario de GitHub y tu contraseña o Token)*
 
-## 🌐 Paso 2: Activar en Vercel
+## 🌐 Paso Final: Activar en Vercel
 1. Ve a [Vercel.com](https://vercel.com) e importa el proyecto `estilizapro-ai`.
-2. En la sección **Environment Variables**, añade:
-   - `OPENAI_API_KEY`: Pega tu llave de OpenAI.
-   - `UNSPLASH_ACCESS_KEY`: Pega tu llave de Unsplash.
+2. En la sección **Environment Variables**, añade estas 2 (Cópialas de tu archivo .env):
+   - `OPENAI_API_KEY`: Tu llave de OpenAI.
+   - `UNSPLASH_ACCESS_KEY`: jMm7V8GtuOEx0iPBVpBJymtek10li8jbAcopWV8FbY4
 3. Dale a **Deploy**.
