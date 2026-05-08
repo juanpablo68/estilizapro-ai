@@ -1,10 +1,9 @@
+# 🚀 EstilizaPro AI - Guía de Lanzamiento Rápido
 
-# 🚀 EstilizaPro AI - Guía de Lanzamiento Directo
+Sigue estos pasos en la **Terminal** (abajo en tu pantalla) para publicar tu app.
 
-Sigue estos pasos en orden para tener tu app funcionando en un link público.
-
-## 📦 Paso 1: Subir a GitHub (Vía Terminal)
-Ejecuta estos comandos uno por uno en la terminal de Firebase Studio:
+## 📦 Paso 1: Subir a GitHub
+Copia y pega estos comandos uno por uno:
 
 1. **Prepara todos los archivos:**
    ```bash
@@ -12,7 +11,7 @@ Ejecuta estos comandos uno por uno en la terminal de Firebase Studio:
    ```
 2. **Crea el punto de guardado:**
    ```bash
-   git commit -m "Versión Final EstilizaPro con APIs"
+   git commit -m "Versión Final con APIs configuradas"
    ```
 3. **Conecta con tu GitHub:**
    ```bash
@@ -23,12 +22,11 @@ Ejecuta estos comandos uno por uno en la terminal de Firebase Studio:
    git push -u origin main
    ```
 
-## 🌐 Paso 2: Desplegar en Vercel (La "Energía" de la App)
-1. Ve a [Vercel.com](https://vercel.com) e inicia sesión con tu GitHub.
-2. Importa tu repositorio `estilizapro-ai`.
-3. **CRÍTICO (Variables de Entorno):** Antes de dar clic en "Deploy", busca la sección **Environment Variables** y añade estas dos:
-   - **Key:** `OPENAI_API_KEY` | **Value:** `sk-proj-ehS1xd...` (Tu clave completa)
-   - **Key:** `UNSPLASH_ACCESS_KEY` | **Value:** `jMm7V8GtuO...` (Tu clave completa)
-4. Haz clic en **Deploy**.
+## 🌐 Paso 2: Desplegar en Vercel
+1. Ve a [Vercel.com](https://vercel.com) e importa tu repositorio `estilizapro-ai`.
+2. **IMPORTANTE:** En la sección "Environment Variables" de Vercel, añade estas dos:
+   - `OPENAI_API_KEY`: Tu clave completa de OpenAI.
+   - `UNSPLASH_ACCESS_KEY`: Tu clave completa de Unsplash.
+3. Haz clic en **Deploy**.
 
-¡Listo! Vercel te dará un link profesional para compartir tu app.
+¡Listo! Tu app estará en un link público profesional.

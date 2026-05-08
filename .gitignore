@@ -1,11 +1,10 @@
-
 # Dependencias
-node_modules
-/.next/
-/out/
-/build
+node_modules/
+.next/
+out/
+build/
 
-# Seguridad (CRÍTICO)
+# Configuración y Secretos (CRÍTICO)
 .env
 .env.local
 .env.development.local
