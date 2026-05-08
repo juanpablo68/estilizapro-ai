@@ -1,21 +1,13 @@
-# Dependencias
-node_modules/
-.next/
-out/
-build/
 
-# Configuración y Secretos (CRÍTICO)
+# Archivos que NO se suben a GitHub por seguridad
+node_modules
+.next
+out
+build
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Sistema
 .DS_Store
-*.pem
+*.local
