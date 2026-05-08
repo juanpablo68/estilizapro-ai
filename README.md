@@ -17,7 +17,7 @@ git add . && git commit -m "🚀 Versión Inicial EstilizaPro AI" && git push -f
    - Busca la sección **"Environment Variables"**.
    - Añade estas 2 variables (Copia los valores de tu archivo .env):
      - `OPENAI_API_KEY`: [Tu llave de OpenAI]
-     - `UNSPLASH_ACCESS_KEY`: jMm7V8GtuOEx0iPBVpBJymtek10li8jbAcopWV8FbY4
+     - `UNSPLASH_ACCESS_KEY`: [Tu llave de Unsplash]
 5. Haz clic en **"Deploy"**.
 
 ¡Listo! Vercel te dará un link público (ej: `estilizapro-ai.vercel.app`) que podrás compartir con todo el mundo.
