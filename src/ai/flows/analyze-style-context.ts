@@ -2,7 +2,7 @@
 'use server';
 /**
  * @fileOverview Análisis Biométrico Quirúrgico.
- * Optimizado para minimizar el peso de la petición y manejar errores de conexión en túneles.
+ * Optimizado para identificar con precisión el género y rasgos físicos.
  */
 
 import { z } from 'genkit';
@@ -25,25 +25,24 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
   const apiKey = getOpenAIKey(input.openaiApiKey);
   
   if (!apiKey || apiKey.trim() === '') {
-    throw new Error("No se detectó una API Key de OpenAI válida. Asegúrate de que la variable OPENAI_API_KEY esté configurada en el servidor o en los Ajustes de la app.");
+    throw new Error("No se detectó una API Key de OpenAI válida.");
   }
 
   const openai = new OpenAI({ apiKey });
 
   try {
-    // OpenAI Vision soporta imágenes en base64 directamente
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: `Eres un experto en fisionomía y colorimetría profesional de alta gama. 
+          content: `Eres un experto en fisionomía y colorimetría profesional. 
           
-          REGLAS DE IDENTIFICACIÓN:
-          1. RASGOS ÉTNICOS Y PIEL: Identifica con precisión el tono de piel real y rasgos faciales.
-          2. TEMPERATURA: Clasifica exclusivamente como "Cálida" o "Fría".
-          3. SILUETA: Identifica la figura geométrica corporal predominante.
-          4. CABELLO Y OJOS: Identifica el color natural exacto.
+          REGLAS CRÍTICAS DE IDENTIFICACIÓN:
+          1. GÉNERO: Identifica con 100% de precisión si el usuario es "Masculino" o "Femenino". No te equivoques.
+          2. RASGOS ÉTNICOS Y PIEL: Identifica el tono de piel real.
+          3. TEMPERATURA: Clasifica exclusivamente como "Cálida" o "Fría".
+          4. SILUETA: Identifica la figura geométrica corporal predominante.
 
           RESPONDE SOLO EN JSON:
           {
@@ -65,7 +64,7 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
         {
           role: "user",
           content: [
-            { type: "text", text: "Analiza mi temperatura de color, figura y rasgos físicos para mi avatar." },
+            { type: "text", text: "Analiza mi género, temperatura de color, figura y rasgos físicos para mi avatar." },
             { type: "image_url", image_url: { url: input.facePhotoDataUri } },
             { type: "image_url", image_url: { url: input.figurePhotoDataUri } }
           ],
@@ -87,10 +86,7 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
       colorimetryAnalysis: `Subtono ${temperatura} (${piel})`
     };
   } catch (error: any) {
-    console.error("Error crítico en el servidor al llamar a OpenAI Vision:", error);
-    if (error.status === 401) {
-      throw new Error("Llave de API de OpenAI inválida o expirada.");
-    }
-    throw new Error(error.message || "Error al procesar las imágenes en la IA. Verifica tu conexión a internet.");
+    console.error("Error crítico en el análisis biométrico:", error);
+    throw new Error(error.message || "Error al procesar las imágenes en la IA.");
   }
 }
