@@ -2,9 +2,11 @@
 
 ¡Tu código ya está corregido y listo para el despliegue final!
 
-## 🌐 Paso 1: Actualizar GitHub (Windows PowerShell)
-Ejecuta estos comandos **uno por uno** en tu terminal:
-```powershell
+## 🌐 Paso 1: Actualizar GitHub (IMPORTANTE: Usa la Terminal de Firebase)
+**NO USES LA TERMINAL DE TU COMPUTADORA.** Usa la terminal que está abajo del código en esta web.
+
+Ejecuta estos comandos **uno por uno** en la terminal de Firebase Studio (la ventana negra aquí abajo):
+```bash
 git add .
 git commit -m "🚀 Corrección de error de IA y actualización"
 git push -f origin main

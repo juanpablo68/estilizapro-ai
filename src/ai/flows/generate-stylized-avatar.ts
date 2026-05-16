@@ -77,6 +77,7 @@ const generateStylizedAvatarFlow = ai.defineFlow(
       return { avatarDataUri: `data:image/png;base64,${imageData}` };
     } catch (error: any) {
       console.error("DALL-E Generation Error:", error);
+      // Eliminamos parámetros extra que causaban el error 400
       throw new Error(error.message || "Error al generar el avatar estilizado visualmente.");
     }
   }
