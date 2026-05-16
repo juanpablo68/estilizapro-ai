@@ -10,6 +10,7 @@ import { ArrowLeft, CreditCard, Loader2, CheckCircle2, ShieldCheck, Wallet, Scis
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import Link from 'next/link';
 
 export default function PaymentGroomingPage() {
   const [profile, setProfile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
@@ -52,9 +53,11 @@ export default function PaymentGroomingPage() {
   return (
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">
       <header className="flex items-center gap-4 pt-4">
-        <Button variant="ghost" size="icon" onClick={() => router.back()} disabled={processing}>
-          <ArrowLeft />
-        </Button>
+        <Link href="/purchase-grooming">
+          <Button variant="ghost" size="icon" className="rounded-full" disabled={processing}>
+            <ArrowLeft />
+          </Button>
+        </Link>
         <h1 className="text-2xl font-headline font-bold text-primary">Checkout Estético</h1>
       </header>
 

@@ -39,7 +39,7 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
   STYLE: Modern 3D stylized character design, high-end studio lighting. 
   COMPOSITION: Extreme close-up face portrait, solid pure white background. NO text.`;
 
-  console.log("Requesting gpt-image-2 for Grooming Tips...");
+  console.log("Grooming Tips: Requesting gpt-image-2 (no response_format)...");
 
   try {
     const response = await openai.images.generate({
@@ -52,16 +52,20 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
       output_format: "png"
     });
 
+    console.log("OpenAI Grooming image generated successfully");
     const b64Data = response.data[0].b64_json;
 
     if (!b64Data) {
-      console.error("Grooming Error: No b64_json in response.");
-      throw new Error("La IA no devolvió datos de imagen válidos.");
+      console.error("Grooming Error: No b64_json received.");
+      throw new Error("La IA no devolvió datos de imagen (b64_json) válidos.");
     }
+    console.log("Base64 received successfully for grooming tips");
 
     const buffer = Buffer.from(b64Data, 'base64');
+    console.log("Buffer created successfully for grooming tips");
 
     try {
+      console.log("Uploading Grooming Image to Firebase Storage...");
       const timestamp = Date.now();
       const fileName = `grooming/${userId}/${timestamp}.png`;
       const bucket = adminStorage.bucket();
@@ -71,6 +75,7 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
         metadata: { contentType: 'image/png' },
         public: true
       });
+      console.log("Grooming image upload to Storage completed");
 
       const downloadURL = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
       return { previewImageDataUri: downloadURL };
@@ -79,8 +84,9 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
       return { previewImageDataUri: `data:image/png;base64,${b64Data}` };
     }
   } catch (error: any) {
-    console.error("Image Generation Error (gpt-image-2):", error);
+    console.error("Grooming Generation Error (gpt-image-2):", error);
     if (error.status === 401) throw new Error("Error 401: API Key inválida.");
+    if (error.status === 403) throw new Error("Error 403: Sin acceso al modelo o autorización.");
     if (error.status === 429) throw new Error("Error 429: Cuota o límite excedido.");
     throw new Error(error.message || "Error al generar la vista previa del look.");
   }

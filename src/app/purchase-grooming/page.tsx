@@ -7,6 +7,7 @@ import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storag
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ArrowLeft, Sparkles, ShieldCheck, Scissors, Palette, ShoppingCart } from "lucide-react";
+import Link from 'next/link';
 
 export default function PurchaseGroomingPage() {
   const [profile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
@@ -22,9 +23,11 @@ export default function PurchaseGroomingPage() {
   return (
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">
       <header className="flex items-center gap-4 pt-4">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ArrowLeft />
-        </Button>
+        <Link href="/capsules">
+          <Button variant="ghost" size="icon" className="rounded-full">
+            <ArrowLeft />
+          </Button>
+        </Link>
         <h1 className="text-2xl font-headline font-bold text-primary">Solicitud de Estilo</h1>
       </header>
 
