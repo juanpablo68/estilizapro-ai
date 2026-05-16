@@ -23,12 +23,12 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
   const data = input.biometricData || {};
   const gender = data.genero || 'Femenino';
   
-  // Extraemos solo lo visual para el prompt de imagen para evitar sobrecarga de texto
-  const visualDescription = input.description.split('.')[0];
+  // Limpieza del prompt para evitar rechazos por texto excesivo
+  const cleanDescription = input.description.split('.')[0];
 
   const finalPrompt = `Close-up high-end portrait of ONE SINGLE ${gender}. 
   STYLE: Modern 3D stylized character.
-  LOOK: ${visualDescription}. 
+  LOOK: ${cleanDescription}. 
   ${gender === 'Masculino' && input.hasBeard ? 'With a perfectly groomed beard.' : ''}
   ${gender === 'Masculino' && !input.hasBeard ? 'Clean-shaven face.' : ''}
   ENVIRONMENT: Solid pure white background. NO TEXT.`;
@@ -42,7 +42,7 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
     });
 
     const imageUrl = response.data[0].url;
-    if (!imageUrl) throw new Error("No se pudo obtener la URL de la imagen.");
+    if (!imageUrl) throw new Error("No se pudo obtener la URL del look.");
 
     const imageResponse = await fetch(imageUrl);
     const buffer = await imageResponse.arrayBuffer();

@@ -30,7 +30,6 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
   ENVIRONMENT: Solid pure white background. NO text.`;
 
   try {
-    // Llamada ultra-limpia al modelo gpt-image-2
     const response = await openai.images.generate({
       model: "gpt-image-2" as any,
       prompt: finalPrompt,
@@ -39,7 +38,7 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
     });
 
     const imageUrl = response.data[0].url;
-    if (!imageUrl) throw new Error("No se pudo obtener la URL de la imagen.");
+    if (!imageUrl) throw new Error("La IA no devolvió una URL válida.");
 
     const imageResponse = await fetch(imageUrl);
     const buffer = await imageResponse.arrayBuffer();
@@ -48,6 +47,6 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
     return { avatarDataUri: `data:image/png;base64,${base64}` };
   } catch (error: any) {
     console.error("Image Generation Error:", error);
-    throw new Error(error.message || "Error al conectar con el motor de imágenes gpt-image-2.");
+    throw new Error(error.message || "Error al conectar con el motor gpt-image-2.");
   }
 }
