@@ -165,7 +165,7 @@ export default function CapsulesPage() {
                 <SelectContent>
                   <SelectItem value="Oficina">Oficina</SelectItem>
                   <SelectItem value="Casual">Casual</SelectItem>
-                  <SelectItem value="Cena">Cena Social</SelectItem>
+                  <SelectItem value="Cena Social">Cena Social</SelectItem>
                   <SelectItem value="Gala">Evento de Gala</SelectItem>
                 </SelectContent>
               </Select>

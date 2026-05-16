@@ -25,7 +25,7 @@ export default function PurchaseGroomingPage() {
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft />
         </Button>
-        <h1 className="text-2xl font-headline font-bold text-primary">Solicitud Estética</h1>
+        <h1 className="text-2xl font-headline font-bold text-primary">Solicitud de Estilo</h1>
       </header>
 
       <Card className="border-none shadow-2xl rounded-[2.5rem] overflow-hidden bg-white ring-1 ring-primary/5">
@@ -36,9 +36,9 @@ export default function PurchaseGroomingPage() {
              </div>
              <ShieldCheck className="w-6 h-6 text-primary/30" />
           </div>
-          <CardTitle className="text-3xl font-headline text-foreground">Peinado y Maquillaje AI</CardTitle>
+          <CardTitle className="text-3xl font-headline text-foreground">Tips de Peinado y Maquillaje</CardTitle>
           <CardDescription className="text-muted-foreground text-lg">
-            Asesoría visagista profesional personalizada por solicitud.
+            Asesoría personalizada por solicitud con visualización AI.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-8 space-y-8">
@@ -49,7 +49,7 @@ export default function PurchaseGroomingPage() {
                 </div>
                 <div className="text-sm">
                   <p className="font-bold text-foreground">Análisis Facial HD</p>
-                  <p className="text-muted-foreground text-xs">Recomendaciones basadas en tu colorimetría y fisionomía real.</p>
+                  <p className="text-muted-foreground text-xs">Recomendaciones basadas en tu biometría real.</p>
                 </div>
              </div>
              <div className="flex items-center gap-4 bg-muted/20 p-5 rounded-[1.5rem] border border-transparent hover:border-primary/20 transition-colors">
@@ -58,7 +58,7 @@ export default function PurchaseGroomingPage() {
                 </div>
                 <div className="text-sm">
                   <p className="font-bold text-foreground">Visagismo AI Maestro</p>
-                  <p className="text-muted-foreground text-xs">Diseño de peinado y cuidado de piel ideal para tu tipo de rostro.</p>
+                  <p className="text-muted-foreground text-xs">Diseño de peinado y cuidado ideal para tu tipo de rostro.</p>
                 </div>
              </div>
           </div>
@@ -75,7 +75,7 @@ export default function PurchaseGroomingPage() {
             <ShoppingCart className="mr-2 w-6 h-6" /> Comprar Solicitud
           </Button>
           <p className="text-[10px] text-center text-muted-foreground/60 italic leading-relaxed px-8">
-            * El acceso es válido para una sola sesión de asesoría completa con generación de imagen incluida.
+            * Acceso a una sesión de asesoría con generación de imagen incluida.
           </p>
         </CardContent>
       </Card>

@@ -38,7 +38,7 @@ export default function PaymentGroomingPage() {
 
       toast({
         title: "¡Pago Confirmado!",
-        description: "Tienes una nueva solicitud de Visagismo disponible.",
+        description: "Tienes una nueva solicitud de Tips de Peinado y Maquillaje disponible.",
       });
 
       setTimeout(() => {
@@ -65,7 +65,7 @@ export default function PaymentGroomingPage() {
           </div>
           <div className="text-center space-y-2">
             <h2 className="text-2xl font-bold">¡Solicitud Lista!</h2>
-            <p className="text-muted-foreground">Iniciando tu sesión de Visagismo...</p>
+            <p className="text-muted-foreground">Iniciando tus Tips de Peinado y Maquillaje...</p>
           </div>
         </div>
       ) : (
@@ -78,7 +78,7 @@ export default function PaymentGroomingPage() {
             <div className="flex justify-between items-end border-b border-primary/10 pb-4">
               <div className="space-y-1">
                 <span className="block text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Scissors className="w-4 h-4" /> Asesoría Peinado/Maquillaje (x1)
+                  <Scissors className="w-4 h-4" /> Tips de Peinado y Maquillaje (x1)
                 </span>
                 <span className="block text-[10px] text-primary font-bold uppercase tracking-widest">Pago por solicitud</span>
               </div>

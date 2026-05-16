@@ -48,7 +48,7 @@ export default function GroomingAssistantPage() {
     }
 
     setMessages([
-      { role: 'assistant', content: `Estudio de Visagismo activo. Tienes una paleta ${profile.colorimetryAnalysis || 'detectada'}. ¿Qué estilo de peinado y ${isMale ? 'barba' : 'maquillaje'} buscamos para tu evento de tipo ${eventType}?` }
+      { role: 'assistant', content: `Tips de Peinado y Maquillaje activos. Tienes una paleta ${profile.colorimetryAnalysis || 'detectada'}. ¿Qué estilo de peinado y ${isMale ? 'barba' : 'maquillaje'} buscamos para tu evento de tipo ${eventType}?` }
     ]);
   }, []);
 
@@ -105,7 +105,8 @@ export default function GroomingAssistantPage() {
         description,
         biometricData: profile.biometricData,
         hasBeard: profile.hasBeard,
-        openaiApiKey: openaiKey
+        openaiApiKey: openaiKey,
+        userId: profile.name || 'user'
       });
       setResultImage(result.previewImageDataUri);
       toast({ title: "Visualización Lista", description: "Hemos proyectado tu look ideal." });
@@ -126,9 +127,9 @@ export default function GroomingAssistantPage() {
           <Button variant="ghost" size="icon" className="rounded-full"><ArrowLeft /></Button>
         </Link>
         <div className="flex-1">
-          <h1 className="text-2xl font-headline font-bold text-primary">Estudio de Visagismo</h1>
+          <h1 className="text-2xl font-headline font-bold text-primary">Tips de Peinado y Maquillaje</h1>
           <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">
-            Asesoría Maestra: {isMale ? 'Grooming & Barba' : 'Peinado & Maquillaje'}
+            Asesoría Maestra: {isMale ? 'Estilo de Cabello y Barba' : 'Peinado y Maquillaje'}
           </p>
         </div>
       </header>
@@ -205,7 +206,7 @@ export default function GroomingAssistantPage() {
            <Card className="aspect-[3/4] w-full overflow-hidden relative shadow-2xl border-none ring-[12px] ring-primary/5 rounded-[3rem] bg-white">
             {resultImage ? (
               <div className="animate-in fade-in zoom-in duration-700 h-full w-full">
-                <Image src={resultImage} alt="Visagismo Resultado" fill className="object-cover" unoptimized />
+                <Image src={resultImage} alt="Resultado" fill className="object-cover" unoptimized />
               </div>
             ) : previewing ? (
               <div className="w-full h-full flex flex-col items-center justify-center bg-muted/20 space-y-4">
@@ -220,7 +221,7 @@ export default function GroomingAssistantPage() {
                  <div className="space-y-2">
                     <h3 className="font-bold text-sm">Espejo Digital Activo</h3>
                     <p className="text-[10px] text-muted-foreground leading-relaxed">
-                      El sistema visualizará aquí el resultado de tu asesoría visagista en tiempo real.
+                      El sistema visualizará aquí el resultado de tus tips de peinado y maquillaje.
                     </p>
                  </div>
               </div>
