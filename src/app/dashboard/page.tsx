@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -11,10 +12,12 @@ import {
   UserCircle, 
   PlusCircle, 
   Settings,
-  Sparkles
+  Sparkles,
+  Instagram
 } from "lucide-react";
 import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -55,15 +58,13 @@ export default function DashboardPage() {
       <section className="bg-gradient-to-br from-primary to-primary/80 rounded-3xl p-6 text-white shadow-lg overflow-hidden relative">
         <Sparkles className="absolute top-[-10px] right-[-10px] w-24 h-24 opacity-10 rotate-12" />
         <div className="relative z-10 space-y-2">
-          <h2 className="text-xl font-bold">Asistente de PILAR CIFUENTES</h2>
-          <p className="text-sm opacity-90">Análisis listo: Eres tipo <strong>{profile.figureAnalysis || 'Reloj de Arena'}</strong> con paleta <strong>{profile.colorimetryAnalysis || 'Otoño Cálido'}</strong>.</p>
-          <div className="flex gap-2 mt-3">
-              <Button variant="secondary" size="sm" onClick={() => router.push('/capsules')}>
-                Ver Sugerencia Diaria
+          <h2 className="text-xl font-bold">Asesoría personalizada Pilar Catalán</h2>
+          <div className="pt-2">
+            <Link href="https://instagram.com/by.pilarcatalan" target="_blank">
+              <Button variant="secondary" size="sm" className="rounded-xl font-bold gap-2">
+                <Instagram className="w-4 h-4" /> @by.pilarcatalan
               </Button>
-              <Button variant="outline" size="sm" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => router.push('/settings')}>
-                <Settings className="w-4 h-4 mr-1" /> Ajustes de IA
-              </Button>
+            </Link>
           </div>
         </div>
       </section>
