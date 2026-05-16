@@ -10,8 +10,9 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   serverActions: {
-    // Se aumenta el límite a 50MB para permitir el envío de strings Base64 de fotos tomadas por el usuario y resultados de IA
-    bodySizeLimit: '50mb',
+    // Se aumenta el límite a 100MB para permitir el envío de strings Base64 de fotos tomadas por el usuario y resultados de IA
+    // Esto previene el error "Body exceeded 1 MB limit" al procesar imágenes.
+    bodySizeLimit: '100mb',
   },
   images: {
     remotePatterns: [
