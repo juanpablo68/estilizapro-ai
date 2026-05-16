@@ -1,9 +1,9 @@
+
 'use server';
 /**
- * @fileOverview Probador Virtual Maestro usando GPT-4o para análisis e Imagen 4 para visualización.
+ * @fileOverview Probador Virtual Maestro usando DALL-E 3 con descarga segura.
  */
 
-import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import OpenAI from 'openai';
 import { getOpenAIKey } from '@/ai/genkit';
@@ -17,17 +17,17 @@ const PreviewOutfitOnAvatarInputSchema = z.object({
 
 export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitOnAvatarInputSchema>) {
   const apiKey = getOpenAIKey(input.openaiApiKey);
-  if (!apiKey) throw new Error("API Key de OpenAI requerida para el análisis visual.");
+  if (!apiKey) throw new Error("API Key de OpenAI requerida.");
 
   const openai = new OpenAI({ apiKey });
   const data = input.biometricData || {};
   const gender = data.genero || 'Femenino';
 
-  // Paso 1: Analizar el outfit con GPT-4o Vision
+  // Paso 1: Análisis visual del conjunto
   const analysis = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
-      { role: "system", content: "Describe este outfit de moda puesto sobre una persona en una sola frase descriptiva corta." },
+      { role: "system", content: "Describe este outfit de moda puesto sobre una persona en una sola frase corta." },
       {
         role: "user",
         content: [
@@ -42,19 +42,26 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
   const description = analysis.choices[0].message.content || "a stylish fashion outfit";
 
   try {
-    // Paso 2: Generar la imagen con Imagen 4 (Genkit)
     const finalPrompt = `A high-end fashion photograph of ONE SINGLE ${gender}. Wearing: ${description}. Full body shot. STYLE: Modern 3D stylized character design. ENVIRONMENT: Pure solid white background.`;
     
-    const { media } = await ai.generate({
-      model: 'googleai/imagen-4.0-fast-generate-001',
+    const response = await openai.images.generate({
+      model: "dall-e-3",
       prompt: finalPrompt,
+      n: 1,
+      size: "1024x1024",
     });
 
-    if (!media?.url) throw new Error("Error visual con Imagen 4.");
+    const imageUrl = response.data[0].url;
+    if (!imageUrl) throw new Error("No se pudo generar la vista previa.");
 
-    return { previewImageDataUri: media.url };
+    const imageRes = await fetch(imageUrl);
+    const arrayBuffer = await imageRes.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const base64 = `data:image/png;base64,${buffer.toString('base64')}`;
+
+    return { previewImageDataUri: base64 };
   } catch (error: any) {
-    console.error("Imagen 4 Preview Error:", error);
-    throw new Error("No se pudo generar la vista previa del conjunto con el nuevo motor.");
+    console.error("DALL-E Preview Error:", error);
+    throw new Error("No se pudo generar la vista previa visual.");
   }
 }
