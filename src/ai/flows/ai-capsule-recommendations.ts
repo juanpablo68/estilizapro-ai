@@ -57,7 +57,7 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
   const openai = new OpenAI({ apiKey });
   const genderContext = input.gender || 'Femenino';
 
-  const prompt = `Actúa como el Stylist Maestro de Pilar Cifuentes Catalán. 
+  const prompt = `Actúa como el Stylist Maestro de Pilar Catalán. 
   Crea exactamente 1 outfit coordinado para: "${input.eventType}" en clima: "${input.weatherConditions}".
 
   REGLAS OBLIGATORIAS:

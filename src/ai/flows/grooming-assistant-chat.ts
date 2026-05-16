@@ -48,7 +48,7 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
     REGLA: Divide tu respuesta en "PEINADO" e "IDEAS DE MAQUILLAJE".`;
   }
 
-  const systemPrompt = `Eres el Asesor Maestro de Tips de Peinado y Maquillaje de Pilar Cifuentes Catalán.
+  const systemPrompt = `Eres el Asesor Maestro de Tips de Peinado y Maquillaje de Pilar Catalán.
   CLIENTE: ${gender} | EVENTO: ${input.eventType} | COLORIMETRÍA: ${bio.temperatura || 'Cálida'}
   ${genderRules}
   REGLA DE ORO: Sé directo, profesional y humano. Responde de tú.`;
