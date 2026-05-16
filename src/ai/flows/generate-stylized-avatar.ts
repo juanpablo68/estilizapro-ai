@@ -1,8 +1,7 @@
 
 'use server';
 /**
- * @fileOverview Generación de Avatar Estilizado usando el motor moderno de OpenAI.
- * Se eliminan parámetros obsoletos para garantizar estabilidad total.
+ * @fileOverview Generación de Avatar Estilizado usando el motor moderno gpt-image-2.
  */
 
 import { z } from 'genkit';
@@ -31,9 +30,8 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
   ENVIRONMENT: Solid pure white background. NO text.`;
 
   try {
-    // Usamos la configuración más limpia posible para el motor moderno
     const response = await openai.images.generate({
-      model: "dall-e-3",
+      model: "gpt-image-2",
       prompt: finalPrompt,
       n: 1,
       size: "1024x1024",
@@ -42,7 +40,6 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
     const imageUrl = response.data[0].url;
     if (!imageUrl) throw new Error("No se pudo obtener la URL de la imagen.");
 
-    // Descargamos la imagen en el servidor para convertirla a base64
     const imageResponse = await fetch(imageUrl);
     const buffer = await imageResponse.arrayBuffer();
     const base64 = Buffer.from(buffer).toString('base64');
@@ -50,6 +47,6 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
     return { avatarDataUri: `data:image/png;base64,${base64}` };
   } catch (error: any) {
     console.error("Image Generation Error:", error);
-    throw new Error(error.message || "Error al conectar con el motor de imágenes.");
+    throw new Error(error.message || "Error al conectar con el motor de imágenes gpt-image-2.");
   }
 }

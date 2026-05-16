@@ -1,8 +1,7 @@
 
 'use server';
 /**
- * @fileOverview Generación de Visagismo usando motor moderno.
- * Asegura la coherencia visual con el género y estado de barba.
+ * @fileOverview Generación de Visagismo usando el motor moderno gpt-image-2.
  */
 
 import { z } from 'genkit';
@@ -24,16 +23,19 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
   const data = input.biometricData || {};
   const gender = data.genero || 'Femenino';
   
+  // Limpiamos la descripción para que sea puramente visual
+  const visualDescription = input.description.split('.')[0] + ". " + (input.description.split('ESTILO')[1] || "");
+
   const finalPrompt = `Close-up high-end portrait of ONE SINGLE ${gender}. 
   STYLE: Modern 3D stylized character.
-  LOOK: ${input.description.substring(0, 400)}. 
+  LOOK: ${visualDescription.substring(0, 400)}. 
   ${gender === 'Masculino' && input.hasBeard ? 'With a perfectly groomed beard.' : ''}
   ${gender === 'Masculino' && !input.hasBeard ? 'Clean-shaven face.' : ''}
   ENVIRONMENT: Solid pure white background. NO TEXT.`;
 
   try {
     const response = await openai.images.generate({
-      model: "dall-e-3",
+      model: "gpt-image-2",
       prompt: finalPrompt,
       n: 1,
       size: "1024x1024",
@@ -49,6 +51,6 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
     return { previewImageDataUri: `data:image/png;base64,${base64}` };
   } catch (error: any) {
     console.error("Grooming Image Error:", error);
-    throw new Error(error.message || "Error al visualizar el look estético.");
+    throw new Error(error.message || "Error al visualizar el look estético con gpt-image-2.");
   }
 }

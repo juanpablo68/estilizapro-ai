@@ -36,8 +36,8 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
     genderRules = `
     INSTRUCCIONES CRÍTICAS PARA HOMBRE (EL USUARIO ES HOMBRE):
     1. PROHIBICIÓN TOTAL: Tienes terminantemente prohibido mencionar maquillaje, sombras, delineadores, labiales o cualquier cosmético.
-    2. ENFOQUE CABELLO Y BARBA: Debes recomendar siempre un estilo de peinado masculino moderno.
-    3. BARBA: El usuario ${hasBeard ? 'TIENE barba actualmente' : 'NO tiene barba actualmente'}. Da consejos específicos para este estado.
+    2. ENFOQUE CABELLO Y BARBA: Debes recomendar siempre un estilo de peinado masculino moderno. Es obligatorio recomendar el cabello.
+    3. BARBA: El usuario ${hasBeard ? 'TIENE barba actualmente' : 'NO tiene barba actualmente'}. Da consejos específicos para este estado (recorte, aceites o afeitado).
     4. PIEL: Recomienda solo limpieza, exfoliación e hidratación efecto mate.
     REGLA: Tu respuesta DEBE dividirse en: "ESTILO DE CABELLO Y BARBA" y "CUIDADO DE PIEL".`;
   } else {
