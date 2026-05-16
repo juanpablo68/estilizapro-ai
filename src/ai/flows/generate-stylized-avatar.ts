@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Generación de Avatar Estilizado Profesional.
- * Versión ultra-estable sin parámetro 'style' para evitar Error 400.
+ * Versión ultra-estable sin parámetros experimentales para evitar Error 400.
  */
 
 import { ai, getOpenAIKey } from '@/ai/genkit';

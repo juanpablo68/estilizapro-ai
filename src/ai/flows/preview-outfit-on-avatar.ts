@@ -25,13 +25,12 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
   const personType = data.genero || 'Femenino';
   const hairColor = data.rostro?.cabello?.color_natural || 'natural';
 
-  // Analizar las prendas para crear una descripción coherente
   const analysisResponse = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
       {
         role: "system",
-        content: "Describe brevemente este conjunto de moda puesto sobre una persona en una sola toma de cuerpo completo. Sé muy conciso."
+        content: "Describe brevemente este conjunto de moda puesto sobre una persona en una sola toma de cuerpo completo."
       },
       {
         role: "user",
@@ -49,7 +48,7 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
   try {
     const response = await openai.images.generate({
       model: "dall-e-3",
-      prompt: `A professional fashion photograph of ONE SINGLE ${personType}. Wearing exactly: ${detailedDescription}. Full length view from head to toe. STYLE: Modern 3D character design, Pixar-inspired lighting. ENVIRONMENT: Pure solid white background. No text, no lines.`,
+      prompt: `A professional fashion photograph of ONE SINGLE ${personType}. Wearing: ${detailedDescription}. Full length view. STYLE: Modern 3D character design. ENVIRONMENT: Pure solid white background.`,
       n: 1,
       size: "1024x1024",
       quality: "standard",
