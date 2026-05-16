@@ -1,9 +1,9 @@
 
 'use server';
 /**
- * @fileOverview Generación de Avatar Estilizado usando gpt-image-2.
+ * @fileOverview Generación de Avatar Estilizado de Alta Fidelidad usando gpt-image-2.
  * Procesa b64_json, sube a Firebase Storage y devuelve URL pública.
- * Optimizado para evitar errores de 1MB limit.
+ * Optimizado para realismo fotográfico y fidelidad biométrica.
  */
 
 import { z } from 'genkit';
@@ -31,13 +31,14 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
   const skinTone = data.colorimetria?.tono_piel || 'light skin';
   const userId = input.userId || 'anonymous';
 
-  const finalPrompt = `A professional high-end fashion portrait of ONE SINGLE ${personType}. 
-  FEATURES: ${skinTone} skin, ${hairColor} hair.
-  STYLE: Modern 3D stylized character design, high-end studio lighting. 
-  COMPOSITION: Full length body shot, standing centrally, neutral pose, minimalist clothes.
-  ENVIRONMENT: Solid pure white background. NO text.`;
+  // Prompt optimizado para realismo fotográfico y fidelidad a los rasgos detectados
+  const finalPrompt = `A highly realistic, professional high-end fashion photograph of ONE SINGLE ${personType}. 
+  EXACT FEATURES: ${skinTone} skin tone, ${hairColor} hair texture. Realistic human facial features and anatomy. 
+  STYLE: Professional studio photography, soft cinematic lighting, sharp focus, 8k resolution.
+  COMPOSITION: Full body shot, standing centrally, neutral elegant pose, wearing simple contemporary minimalist clothing.
+  ENVIRONMENT: Solid pure white studio background. NO text, no cartoons, no 3D stylized characters, strictly realistic photography.`;
 
-  console.log("Requesting gpt-image-2 (b64_json default)...");
+  console.log("Requesting high-fidelity image from gpt-image-2 (quality: hd)...");
 
   try {
     const response = await openai.images.generate({
@@ -45,7 +46,7 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
       prompt: finalPrompt,
       n: 1,
       size: "1024x1024",
-      quality: "medium" as any,
+      quality: "hd" as any, // Calidad máxima soportada
       // @ts-ignore
       output_format: "png"
     });
@@ -54,6 +55,7 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
     const b64Data = response.data[0].b64_json;
 
     if (!b64Data) {
+      console.error("OpenAI Response Error: b64_json is missing. Full response:", JSON.stringify(response));
       throw new Error("La IA no devolvió datos de imagen (b64_json) válidos.");
     }
     console.log("Base64 received successfully");
@@ -62,7 +64,7 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
     console.log("Buffer created successfully");
 
     try {
-      console.log("Uploading to Firebase Storage...");
+      console.log("Uploading high-res avatar to Firebase Storage...");
       const timestamp = Date.now();
       const fileName = `avatars/${userId}/${timestamp}.png`;
       const bucket = adminStorage.bucket();
@@ -75,16 +77,25 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
       console.log("Firebase Storage upload completed");
 
       const downloadURL = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
-      return { avatarDataUri: downloadURL };
+      
+      // Devolvemos ambos para satisfacer el requisito de imageUrl sin romper el frontend (avatarDataUri)
+      return { 
+        avatarDataUri: downloadURL,
+        imageUrl: downloadURL 
+      };
     } catch (storageError: any) {
-      console.error("Firebase Storage Error:", storageError);
-      // Fallback a Data URI si el almacenamiento falla (aunque superará el límite de 1MB si no se configuró next.config)
-      return { avatarDataUri: `data:image/png;base64,${b64Data}` };
+      console.error("Firebase Storage Auth/Upload Error:", storageError);
+      // Fallback a Data URI si el almacenamiento falla (útil para depuración de credenciales)
+      return { 
+        avatarDataUri: `data:image/png;base64,${b64Data}`,
+        imageUrl: `data:image/png;base64,${b64Data}`
+      };
     }
   } catch (error: any) {
     console.error("Image Generation Error (gpt-image-2):", error);
-    if (error.status === 401) throw new Error("Error 401: API Key inválida.");
-    if (error.status === 429) throw new Error("Error 429: Cuota excedida.");
+    if (error.status === 401) throw new Error("Error 401: API Key inválida o mal configurada.");
+    if (error.status === 403) throw new Error("Error 403: El proyecto no tiene autorización para este modelo.");
+    if (error.status === 429) throw new Error("Error 429: Cuota excedida o crédito insuficiente.");
     throw new Error(error.message || "Error al conectar con el motor gpt-image-2.");
   }
 }
