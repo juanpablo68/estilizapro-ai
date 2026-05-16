@@ -1,8 +1,8 @@
 'use server';
 /**
- * @fileOverview Chat especializado en Visagismo (Peinado y Grooming).
- * Sugiere looks basados en género, colorimetría, piel y evento.
- * REGLA DE ORO: Si es hombre, PROHIBIDO sugerir maquillaje.
+ * @fileOverview Chat especializado en Visagismo.
+ * REGLA DE ORO: Debe incluir SIEMPRE peinado y piel.
+ * Si es hombre, prohibido maquillaje.
  */
 
 import { z } from 'genkit';
@@ -37,27 +37,27 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
   if (gender === 'Masculino') {
     genderSpecificRules = `
     REGLAS ESTRICTAS PARA HOMBRE (MAESTRO GROOMING):
-    1. PROHIBIDO EL MAQUILLAJE: No menciones sombras, labiales, rímel, colorete o delineadores. Si el usuario pregunta por maquillaje, explica que tu asesoría masculina se enfoca en salud de la piel y estética de vello facial.
-    2. CUIDADO DE LA PIEL: Sugiere limpieza e hidratación masculina.
-    3. BARBA Y VELLO: El usuario ${hasBeard ? 'TIENE' : 'NO TIENE'} barba actualmente. Sugiere perfilado o afeitado impecable.
-    4. CABELLO: Sugiere estilos de peinado masculinos profesionales.`;
+    1. PROHIBIDO EL MAQUILLAJE: No menciones sombras, labiales o delineadores.
+    2. PIEL Y CABELLO: Es OBLIGATORIO dar un consejo de cuidado de piel Y un estilo de peinado masculino profesional.
+    3. BARBA: El usuario ${hasBeard ? 'TIENE' : 'NO TIENE'} barba. Sugiere mantenimiento o afeitado.`;
   } else {
     genderSpecificRules = `
     REGLAS PARA MUJER (VISAGISMO):
-    1. MAQUILLAJE: Sé específico con técnicas según su temperatura ${temp}.
-    2. PEINADO: Sugiere peinados femeninos adecuados para el evento.`;
+    1. MAQUILLAJE Y PEINADO: Es OBLIGATORIO sugerir técnica de maquillaje Y un estilo de peinado femenino acorde al evento.`;
   }
 
   const systemPrompt = `Eres el Director de Estética de Pilar Cifuentes. Experto en Visagismo.
   
-  CONTEXTO DEL USUARIO:
+  CONTEXTO:
   - Género: ${gender}
   - Evento: ${input.eventType}
   - Tono de Piel: ${skin} (${temp})
+  - Pelo: ${hairColor}
   ${genderSpecificRules}
 
   PERSONALIDAD:
-  - Humano, directo y conciso. Máximo 2 párrafos cortos. Habla de tú.`;
+  - Humano, directo y conciso. Máximo 2 párrafos cortos. Habla de tú.
+  - Asegúrate de cubrir tanto el rostro (piel/maquillaje) como el cabello (peinado).`;
 
   const response = await openai.chat.completions.create({
     model: "gpt-4o",
@@ -67,5 +67,5 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
     ]
   });
 
-  return response.choices[0].message.content || "Dime, ¿qué estilo buscamos hoy?";
+  return response.choices[0].message.content || "Dime, ¿qué estilo de peinado y estética buscamos hoy?";
 }

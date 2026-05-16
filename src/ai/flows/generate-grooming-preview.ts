@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Generación visual de Visagismo.
- * Versión estable sin parámetro 'style' para evitar Error 400.
+ * Optimizado para filtrar descripciones largas y evitar errores 400.
  */
 
 import { ai, getOpenAIKey } from '@/ai/genkit';
@@ -36,13 +36,17 @@ const generateGroomingPreviewFlow = ai.defineFlow(
     const openai = new OpenAI({ apiKey });
     const data = input.biometricData || {};
     const personType = data.genero || 'Femenino';
-    const skinTone = data.colorimetria?.tono_piel || 'light skin';
-    const hairColor = data.rostro?.cabello?.color_natural || 'natural';
+    const skinTone = data.colorimetria?.tono_piel || 'natural skin';
+    const hairColor = data.rostro?.cabello?.color_natural || 'natural hair';
 
-    const finalPrompt = `A professional beauty portrait of ONE ${personType}. 
-    GROOMING STYLE: ${input.description.substring(0, 200)}. 
+    // Limpiamos la descripción para que sea un prompt visual efectivo
+    const visualSummary = input.description.split('.')[0] + ". " + (input.description.split('.')[1] || "");
+
+    const finalPrompt = `A high-end professional beauty editorial close-up portrait of ONE ${personType}. 
+    GROOMING & STYLE: ${visualSummary}. 
     PHYSICAL: Skin tone ${skinTone}, Hair ${hairColor}. 
-    STYLE: Modern 3D stylized character design. 
+    ${personType === 'Masculino' ? (input.hasBeard ? 'With a well-groomed beard.' : 'Clean shaven.') : ''}
+    STYLE: Modern 3D stylized character design, cinematic lighting. 
     ENVIRONMENT: Solid pure white background.`;
 
     try {
@@ -61,7 +65,7 @@ const generateGroomingPreviewFlow = ai.defineFlow(
       return { previewImageDataUri: `data:image/png;base64,${imageData}` };
     } catch (error: any) {
       console.error("DALL-E Grooming Error:", error);
-      throw new Error(error.message || "Error al generar la imagen.");
+      throw new Error(error.message || "Error al generar la visualización estética.");
     }
   }
 );
