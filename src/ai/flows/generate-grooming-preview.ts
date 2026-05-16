@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Generación visual de Visagismo.
- * Optimizado para filtrar descripciones largas y evitar errores 400.
+ * Versión estable sin parámetros conflictivos.
  */
 
 import { ai, getOpenAIKey } from '@/ai/genkit';
@@ -39,14 +39,14 @@ const generateGroomingPreviewFlow = ai.defineFlow(
     const skinTone = data.colorimetria?.tono_piel || 'natural skin';
     const hairColor = data.rostro?.cabello?.color_natural || 'natural hair';
 
-    // Limpiamos la descripción para que sea un prompt visual efectivo
-    const visualSummary = input.description.split('.')[0] + ". " + (input.description.split('.')[1] || "");
+    // Extraemos las primeras oraciones para evitar prompts demasiado largos
+    const visualSummary = input.description.split('.').slice(0, 2).join('.') + ".";
 
     const finalPrompt = `A high-end professional beauty editorial close-up portrait of ONE ${personType}. 
     GROOMING & STYLE: ${visualSummary}. 
     PHYSICAL: Skin tone ${skinTone}, Hair ${hairColor}. 
     ${personType === 'Masculino' ? (input.hasBeard ? 'With a well-groomed beard.' : 'Clean shaven.') : ''}
-    STYLE: Modern 3D stylized character design, cinematic lighting. 
+    STYLE: Modern 3D stylized character design, cinematic studio lighting. 
     ENVIRONMENT: Solid pure white background.`;
 
     try {
