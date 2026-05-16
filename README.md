@@ -24,5 +24,3 @@ Asegúrate de que las variables de entorno estén configuradas en tu panel de co
 - **Límite de Server Actions**: Configurado a 100MB para evitar errores con fotos Base64.
 - **Calidad de Avatar**: Ajustada a "medium" para garantizar velocidad y estabilidad (evita cortes de 45s).
 - **Compresión**: Las imágenes se optimizan automáticamente a 600px antes de enviarse a la IA.
-
-¡Tu aplicación está lista para ser probada por usuarios reales!
