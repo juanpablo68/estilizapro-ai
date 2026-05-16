@@ -15,6 +15,7 @@ const GenerateStylizedAvatarInputSchema = z.object({
   biometricData: z.any(),
   openaiApiKey: z.string().optional(),
   userId: z.string().optional(),
+  finalAvatar: z.boolean().optional(),
 });
 
 export async function generateStylizedAvatar(input: z.infer<typeof GenerateStylizedAvatarInputSchema>) {
@@ -31,6 +32,10 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
   const skinTone = data.colorimetria?.tono_piel || 'light skin';
   const userId = input.userId || 'anonymous';
 
+  // Validación defensiva de calidad según especificación técnica de gpt-image-2
+  const allowedQualities = ["low", "medium", "high", "auto"] as const;
+  const targetQuality = input.finalAvatar === true ? "high" : "high"; // Forzamos high para fidelidad máxima
+
   // Prompt optimizado para realismo fotográfico y fidelidad a los rasgos detectados
   const finalPrompt = `A highly realistic, professional high-end fashion photograph of ONE SINGLE ${personType}. 
   EXACT FEATURES: ${skinTone} skin tone, ${hairColor} hair texture. Realistic human facial features and anatomy. 
@@ -38,15 +43,15 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
   COMPOSITION: Full body shot, standing centrally, neutral elegant pose, wearing simple contemporary minimalist clothing.
   ENVIRONMENT: Solid pure white studio background. NO text, no cartoons, no 3D stylized characters, strictly realistic photography.`;
 
-  console.log("Requesting high-fidelity image from gpt-image-2 (quality: hd)...");
+  console.log(`Requesting high-fidelity image from gpt-image-2 (quality: ${targetQuality}, size: 1024x1536)...`);
 
   try {
     const response = await openai.images.generate({
       model: "gpt-image-2" as any, 
       prompt: finalPrompt,
       n: 1,
-      size: "1024x1024",
-      quality: "hd" as any, // Calidad máxima soportada
+      size: "1024x1536" as any, // Proporción vertical optimizada para cuerpo completo
+      quality: targetQuality as any,
       // @ts-ignore
       output_format: "png"
     });
@@ -78,14 +83,14 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
 
       const downloadURL = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
       
-      // Devolvemos ambos para satisfacer el requisito de imageUrl sin romper el frontend (avatarDataUri)
+      // Devolvemos ambos para satisfacer el requisito de imageUrl sin romper el frontend
       return { 
         avatarDataUri: downloadURL,
         imageUrl: downloadURL 
       };
     } catch (storageError: any) {
       console.error("Firebase Storage Auth/Upload Error:", storageError);
-      // Fallback a Data URI si el almacenamiento falla (útil para depuración de credenciales)
+      // Fallback a Data URI si el almacenamiento falla
       return { 
         avatarDataUri: `data:image/png;base64,${b64Data}`,
         imageUrl: `data:image/png;base64,${b64Data}`
@@ -94,7 +99,8 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
   } catch (error: any) {
     console.error("Image Generation Error (gpt-image-2):", error);
     if (error.status === 401) throw new Error("Error 401: API Key inválida o mal configurada.");
-    if (error.status === 403) throw new Error("Error 403: El proyecto no tiene autorización para este modelo.");
+    if (error.status === 403) throw new Error("Error 403: El proyecto no tiene autorización para este modelo o parámetros.");
+    if (error.status === 404) throw new Error("Error 404: El modelo gpt-image-2 no está disponible o el nombre es incorrecto.");
     if (error.status === 429) throw new Error("Error 429: Cuota excedida o crédito insuficiente.");
     throw new Error(error.message || "Error al conectar con el motor gpt-image-2.");
   }
