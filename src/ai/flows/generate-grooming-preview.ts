@@ -1,18 +1,20 @@
 
 'use server';
 /**
- * @fileOverview Generación de Visagismo usando el motor gpt-image-2 con b64_json.
+ * @fileOverview Generación de Visagismo usando gpt-image-2 con carga en Firebase Storage.
  */
 
 import { z } from 'genkit';
 import OpenAI from 'openai';
 import { getOpenAIKey } from '@/ai/genkit';
+import { adminStorage } from '@/lib/firebase-admin';
 
 const GenerateGroomingPreviewInputSchema = z.object({
   description: z.string(),
   biometricData: z.any().optional(),
   hasBeard: z.boolean().optional(),
   openaiApiKey: z.string().optional(),
+  userId: z.string().optional(),
 });
 
 export async function generateGroomingPreview(input: z.infer<typeof GenerateGroomingPreviewInputSchema>) {
@@ -22,6 +24,7 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
   const openai = new OpenAI({ apiKey });
   const data = input.biometricData || {};
   const gender = data.genero || 'Femenino';
+  const userId = input.userId || 'anonymous';
   
   const cleanDescription = input.description.split('.')[0].substring(0, 200);
 
@@ -38,20 +41,36 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
       prompt: finalPrompt,
       n: 1,
       size: "1024x1024",
-      response_format: "b64_json",
     });
 
-    const b64Data = response.data[0].b64_json;
-    if (!b64Data) {
-      console.error("Respuesta Grooming sin b64_json:", JSON.stringify(response, null, 2));
-      throw new Error("No se pudo obtener el Base64 del look.");
+    const imageData = response.data[0];
+    let buffer: Buffer;
+
+    if (imageData.b64_json) {
+      buffer = Buffer.from(imageData.b64_json, 'base64');
+    } else if (imageData.url) {
+      const imgRes = await fetch(imageData.url);
+      const arrayBuffer = await imgRes.arrayBuffer();
+      buffer = Buffer.from(arrayBuffer);
+    } else {
+      throw new Error("La IA no devolvió datos de imagen válidos.");
     }
 
-    return { previewImageDataUri: `data:image/png;base64,${b64Data}` };
+    const timestamp = Date.now();
+    const fileName = `grooming/${userId}/${timestamp}.png`;
+    const bucket = adminStorage.bucket();
+    const file = bucket.file(fileName);
+
+    await file.save(buffer, {
+      metadata: { contentType: 'image/png' },
+      public: true
+    });
+
+    const downloadURL = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+
+    return { previewImageDataUri: downloadURL };
   } catch (error: any) {
     console.error("Grooming Image Error (gpt-image-2):", error);
-    if (error.status === 401) throw new Error("Error 401: API Key inválida.");
-    if (error.status === 429) throw new Error("Error 429: Cuota excedida.");
     throw new Error(error.message || "Error al visualizar el look con gpt-image-2.");
   }
 }

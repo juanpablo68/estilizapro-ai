@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -13,7 +14,6 @@ import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from 'next/link';
 
-// Revertido a calidad estándar estable
 const resizeImage = (base64Str: string, maxWidth = 800, maxHeight = 800): Promise<string> => {
   return new Promise((resolve) => {
     const img = new window.Image();
@@ -112,16 +112,16 @@ export default function AvatarCreationPage() {
       setLoadingStatus('Creando Avatar 3D...');
       const result = await generateStylizedAvatar({
         biometricData: analysis.biometricData,
-        openaiApiKey: openaiKey
+        openaiApiKey: openaiKey,
+        userId: profile.name || 'user'
       });
       
       if (!result.avatarDataUri) {
         throw new Error("La IA no devolvió el avatar. Verifica la conexión.");
       }
 
-      const finalAvatar = await resizeImage(result.avatarDataUri, 800, 1000);
-      setGeneratedAvatar(finalAvatar);
-      setProfile({ ...updatedProfile, avatarDataUri: finalAvatar });
+      setGeneratedAvatar(result.avatarDataUri);
+      setProfile({ ...updatedProfile, avatarDataUri: result.avatarDataUri });
       
       toast({
         title: "¡Diagnóstico Completo!",
