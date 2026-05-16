@@ -1,7 +1,7 @@
 'use server';
 /**
- * @fileOverview Generación visual de Visagismo.
- * Optimizado para evitar errores de prompt y parámetros desconocidos.
+ * @fileOverview Generación visual de Visagismo optimizada.
+ * Filtra el texto conversacional para evitar errores de prompt en DALL-E 3.
  */
 
 import { ai, getOpenAIKey } from '@/ai/genkit';
@@ -35,19 +35,17 @@ const generateGroomingPreviewFlow = ai.defineFlow(
 
     const openai = new OpenAI({ apiKey });
     const data = input.biometricData || {};
-    const personType = data.genero || 'Femenino';
-    const skinTone = data.colorimetria?.tono_piel || 'natural';
-    const hairColor = data.rostro?.cabello?.color_natural || 'natural';
+    const gender = data.genero || 'Femenino';
+    const skin = data.colorimetria?.tono_piel || 'natural';
+    const hair = data.rostro?.cabello?.color_natural || 'natural';
 
-    // Limpiamos el prompt de cualquier residuo conversacional
-    const visualContext = input.description.length > 300 
-      ? input.description.substring(0, 300) + "..." 
-      : input.description;
+    // Extraemos solo los primeros 200 caracteres para el prompt visual para evitar errores
+    const visualContext = input.description.substring(0, 300);
 
-    const finalPrompt = `A high-end beauty portrait close-up of ONE SINGLE ${personType}. 
-    GROOMING: ${visualContext}. 
-    FEATURES: ${skinTone} skin, ${hairColor} hair. 
-    ${personType === 'Masculino' ? (input.hasBeard ? 'With a well-groomed beard.' : 'Clean shaven facial skin.') : ''}
+    const finalPrompt = `A high-end beauty portrait close-up of ONE SINGLE ${gender}. 
+    GROOMING & STYLE: ${visualContext}. 
+    FEATURES: ${skin} skin, ${hair} hair. 
+    ${gender === 'Masculino' ? (input.hasBeard ? 'With a well-groomed beard.' : 'Clean shaven face.') : ''}
     STYLE: Modern 3D stylized character design, cinematic studio lighting. 
     ENVIRONMENT: Solid pure white background.`;
 
@@ -62,12 +60,12 @@ const generateGroomingPreviewFlow = ai.defineFlow(
       });
 
       const imageData = response.data[0].b64_json;
-      if (!imageData) throw new Error("La IA no devolvió datos de imagen.");
+      if (!imageData) throw new Error("Sin datos de imagen.");
 
       return { previewImageDataUri: `data:image/png;base64,${imageData}` };
     } catch (error: any) {
       console.error("DALL-E Grooming Error:", error);
-      throw new Error("No se pudo generar la vista previa estética.");
+      throw new Error("Error visual en el estudio. Intenta con una descripción más corta.");
     }
   }
 );

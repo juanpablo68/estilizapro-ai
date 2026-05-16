@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Generación de Avatar Estilizado Profesional.
- * Configuración ultra-estable para DALL-E 3.
+ * Configuración ultra-estable para DALL-E 3 sin parámetros conflictivos.
  */
 
 import { ai, getOpenAIKey } from '@/ai/genkit';
@@ -43,7 +43,7 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     FEATURES: ${skinTone} skin, ${hairColor} hair, ${eyeColor} eyes.
     STYLE: Modern 3D stylized character design, high-end studio lighting. 
     COMPOSITION: Full length body shot, standing centrally, neutral pose, minimalist high-fashion clothes.
-    ENVIRONMENT: Solid pure white background (#FFFFFF). Clean and artistic.`;
+    ENVIRONMENT: Solid pure white background (#FFFFFF).`;
 
     try {
       const response = await openai.images.generate({
@@ -61,7 +61,7 @@ const generateStylizedAvatarFlow = ai.defineFlow(
       return { avatarDataUri: `data:image/png;base64,${imageData}` };
     } catch (error: any) {
       console.error("DALL-E Avatar Error:", error);
-      throw new Error(error.message || "Error al generar el avatar.");
+      throw new Error("Error al generar el avatar. Intenta nuevamente.");
     }
   }
 );
