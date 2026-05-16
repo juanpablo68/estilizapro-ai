@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview Generación de Avatar Estilizado usando el motor de imagen operativo de OpenAI.
+ * @fileOverview Generación de Avatar Estilizado usando el motor gpt-image-2.
  */
 
 import { z } from 'genkit';
@@ -23,7 +23,6 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
   const hairColor = data.rostro?.cabello?.color_natural || 'natural';
   const skinTone = data.colorimetria?.tono_piel || 'light skin';
 
-  // Prompt optimizado para evitar rechazos y asegurar calidad Pixar/3D
   const finalPrompt = `A professional high-end fashion portrait of ONE SINGLE ${personType}. 
   FEATURES: ${skinTone} skin, ${hairColor} hair.
   STYLE: Modern 3D stylized character design, high-end studio lighting. 
@@ -31,10 +30,10 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
   ENVIRONMENT: Solid pure white background. NO text.`;
 
   try {
-    // Usamos el motor dall-e-3 que es el operativo para generación de imágenes en OpenAI
-    // Eliminamos parámetros como style o response_format que causan error 400
+    // Migración al modelo gpt-image-2 según indicación del usuario
+    // Llamada limpia sin parámetros conflictivos
     const response = await openai.images.generate({
-      model: "dall-e-3",
+      model: "gpt-image-2" as any, 
       prompt: finalPrompt,
       n: 1,
       size: "1024x1024",
@@ -43,14 +42,13 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
     const imageUrl = response.data[0].url;
     if (!imageUrl) throw new Error("La IA no devolvió una URL válida.");
 
-    // Descarga y conversión a base64 en el servidor para estabilidad total
     const imageResponse = await fetch(imageUrl);
     const buffer = await imageResponse.arrayBuffer();
     const base64 = Buffer.from(buffer).toString('base64');
 
     return { avatarDataUri: `data:image/png;base64,${base64}` };
   } catch (error: any) {
-    console.error("Image Generation Error:", error);
-    throw new Error(error.message || "Error al conectar con el motor de imágenes.");
+    console.error("Image Generation Error (gpt-image-2):", error);
+    throw new Error(error.message || "Error al conectar con el motor gpt-image-2.");
   }
 }

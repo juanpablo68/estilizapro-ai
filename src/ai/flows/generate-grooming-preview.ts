@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview Generación de Visagismo usando el motor operativo de OpenAI.
+ * @fileOverview Generación de Visagismo usando el motor gpt-image-2.
  */
 
 import { z } from 'genkit';
@@ -23,7 +23,7 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
   const data = input.biometricData || {};
   const gender = data.genero || 'Femenino';
   
-  // Limpieza agresiva del prompt para evitar rechazos
+  // Limpieza del prompt para evitar rechazos
   const cleanDescription = input.description.split('.')[0].substring(0, 200);
 
   const finalPrompt = `Close-up high-end portrait of ONE SINGLE ${gender}. 
@@ -34,8 +34,9 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
   ENVIRONMENT: Solid pure white background. NO TEXT.`;
 
   try {
+    // Uso de gpt-image-2 sin parámetros conflictivos
     const response = await openai.images.generate({
-      model: "dall-e-3",
+      model: "gpt-image-2" as any,
       prompt: finalPrompt,
       n: 1,
       size: "1024x1024",
@@ -50,7 +51,7 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
 
     return { previewImageDataUri: `data:image/png;base64,${base64}` };
   } catch (error: any) {
-    console.error("Grooming Image Error:", error);
-    throw new Error(error.message || "Error al visualizar el look.");
+    console.error("Grooming Image Error (gpt-image-2):", error);
+    throw new Error(error.message || "Error al visualizar el look con gpt-image-2.");
   }
 }

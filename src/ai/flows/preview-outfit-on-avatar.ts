@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview Probador Virtual usando el motor operativo de OpenAI.
+ * @fileOverview Probador Virtual usando el motor gpt-image-2.
  */
 
 import { z } from 'genkit';
@@ -43,8 +43,9 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
   try {
     const finalPrompt = `A professional high-end fashion photograph of ONE SINGLE ${gender}. Wearing: ${description}. Full body shot. STYLE: Modern 3D stylized character design. ENVIRONMENT: Pure solid white background. NO text.`;
     
+    // Uso de gpt-image-2 sin parámetros conflictivos
     const response = await openai.images.generate({
-      model: "dall-e-3",
+      model: "gpt-image-2" as any,
       prompt: finalPrompt,
       n: 1,
       size: "1024x1024",
@@ -59,7 +60,7 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
 
     return { previewImageDataUri: `data:image/png;base64,${base64}` };
   } catch (error: any) {
-    console.error("Preview Generation Error:", error);
-    throw new Error(error.message || "Error al generar el montaje visual.");
+    console.error("Preview Generation Error (gpt-image-2):", error);
+    throw new Error(error.message || "Error al generar el montaje visual con gpt-image-2.");
   }
 }

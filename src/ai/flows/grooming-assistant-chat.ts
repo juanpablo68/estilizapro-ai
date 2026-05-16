@@ -1,8 +1,8 @@
 
 'use server';
 /**
- * @fileOverview Asistente de Visagismo con lógica de género blindada.
- * Prohíbe terminantemente el maquillaje en hombres y obliga a recomendar peinado y barba.
+ * @fileOverview Asistente de Visagismo con lógica de género masculina blindada.
+ * PROHIBICIÓN TOTAL de maquillaje para hombres.
  */
 
 import { z } from 'genkit';
@@ -35,9 +35,9 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
   if (gender === 'Masculino') {
     genderRules = `
     INSTRUCCIONES CRÍTICAS PARA HOMBRE (EL USUARIO ES HOMBRE):
-    1. PROHIBICIÓN TOTAL: Tienes terminantemente prohibido mencionar maquillaje, sombras, delineadores, labiales, bases de color o cualquier producto cosmético.
+    1. PROHIBICIÓN TOTAL: Tienes TERMINANTEMENTE PROHIBIDO mencionar maquillaje, sombras, delineadores, labiales, bases de color o cualquier producto cosmético femenino.
     2. ENFOQUE CABELLO Y BARBA: Debes recomendar siempre un estilo de peinado masculino moderno (ej: Undercut, Pompadour, Slick Back). ES OBLIGATORIO recomendar el peinado.
-    3. BARBA: El usuario ${hasBeard ? 'TIENE barba' : 'NO tiene barba'}. Da consejos específicos para este estado (ej: perfilado de barba, aceite hidratante o afeitado clásico impecable).
+    3. BARBA: El usuario ${hasBeard ? 'TIENE barba' : 'NO tiene barba'}. Da consejos específicos para este estado (ej: perfilado de barba, aceite hidratante, bálsamo o afeitado clásico impecable).
     4. PIEL: Recomienda solo rutinas de limpieza, exfoliación e hidratación efecto mate para la piel del hombre.
     REGLA: Tu respuesta DEBE dividirse en: "ESTILO DE CABELLO Y BARBA" y "CUIDADO DE PIEL".`;
   } else {
