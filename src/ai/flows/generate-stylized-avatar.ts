@@ -1,7 +1,7 @@
 'use server';
 /**
- * @fileOverview Generación de Avatar Estilizado Profesional.
- * Configuración ultra-estable para DALL-E 3 sin parámetros conflictivos.
+ * @fileOverview Generación de Avatar Estilizado.
+ * Configuración mínima absoluta para evitar errores de parámetros.
  */
 
 import { ai, getOpenAIKey } from '@/ai/genkit';
@@ -37,13 +37,12 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     const personType = data.genero || 'Femenino';
     const hairColor = data.rostro?.cabello?.color_natural || 'natural';
     const skinTone = data.colorimetria?.tono_piel || 'light skin';
-    const eyeColor = data.rostro?.ojos?.color_detalle || 'natural eyes';
 
-    const finalPrompt = `A professional fashion portrait of ONE SINGLE ${personType}. 
-    FEATURES: ${skinTone} skin, ${hairColor} hair, ${eyeColor} eyes.
+    const finalPrompt = `A high-end professional fashion portrait of ONE SINGLE ${personType}. 
+    FEATURES: ${skinTone} skin, ${hairColor} hair.
     STYLE: Modern 3D stylized character design, high-end studio lighting. 
-    COMPOSITION: Full length body shot, standing centrally, neutral pose, minimalist high-fashion clothes.
-    ENVIRONMENT: Solid pure white background (#FFFFFF).`;
+    COMPOSITION: Full length body shot, standing centrally, neutral pose, minimalist clothes.
+    ENVIRONMENT: Solid pure white background.`;
 
     try {
       const response = await openai.images.generate({
@@ -51,17 +50,16 @@ const generateStylizedAvatarFlow = ai.defineFlow(
         prompt: finalPrompt,
         n: 1,
         size: "1024x1024",
-        quality: "standard",
         response_format: "b64_json",
       });
 
       const imageData = response.data[0].b64_json;
-      if (!imageData) throw new Error("La IA no devolvió datos de imagen.");
+      if (!imageData) throw new Error("La IA no devolvió datos.");
 
       return { avatarDataUri: `data:image/png;base64,${imageData}` };
     } catch (error: any) {
-      console.error("DALL-E Avatar Error:", error);
-      throw new Error("Error al generar el avatar. Intenta nuevamente.");
+      console.error("DALL-E Error:", error);
+      throw new Error(error.message || "Error al generar la imagen.");
     }
   }
 );

@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Send, Sparkles, Loader2, Camera, Palette, Scissors, User } from "lucide-react";
+import { ArrowLeft, Send, Sparkles, Loader2, Camera, Palette, Scissors } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
 import { useToast } from "@/hooks/use-toast";
@@ -35,7 +35,7 @@ export default function GroomingAssistantPage() {
   const { toast } = useToast();
   const router = useRouter();
 
-  const isMale = profile.biometricData?.genero === 'Masculino';
+  const isMale = profile.gender === 'Masculino' || profile.biometricData?.genero === 'Masculino';
 
   useEffect(() => {
     setMounted(true);
@@ -46,7 +46,7 @@ export default function GroomingAssistantPage() {
     }
 
     setMessages([
-      { role: 'assistant', content: `Estudio de Visagismo activo. Tienes piel ${profile.biometricData?.colorimetria?.tono_piel || 'natural'} (${profile.colorimetryAnalysis || 'Cálida'}). ¿En qué estilo de peinado y ${isMale ? 'cuidado de barba' : 'maquillaje'} te gustaría que trabajemos para tu evento de tipo ${eventType}?` }
+      { role: 'assistant', content: `Estudio de Visagismo activo. Tienes piel ${profile.biometricData?.colorimetria?.tono_piel || 'natural'} (${profile.colorimetryAnalysis || 'Cálida'}). ¿Qué estilo de peinado y ${isMale ? 'cuidado de barba' : 'maquillaje'} buscamos para tu evento de tipo ${eventType}?` }
     ]);
   }, []);
 
@@ -79,16 +79,15 @@ export default function GroomingAssistantPage() {
           biometricData: profile.biometricData,
           colorimetry: profile.colorimetryAnalysis,
           hasBeard: profile.hasBeard,
+          gender: profile.gender,
         },
         openaiApiKey: openaiKey
       });
       setMessages(prev => [...prev, { role: 'assistant', content: response }]);
-      
-      // Generar la visualización basada en la última respuesta
       handleGeneratePreview(response);
     } catch (err) {
       console.error(err);
-      toast({ variant: "destructive", title: "Error", description: "No se pudo conectar con el asistente maestro." });
+      toast({ variant: "destructive", title: "Error", description: "No se pudo conectar con el asistente." });
     } finally {
       setLoading(false);
     }
@@ -106,10 +105,10 @@ export default function GroomingAssistantPage() {
         openaiApiKey: openaiKey
       });
       setResultImage(result.previewImageDataUri);
-      toast({ title: "Visualización Lista", description: "El look ha sido proyectado en tu perfil." });
+      toast({ title: "Imagen Generada", description: "Look visualizado con éxito." });
     } catch (err: any) {
       console.error(err);
-      toast({ variant: "destructive", title: "Error Visual", description: "No se pudo generar la imagen esta vez." });
+      toast({ variant: "destructive", title: "Error Visual", description: "No se pudo generar la imagen." });
     } finally {
       setPreviewing(false);
     }
@@ -129,9 +128,6 @@ export default function GroomingAssistantPage() {
             Asesoría de {isMale ? 'Grooming & Barba' : 'Peinado & Maquillaje'}
           </p>
         </div>
-        <div className="bg-primary/5 px-4 py-1 rounded-full border border-primary/10">
-           <span className="text-[10px] font-black text-primary uppercase">Crédito en uso</span>
-        </div>
       </header>
 
       <div className="grid lg:grid-cols-12 gap-8 items-start">
@@ -139,7 +135,7 @@ export default function GroomingAssistantPage() {
           <Card className="border-none shadow-xl bg-white rounded-3xl p-6">
             <div className="flex flex-col md:flex-row md:items-center gap-6">
               <div className="flex-1 space-y-1">
-                <span className="text-[10px] font-black text-primary uppercase">Ocasión del Evento</span>
+                <span className="text-[10px] font-black text-primary uppercase">Ocasión</span>
                 <Select value={eventType} onValueChange={setEventType}>
                   <SelectTrigger className="rounded-xl h-10"><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -152,9 +148,8 @@ export default function GroomingAssistantPage() {
               </div>
 
               {isMale && (
-                <div className="flex items-center gap-3 bg-primary/5 p-4 rounded-xl border border-primary/10 transition-all hover:bg-primary/10 ring-1 ring-primary/20">
+                <div className="flex items-center gap-3 bg-primary/5 p-4 rounded-xl border border-primary/10 transition-all hover:bg-primary/10">
                   <div className="flex flex-col">
-                    <span className="text-[8px] font-black uppercase text-primary/60">Configuración</span>
                     <Label htmlFor="beard-mode" className="text-[10px] font-black uppercase tracking-widest cursor-pointer">
                       {profile.hasBeard ? 'Con Barba' : 'Sin Barba'}
                     </Label>
@@ -189,13 +184,13 @@ export default function GroomingAssistantPage() {
             </div>
             <div className="p-4 border-t flex gap-2 bg-white">
               <Input 
-                placeholder={isMale ? "Dime qué tipo de barba o peinado buscas..." : "Dime qué tipo de maquillaje o peinado buscas..."}
+                placeholder={isMale ? "Dime qué tipo de peinado o barba buscas..." : "Dime qué tipo de maquillaje o peinado buscas..."}
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && sendMessage()}
                 className="rounded-xl h-12"
               />
-              <Button onClick={sendMessage} size="icon" className="rounded-xl h-12 w-12 bg-primary hover:bg-primary/90 shadow-md transition-all active:scale-95"><Send /></Button>
+              <Button onClick={sendMessage} size="icon" className="rounded-xl h-12 w-12 bg-primary shadow-md"><Send /></Button>
             </div>
           </Card>
         </div>
@@ -208,17 +203,11 @@ export default function GroomingAssistantPage() {
             {resultImage ? (
               <div className="animate-in fade-in zoom-in duration-700 h-full w-full">
                 <Image src={resultImage} alt="Grooming Resultado" fill className="object-cover" unoptimized />
-                <div className="absolute bottom-6 right-6">
-                  <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg border border-primary/20 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-primary" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-primary">Previsualización Real</span>
-                  </div>
-                </div>
               </div>
             ) : previewing ? (
               <div className="w-full h-full flex flex-col items-center justify-center bg-muted/20 space-y-4">
                 <Loader2 className="w-12 h-12 animate-spin text-primary" />
-                <p className="text-xs font-bold text-primary animate-pulse">Procesando tu imagen...</p>
+                <p className="text-xs font-bold text-primary animate-pulse">Generando Imagen...</p>
               </div>
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center p-12 text-center bg-muted/5 space-y-6">
@@ -226,9 +215,9 @@ export default function GroomingAssistantPage() {
                     <Scissors className="w-12 h-12 text-primary" />
                  </div>
                  <div className="space-y-2">
-                    <h3 className="font-bold">Proyección Visual</h3>
-                    <p className="text-[10px] text-muted-foreground leading-relaxed px-4">
-                      Envía un mensaje para recibir asesoría y ver aquí cómo se vería el look en tu avatar facial.
+                    <h3 className="font-bold text-sm">Proyección de Estilo</h3>
+                    <p className="text-[10px] text-muted-foreground leading-relaxed">
+                      El sistema visualizará aquí el resultado de tu asesoría.
                     </p>
                  </div>
               </div>

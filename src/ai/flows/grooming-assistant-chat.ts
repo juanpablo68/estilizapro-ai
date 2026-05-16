@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview Chat especializado en Visagismo con coherencia de género absoluta.
+ * @fileOverview Chat de Visagismo con cumplimiento estricto de género y peinado.
  */
 
 import { z } from 'genkit';
@@ -14,6 +14,7 @@ const GroomingChatInputSchema = z.object({
     biometricData: z.any().optional(),
     colorimetry: z.string().optional(),
     hasBeard: z.boolean().optional(),
+    gender: z.string().optional(),
   }).optional(),
   openaiApiKey: z.string().optional(),
 });
@@ -25,38 +26,37 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
   const openai = new OpenAI({ apiKey });
 
   const bio = input.userContext?.biometricData || {};
-  const gender = bio.genero || 'Femenino';
+  const gender = input.userContext?.gender || bio.genero || 'Femenino';
   const skin = bio.colorimetria?.tono_piel || 'natural';
-  const temp = input.userContext?.colorimetry || 'Cálida';
   const hairColor = bio.rostro?.cabello?.color_natural || 'natural';
   const hasBeard = input.userContext?.hasBeard || false;
 
-  let genderRules = "";
+  let rules = "";
   if (gender === 'Masculino') {
-    genderRules = `
-    ESTILO MASCULINO (GROOMING):
-    1. PROHIBIDO: No menciones maquillaje (sombras, labiales, etc.).
-    2. OBLIGATORIO: Sugiere un tipo de peinado masculino profesional (ej: fade, undercut, clásico) para el evento.
-    3. PIEL: Sugiere cuidado básico (hidratación, control de grasa).
-    4. BARBA: El usuario ${hasBeard ? 'SÍ TIENE' : 'NO TIENE'} barba. Sugiere arreglo o afeitado acorde.`;
+    rules = `
+    REGLAS MASCULINAS:
+    1. PROHIBIDO: No menciones maquillaje, sombras, labiales ni polvos.
+    2. OBLIGATORIO: Recomienda un estilo de PEINADO o CORTE de cabello (ej: fade, clásico, tupé).
+    3. PIEL: Sugiere cuidado (hidratación o limpieza).
+    4. BARBA: El usuario ${hasBeard ? 'TIENE' : 'NO TIENE'} barba. Sugiere cómo arreglarla.`;
   } else {
-    genderRules = `
-    VISAGISMO FEMENINO:
-    1. OBLIGATORIO: Sugiere técnica de maquillaje para su temperatura ${temp}.
-    2. OBLIGATORIO: Sugiere peinado (ondas, recogido, liso) para el evento.`;
+    rules = `
+    REGLAS FEMENINAS:
+    1. OBLIGATORIO: Sugiere técnica de maquillaje y colores.
+    2. OBLIGATORIO: Sugiere un PEINADO (ej: ondas, recogido, liso).`;
   }
 
   const systemPrompt = `Eres el Director de Visagismo de Pilar Cifuentes.
   
-  CONTEXTO USUARIO:
-  - Género: ${gender}
+  CONTEXTO:
+  - Usuario: ${gender}
   - Evento: ${input.eventType}
-  - Rasgos: Pelo ${hairColor}, Piel ${skin}
+  - Rasgos: Cabello ${hairColor}, Piel ${skin}
   
-  ${genderRules}
+  ${rules}
 
-  REGLA DE ORO: Siempre debes cubrir CABELLO/PEINADO y ROSTRO (Piel/Grooming).
-  PERSONALIDAD: Directo, experto, habla de tú. Máximo 2 párrafos cortos.`;
+  PERSONALIDAD: Experto, directo, habla de tú. Máximo 2 párrafos cortos. 
+  IMPORTANTE: Siempre debes cubrir tanto el CABELLO como el ROSTRO.`;
 
   const response = await openai.chat.completions.create({
     model: "gpt-4o",
@@ -66,5 +66,5 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
     ]
   });
 
-  return response.choices[0].message.content || "Dime, ¿qué look de peinado y rostro buscamos hoy?";
+  return response.choices[0].message.content || "Dime, ¿qué estilo de peinado y rostro buscamos hoy?";
 }
