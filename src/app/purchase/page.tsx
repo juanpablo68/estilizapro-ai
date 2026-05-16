@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -75,7 +74,7 @@ export default function PurchasePage() {
       </section>
       
       <footer className="bg-muted/30 p-6 rounded-2xl text-center">
-        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">EstilizaPro AI - Pilar Cifuentes Catalán</p>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">EstilizaPro AI - Pilar Catalán</p>
       </footer>
     </div>
   );

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -58,7 +57,7 @@ export default function LoginPage() {
           </div>
           <div className="space-y-1">
             <h1 className="text-4xl font-headline font-bold text-foreground">EstilizaPro AI</h1>
-            <p className="text-muted-foreground text-sm">Asesoría de Imagen de Pilar Cifuentes Catalán</p>
+            <p className="text-muted-foreground text-sm">Asesoría de Imagen de Pilar Catalán</p>
           </div>
         </div>
 

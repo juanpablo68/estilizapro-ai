@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -62,7 +61,7 @@ export interface UserProfile {
   hasBeard?: boolean;
 }
 
-export const DEFAULT_KNOWLEDGE_BASE = `REGLAS MAESTRAS DE ESTILO - PILAR CIFUENTES CATALÁN:
+export const DEFAULT_KNOWLEDGE_BASE = `REGLAS MAESTRAS DE ESTILO - PILAR CATALÁN:
 1. PRIORIDAD ARMARIO: Siempre priorizar prendas que el usuario ya posee.
 2. COLORIMETRÍA MODERNA: Clasificar en Cálida (dorados/tierra) o Fría (plateados/azules). No usar estaciones obsoletas.
 3. FIGURA: Estructurar silueta según morfología detectada.

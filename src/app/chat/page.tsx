@@ -17,7 +17,7 @@ interface Message {
 export default function ChatPage() {
   const [profile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: '¡Hola! Soy tu Asistente de Vestuario de PILAR CIFUENTES. Ya tengo cargado tu perfil biométrico y tus preferencias. ¿En qué look trabajamos hoy?' }
+    { role: 'assistant', content: '¡Hola! Soy tu Asistente de Vestuario de PILAR CATALÁN. Ya tengo cargado tu perfil biométrico y tus preferencias. ¿En qué look trabajamos hoy?' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -86,7 +86,7 @@ export default function ChatPage() {
             </div>
             <div>
               <h1 className="font-bold text-sm leading-none uppercase">Asistente de Vestuario</h1>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-tighter font-black">PILAR CIFUENTES</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-tighter font-black">PILAR CATALÁN</p>
             </div>
           </div>
         </div>
@@ -130,7 +130,7 @@ export default function ChatPage() {
               target="_blank" 
               className="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground hover:text-primary transition-colors"
             >
-              Contactar a Pilar Cifuentes para asesoría premium
+              Contactar a Pilar Catalán para asesoría premium
             </Link>
         </div>
         <div className="flex gap-2">

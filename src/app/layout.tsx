@@ -3,7 +3,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'EstilizaPro AI',
-  description: 'Tu asesor de imagen personal con IA de Pilar Cifuentes Catalán',
+  description: 'Tu asesor de imagen personal con IA de Pilar Catalán',
 };
 
 export default function RootLayout({

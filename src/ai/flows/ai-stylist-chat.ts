@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview Chat interactivo sintetizado y humano.
@@ -33,7 +32,7 @@ export async function chatWithAIStylist(input: z.infer<typeof AIChatInputSchema>
   const temp = bio.temperatura || 'Cálida';
   const figure = bio.cuerpo?.figure_geometrica || 'Reloj de Arena';
 
-  const systemPrompt = `Eres el asesor personal de imagen de Pilar Cifuentes. 
+  const systemPrompt = `Eres el asesor personal de imagen de Pilar Catalán. 
   
   REGLAS DE PERSONALIDAD (CRÍTICO):
   1. NO eres una IA. Eres un experto en moda humano y directo. Habla de tú.
