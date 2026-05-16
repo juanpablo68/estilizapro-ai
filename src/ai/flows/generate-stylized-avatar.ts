@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Generación de Avatar Estilizado.
- * Configuración mínima absoluta para evitar errores de parámetros.
+ * Versión ultra-estable: Elimina parámetros opcionales para evitar errores de API.
  */
 
 import { ai, getOpenAIKey } from '@/ai/genkit';
@@ -45,21 +45,22 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     ENVIRONMENT: Solid pure white background.`;
 
     try {
+      // Objeto de configuración minimalista para evitar Error 400 "Unknown parameter"
       const response = await openai.images.generate({
         model: "dall-e-3",
         prompt: finalPrompt,
         n: 1,
         size: "1024x1024",
-        response_format: "b64_json",
+        response_format: "b64_json"
       });
 
       const imageData = response.data[0].b64_json;
-      if (!imageData) throw new Error("La IA no devolvió datos.");
+      if (!imageData) throw new Error("La IA no devolvió datos de imagen.");
 
       return { avatarDataUri: `data:image/png;base64,${imageData}` };
     } catch (error: any) {
-      console.error("DALL-E Error:", error);
-      throw new Error(error.message || "Error al generar la imagen.");
+      console.error("DALL-E Avatar Error:", error);
+      throw new Error(error.message || "Error al conectar con el motor de imágenes.");
     }
   }
 );

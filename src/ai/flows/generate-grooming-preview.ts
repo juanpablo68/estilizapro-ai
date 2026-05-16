@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview Generación de Visagismo con prompt filtrado para evitar errores.
+ * @fileOverview Generación de Visagismo con prompt técnico ultra-corto para estabilidad.
  */
 
 import { ai, getOpenAIKey } from '@/ai/genkit';
@@ -36,15 +36,15 @@ const generateGroomingPreviewFlow = ai.defineFlow(
     const data = input.biometricData || {};
     const gender = data.genero || 'Femenino';
     
-    // Simplificamos la descripción para que sea un prompt visual puro
-    const visualPrompt = input.description.length > 200 ? input.description.substring(0, 200) : input.description;
+    // Extraemos solo lo visual del consejo para evitar que el prompt sea demasiado largo o complejo
+    const visualRef = input.description.length > 300 ? input.description.substring(0, 300) : input.description;
 
-    const finalPrompt = `Professional close-up portrait of ONE SINGLE ${gender}. 
-    GROOMING STYLE: ${visualPrompt}. 
-    ${gender === 'Masculino' && input.hasBeard ? 'With a well-groomed beard.' : ''}
-    ${gender === 'Masculino' && !input.hasBeard ? 'Clean shaven face.' : ''}
-    ART STYLE: Modern 3D stylized character, cinematic lighting. 
-    ENVIRONMENT: Solid white background.`;
+    const finalPrompt = `Close-up high-end portrait of ONE SINGLE ${gender}. 
+    LOOK: ${visualRef}. 
+    ${gender === 'Masculino' && input.hasBeard ? 'Includes a well-groomed beard.' : ''}
+    ${gender === 'Masculino' && !input.hasBeard ? 'Clean-shaven face.' : ''}
+    ART STYLE: Modern 3D stylized character, studio lighting. 
+    ENVIRONMENT: Solid pure white background.`;
 
     try {
       const response = await openai.images.generate({
@@ -52,7 +52,7 @@ const generateGroomingPreviewFlow = ai.defineFlow(
         prompt: finalPrompt,
         n: 1,
         size: "1024x1024",
-        response_format: "b64_json",
+        response_format: "b64_json"
       });
 
       const imageData = response.data[0].b64_json;
@@ -61,7 +61,7 @@ const generateGroomingPreviewFlow = ai.defineFlow(
       return { previewImageDataUri: `data:image/png;base64,${imageData}` };
     } catch (error: any) {
       console.error("Grooming Image Error:", error);
-      throw new Error("No se pudo generar la vista previa visual.");
+      throw new Error("Error técnico al visualizar el look estético.");
     }
   }
 );

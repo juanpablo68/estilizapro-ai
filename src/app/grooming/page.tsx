@@ -35,18 +35,19 @@ export default function GroomingAssistantPage() {
   const { toast } = useToast();
   const router = useRouter();
 
+  // Determinación de género robusta
   const isMale = profile.gender === 'Masculino' || profile.biometricData?.genero === 'Masculino';
 
   useEffect(() => {
     setMounted(true);
     const credits = Number(profile.groomingCredits) || 0;
-    if (credits <= 0) {
+    if (credits <= 0 && !hasConsumedCredit) {
       router.push('/purchase-grooming');
       return;
     }
 
     setMessages([
-      { role: 'assistant', content: `Estudio de Visagismo activo. Tienes piel ${profile.biometricData?.colorimetria?.tono_piel || 'natural'} (${profile.colorimetryAnalysis || 'Cálida'}). ¿Qué estilo de peinado y ${isMale ? 'cuidado de barba' : 'maquillaje'} buscamos para tu evento de tipo ${eventType}?` }
+      { role: 'assistant', content: `Estudio de Visagismo activo. Tienes una paleta ${profile.colorimetryAnalysis || 'detectada'}. ¿Qué estilo de peinado y ${isMale ? 'barba' : 'maquillaje'} buscamos para tu evento de tipo ${eventType}?` }
     ]);
   }, []);
 
@@ -59,8 +60,9 @@ export default function GroomingAssistantPage() {
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
     
+    // Consumo de créditos local
     if (!hasConsumedCredit) {
-      setProfile(prev => ({ ...prev, groomingCredits: Math.max(0, (prev.groomingCredits || 0) - 1) }));
+      setProfile(prev => ({ ...prev, groomingCredits: Math.max(0, (Number(prev.groomingCredits) || 0) - 1) }));
       setHasConsumedCredit(true);
     }
 
@@ -79,15 +81,15 @@ export default function GroomingAssistantPage() {
           biometricData: profile.biometricData,
           colorimetry: profile.colorimetryAnalysis,
           hasBeard: profile.hasBeard,
-          gender: profile.gender,
+          gender: profile.gender || profile.biometricData?.genero,
         },
         openaiApiKey: openaiKey
       });
       setMessages(prev => [...prev, { role: 'assistant', content: response }]);
       handleGeneratePreview(response);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast({ variant: "destructive", title: "Error", description: "No se pudo conectar con el asistente." });
+      toast({ variant: "destructive", title: "Error", description: err.message || "No se pudo conectar con el asistente." });
     } finally {
       setLoading(false);
     }
@@ -105,10 +107,10 @@ export default function GroomingAssistantPage() {
         openaiApiKey: openaiKey
       });
       setResultImage(result.previewImageDataUri);
-      toast({ title: "Imagen Generada", description: "Look visualizado con éxito." });
+      toast({ title: "Visualización Lista", description: "Hemos proyectado tu look ideal." });
     } catch (err: any) {
       console.error(err);
-      toast({ variant: "destructive", title: "Error Visual", description: "No se pudo generar la imagen." });
+      toast({ variant: "destructive", title: "Error Visual", description: "No se pudo generar la imagen del look." });
     } finally {
       setPreviewing(false);
     }
@@ -123,19 +125,19 @@ export default function GroomingAssistantPage() {
           <Button variant="ghost" size="icon" className="rounded-full"><ArrowLeft /></Button>
         </Link>
         <div className="flex-1">
-          <h1 className="text-2xl font-headline font-bold">Estudio Visagista</h1>
+          <h1 className="text-2xl font-headline font-bold text-primary">Estudio de Visagismo</h1>
           <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">
-            Asesoría de {isMale ? 'Grooming & Barba' : 'Peinado & Maquillaje'}
+            Asesoría Maestra: {isMale ? 'Grooming & Barba' : 'Peinado & Maquillaje'}
           </p>
         </div>
       </header>
 
       <div className="grid lg:grid-cols-12 gap-8 items-start">
-        <div className="lg:col-span-7 space-y-6 flex flex-col min-h-[600px]">
+        <div className="lg:col-span-7 space-y-6">
           <Card className="border-none shadow-xl bg-white rounded-3xl p-6">
             <div className="flex flex-col md:flex-row md:items-center gap-6">
               <div className="flex-1 space-y-1">
-                <span className="text-[10px] font-black text-primary uppercase">Ocasión</span>
+                <span className="text-[10px] font-black text-primary uppercase">Tipo de Evento</span>
                 <Select value={eventType} onValueChange={setEventType}>
                   <SelectTrigger className="rounded-xl h-10"><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -148,15 +150,15 @@ export default function GroomingAssistantPage() {
               </div>
 
               {isMale && (
-                <div className="flex items-center gap-3 bg-primary/5 p-4 rounded-xl border border-primary/10 transition-all hover:bg-primary/10">
+                <div className="flex items-center gap-3 bg-primary/5 p-4 rounded-xl border border-primary/10">
                   <div className="flex flex-col">
-                    <Label htmlFor="beard-mode" className="text-[10px] font-black uppercase tracking-widest cursor-pointer">
+                    <Label htmlFor="beard-mode" className="text-[10px] font-black uppercase tracking-widest">
                       {profile.hasBeard ? 'Con Barba' : 'Sin Barba'}
                     </Label>
                   </div>
                   <Switch 
                     id="beard-mode" 
-                    checked={profile.hasBeard} 
+                    checked={profile.hasBeard || false} 
                     onCheckedChange={(checked) => setProfile({...profile, hasBeard: checked})}
                   />
                 </div>
@@ -169,12 +171,12 @@ export default function GroomingAssistantPage() {
             </div>
           </Card>
 
-          <Card className="flex-1 flex flex-col overflow-hidden border-none shadow-xl bg-white rounded-3xl min-h-[400px]">
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/5 max-h-[400px]" ref={scrollRef}>
+          <Card className="flex flex-col overflow-hidden border-none shadow-xl bg-white rounded-3xl h-[450px]">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/5" ref={scrollRef}>
               {messages.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${
-                    msg.role === 'user' ? 'bg-primary text-white shadow-md' : 'bg-white text-foreground border shadow-sm'
+                  <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
+                    msg.role === 'user' ? 'bg-primary text-white' : 'bg-white text-foreground border'
                   }`}>
                     {msg.content}
                   </div>
@@ -184,7 +186,7 @@ export default function GroomingAssistantPage() {
             </div>
             <div className="p-4 border-t flex gap-2 bg-white">
               <Input 
-                placeholder={isMale ? "Dime qué tipo de peinado o barba buscas..." : "Dime qué tipo de maquillaje o peinado buscas..."}
+                placeholder={isMale ? "Pregunta sobre tu barba o peinado..." : "Pregunta sobre tu maquillaje o peinado..."}
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && sendMessage()}
@@ -197,17 +199,17 @@ export default function GroomingAssistantPage() {
 
         <div className="lg:col-span-5 space-y-6">
            <h2 className="text-lg font-bold flex items-center gap-2">
-            <Camera className="w-5 h-5 text-primary" /> Espejo Digital AI
+            <Camera className="w-5 h-5 text-primary" /> Proyección Visual AI
            </h2>
            <Card className="aspect-[3/4] w-full overflow-hidden relative shadow-2xl border-none ring-[12px] ring-primary/5 rounded-[3rem] bg-white">
             {resultImage ? (
               <div className="animate-in fade-in zoom-in duration-700 h-full w-full">
-                <Image src={resultImage} alt="Grooming Resultado" fill className="object-cover" unoptimized />
+                <Image src={resultImage} alt="Visagismo Resultado" fill className="object-cover" unoptimized />
               </div>
             ) : previewing ? (
               <div className="w-full h-full flex flex-col items-center justify-center bg-muted/20 space-y-4">
                 <Loader2 className="w-12 h-12 animate-spin text-primary" />
-                <p className="text-xs font-bold text-primary animate-pulse">Generando Imagen...</p>
+                <p className="text-xs font-bold text-primary animate-pulse uppercase tracking-widest">Generando Look...</p>
               </div>
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center p-12 text-center bg-muted/5 space-y-6">
@@ -215,9 +217,9 @@ export default function GroomingAssistantPage() {
                     <Scissors className="w-12 h-12 text-primary" />
                  </div>
                  <div className="space-y-2">
-                    <h3 className="font-bold text-sm">Proyección de Estilo</h3>
+                    <h3 className="font-bold text-sm">Espejo Digital Activo</h3>
                     <p className="text-[10px] text-muted-foreground leading-relaxed">
-                      El sistema visualizará aquí el resultado de tu asesoría.
+                      El sistema visualizará aquí el resultado de tu asesoría visagista en tiempo real.
                     </p>
                  </div>
               </div>
