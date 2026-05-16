@@ -1,7 +1,7 @@
-
 'use server';
 /**
- * @fileOverview Generación visual de maquillaje y peinado sobre el rostro del avatar.
+ * @fileOverview Generación visual de maquillaje y peinado.
+ * Versión optimizada sin parámetros incompatibles.
  */
 
 import { ai, getOpenAIKey } from '@/ai/genkit';
@@ -30,24 +30,15 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
   let facialHairInstruction = "";
   if (personType === 'Masculino') {
     facialHairInstruction = hasBeard 
-      ? "The man has a well-groomed, professional beard or stubble as described." 
-      : "The man is clean-shaven, with smooth skin and no facial hair.";
+      ? "The man has a well-groomed beard." 
+      : "The man is clean-shaven.";
   }
 
-  const finalPrompt = `A high-end professional beauty editorial close-up portrait of ONE SINGLE ${personType}.
-  
-  LOOK DESCRIPTION: ${input.description}.
-  
-  PHYSICAL TRAITS:
-  - Skin tone: ${skinTone}.
-  - Natural Hair color: ${hairColor}.
-  ${facialHairInstruction}
-  
-  COMPOSITION:
-  - Close-up shot focusing on the face and hair.
-  - Background: A PURE, SOLID, EMPTY WHITE (#FFFFFF) INFINITE VOID.
-  - Style: Modern 3D stylized character (Pixar/Disney quality lighting).
-  - No text, no lines, no diagrams. JUST BEAUTY AND STYLE.`;
+  const finalPrompt = `Professional beauty editorial close-up portrait of ONE ${personType}.
+  LOOK: ${input.description}.
+  TRAITS: Skin ${skinTone}, Hair ${hairColor}. ${facialHairInstruction}
+  STYLE: Modern 3D stylized character, Pixar lighting.
+  BACKGROUND: Pure solid white background. No text.`;
 
   try {
     const response = await openai.images.generate({
@@ -55,7 +46,7 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
       prompt: finalPrompt,
       n: 1,
       size: "1024x1024",
-      quality: "hd",
+      quality: "standard",
       response_format: "b64_json",
     });
 
@@ -65,6 +56,6 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
     return { previewImageDataUri: `data:image/png;base64,${imageData}` };
   } catch (error: any) {
     console.error("DALL-E Error:", error);
-    throw new Error(error.message || "Error al generar la vista previa estética.");
+    throw new Error(error.message || "Error al generar la vista previa.");
   }
 }

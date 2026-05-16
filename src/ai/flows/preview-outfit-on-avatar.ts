@@ -1,8 +1,7 @@
-
 'use server';
 /**
- * @fileOverview Pipeline Maestro de Probador Virtual.
- * Garantiza una única figura de cuerpo completo sin artefactos técnicos.
+ * @fileOverview Probador Virtual Maestro.
+ * Versión corregida para evitar el error 400.
  */
 
 import { z } from 'genkit';
@@ -31,7 +30,7 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
     messages: [
       {
         role: "system",
-        content: "Eres un sastre digital. Describe brevemente cómo estas prendas visten a una persona en una sola toma de cuerpo completo."
+        content: "Describe brevemente cómo estas prendas visten a una persona en una sola toma de cuerpo completo."
       },
       {
         role: "user",
@@ -46,30 +45,24 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
 
   const detailedDescription = analysisResponse.choices[0].message.content || "un conjunto de moda coordinado";
 
-  const response = await openai.images.generate({
-    model: "dall-e-3",
-    prompt: `A professional fashion photograph of ONE SINGLE ${personType} standing centrally.
-    The person is wearing exactly this outfit: ${detailedDescription}.
-    FULL LENGTH VIEW: Visible from the top of the head to the very bottom of the shoes.
-    
-    STYLE: High-end 3D character design, Pixar-inspired lighting. 
-    
-    COMPOSITION:
-    - THE SUBJECT IS FULLY VISIBLE FROM HEAD TO TOE, INCLUDING ALL FOOTWEAR.
-    - THE BACKGROUND IS A COMPLETELY PLAIN, SOLID, EMPTY, AND PURE WHITE (#FFFFFF) INFINITE VOID.
-    - ABSOLUTELY NO TEXT, NO LINES, NO GRIDS, NO MEASUREMENTS, NO TECHNICAL OVERLAYS, NO NUMBERS.
-    - NO SECONDARY FIGURES, NO MINIATURES, NO DIAGRAMS.
-    - JUST ONE PERSON IN A PURE WHITE ENVIRONMENT.`,
-    n: 1,
-    size: "1024x1024",
-    quality: "hd",
-    response_format: "b64_json",
-  });
+  try {
+    const response = await openai.images.generate({
+      model: "dall-e-3",
+      prompt: `A professional fashion photograph of ONE SINGLE ${personType}. Wearing exactly: ${detailedDescription}. Full length view from head to toe. Style: 3D character design, Pixar-inspired lighting. Background: Pure solid white void. No text, no lines.`,
+      n: 1,
+      size: "1024x1024",
+      quality: "standard",
+      response_format: "b64_json",
+    });
 
-  const imageData = response.data[0].b64_json;
-  if (!imageData) throw new Error("Error en la generación.");
+    const imageData = response.data[0].b64_json;
+    if (!imageData) throw new Error("Error en la generación.");
 
-  return {
-    previewImageDataUri: `data:image/png;base64,${imageData}`
-  };
+    return {
+      previewImageDataUri: `data:image/png;base64,${imageData}`
+    };
+  } catch (error: any) {
+    console.error("DALL-E Error:", error);
+    throw new Error(error.message || "Error al generar el probador virtual.");
+  }
 }

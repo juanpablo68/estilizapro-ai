@@ -1,7 +1,7 @@
 'use server';
 /**
- * @fileOverview Generación de Avatar Estilizado Profesional con alta fidelidad biométrica.
- * Garantiza coincidencia de rasgos y limpieza absoluta del fondo.
+ * @fileOverview Generación de Avatar Estilizado Profesional.
+ * Versión ultra-estable sin parámetros experimentales para evitar errores 400.
  */
 
 import { ai, getOpenAIKey } from '@/ai/genkit';
@@ -30,7 +30,7 @@ const generateStylizedAvatarFlow = ai.defineFlow(
   async (input) => {
     const apiKey = getOpenAIKey(input.openaiApiKey);
     if (!apiKey || apiKey.trim() === '') {
-      throw new Error("API Key de OpenAI no disponible para generación visual.");
+      throw new Error("API Key de OpenAI no disponible.");
     }
 
     const openai = new OpenAI({ apiKey });
@@ -42,24 +42,10 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     const eyeColor = data.rostro?.ojos?.color_detalle || 'natural eyes';
 
     const finalPrompt = `A high-end professional fashion editorial photograph of ONE SINGLE ${personType}. 
-    
-    PHYSICAL TRAITS (MANDATORY):
-    - Skin tone: ${skinTone}.
-    - Hair: ${hairColor}.
-    - Eyes: ${eyeColor}.
-    - Style: Modern 3D stylized character with Pixar-quality lighting.
-    
-    COMPOSITION:
-    - FULL LENGTH SHOT: The subject is fully visible from the top of the head to the bottom of their shoes. 
-    - Standing centrally in a neutral, stylish fashion pose.
-    - Wearing modern, minimalist fashion clothing and footwear.
-    
-    ENVIRONMENT & RULES:
-    - THE SUBJECT IS THE ONLY FIGURE IN THE IMAGE. NO SECONDARY MODELS OR DIAGRAMS.
-    - BACKGROUND: A PURE, SOLID, UNIFORM, AND EMPTY WHITE (#FFFFFF) INFINITE VOID.
-    - ABSOLUTELY NO TECHNICAL LINES, NO RULERS, NO MEASUREMENTS, NO NUMBERS, NO GRIDS, NO CHARTS.
-    - NO TEXT, NO HORIZON LINES, NO SYMBOLS.
-    - THE IMAGE IS CLEAN, ARTISTIC, AND MINIMALIST.`;
+    PHYSICAL TRAITS: Skin tone ${skinTone}, Hair ${hairColor}, Eyes ${eyeColor}.
+    STYLE: Modern 3D stylized character, Pixar-quality lighting. 
+    COMPOSITION: Full length shot, standing centrally, neutral pose, minimalist fashion clothing.
+    ENVIRONMENT: Solid pure white background (#FFFFFF). Clean, artistic, and minimalist.`;
 
     try {
       const response = await openai.images.generate({
@@ -67,7 +53,7 @@ const generateStylizedAvatarFlow = ai.defineFlow(
         prompt: finalPrompt,
         n: 1,
         size: "1024x1024",
-        quality: "hd",
+        quality: "standard",
         response_format: "b64_json",
       });
 
@@ -76,8 +62,8 @@ const generateStylizedAvatarFlow = ai.defineFlow(
 
       return { avatarDataUri: `data:image/png;base64,${imageData}` };
     } catch (error: any) {
-      console.error("DALL-E Generation Error:", error);
-      throw new Error(error.message || "Error al generar el avatar estilizado visualmente.");
+      console.error("DALL-E Error:", error);
+      throw new Error(error.message || "Error al generar el avatar.");
     }
   }
 );
