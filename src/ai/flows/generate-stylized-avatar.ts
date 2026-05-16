@@ -68,7 +68,6 @@ const generateStylizedAvatarFlow = ai.defineFlow(
         n: 1,
         size: "1024x1024",
         quality: "hd",
-        style: "vivid",
         response_format: "b64_json",
       });
 

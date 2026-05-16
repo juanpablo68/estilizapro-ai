@@ -1,26 +1,24 @@
-
 # 🚀 Guía de Lanzamiento Final - EstilizaPro AI
 
 ¡Tu código ya está en GitHub! Ahora sigue estos pasos para activarlo en internet.
 
-## 🌐 Paso 1: Activar en Vercel (Gratis)
+## 🌐 Paso 1: Actualizar GitHub (Si hiciste cambios)
+Si has hecho cambios o quieres asegurar que todo esté limpio, pega esto en tu terminal:
+```bash
+git add . && git commit -m "🚀 Corrección de error de IA y actualización" && git push -f origin main
+```
+
+## 🔑 Paso 2: Activar en Vercel (Gratis)
 1. Ve a [Vercel.com](https://vercel.com) e inicia sesión con tu cuenta de GitHub.
-2. Haz clic en el botón azul **"Add New"** y luego en **"Project"**.
-3. Verás tu repositorio `estilizapro-ai`. Haz clic en el botón **"Import"**.
+2. Haz clic en **"Add New"** -> **"Project"**.
+3. Busca `estilizapro-ai` y dale a **"Import"**.
+4. **IMPORTANTE (Variables de Entorno)**: Antes de darle a "Deploy", busca la sección "Environment Variables" y añade estas dos:
+   - **Name**: `OPENAI_API_KEY` | **Value**: [Tu clave de OpenAI]
+   - **Name**: `UNSPLASH_ACCESS_KEY` | **Value**: [Tu clave de Unsplash]
+5. Haz clic en **"Deploy"**.
 
-## 🔑 Paso 2: Configurar la Inteligencia Artificial (CRÍTICO)
-Antes de darle al botón de "Deploy", busca la sección que dice **"Environment Variables"** dentro de Vercel y añade estas 2 llaves para que la IA funcione:
-
-1. **Nombre**: `OPENAI_API_KEY`  
-   **Valor**: [Pega aquí tu llave de OpenAI que empieza por sk-...]
-
-2. **Nombre**: `UNSPLASH_ACCESS_KEY`  
-   **Valor**: [Pega aquí tu llave de Unsplash]
-
-## 🚀 Paso 3: Desplegar
-1. Haz clic en el botón **"Deploy"**.
-2. Espera 2 minutos. Vercel te dará un link (ej: `estilizapro-ai.vercel.app`).
-3. ¡Ábrelo y disfruta de tu app en el móvil o cualquier lugar!
+## 🚀 Paso 3: ¡Listo!
+Vercel te dará un link (ej: `estilizapro-ai.vercel.app`). ¡Ábrelo y pruébalo!
 
 ---
-*Nota: Si necesitas cambiar algo en el futuro, solo haz "Push" en GitHub y Vercel se actualizará solo.*
+*Nota: El error del parámetro 'style' ha sido corregido para evitar fallos en la generación de avatares.*
