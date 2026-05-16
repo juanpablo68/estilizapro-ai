@@ -12,7 +12,8 @@ import {
   UserCircle, 
   PlusCircle, 
   Sparkles,
-  Instagram
+  Instagram,
+  Scissors
 } from "lucide-react";
 import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
 import Image from 'next/image';
@@ -30,6 +31,7 @@ export default function DashboardPage() {
   const actions = [
     { name: 'Armario', icon: Shirt, color: 'text-primary', bg: 'bg-primary/10', href: '/wardrobe' },
     { name: 'Cápsulas', icon: Layers, color: 'text-secondary', bg: 'bg-secondary/10', href: '/capsules' },
+    { name: 'Peinado y Maquillaje', icon: Scissors, color: 'text-primary', bg: 'bg-primary/10', href: '/grooming' },
     { name: 'Asistente de Vestuario', icon: MessageCircle, color: 'text-primary', bg: 'bg-primary/5', href: '/chat' },
     { name: 'Probador Virtual', icon: UserCircle, color: 'text-secondary', bg: 'bg-secondary/5', href: '/preview' },
     { name: 'Más Cápsulas', icon: PlusCircle, color: 'text-primary', bg: 'bg-primary/5', href: '/purchase' },
