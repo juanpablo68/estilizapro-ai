@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Generación de Avatar Estilizado Profesional.
- * Versión corregida: se elimina el parámetro 'style' para evitar error 400 en OpenAI.
+ * Versión ultra-estable sin parámetros experimentales.
  */
 
 import { ai, getOpenAIKey } from '@/ai/genkit';
@@ -29,9 +29,7 @@ const generateStylizedAvatarFlow = ai.defineFlow(
   },
   async (input) => {
     const apiKey = getOpenAIKey(input.openaiApiKey);
-    if (!apiKey || apiKey.trim() === '') {
-      throw new Error("API Key de OpenAI no disponible.");
-    }
+    if (!apiKey) throw new Error("API Key de OpenAI no disponible.");
 
     const openai = new OpenAI({ apiKey });
     const data = input.biometricData || {};
@@ -62,7 +60,7 @@ const generateStylizedAvatarFlow = ai.defineFlow(
 
       return { avatarDataUri: `data:image/png;base64,${imageData}` };
     } catch (error: any) {
-      console.error("DALL-E Error:", error);
+      console.error("DALL-E Avatar Error:", error);
       throw new Error(error.message || "Error al generar el avatar estilizado.");
     }
   }

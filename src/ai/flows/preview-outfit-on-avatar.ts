@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Probador Virtual Maestro.
- * Versión corregida: se elimina el parámetro 'style' para evitar error 400.
+ * Versión optimizada sin parámetro 'style' para evitar Error 400.
  */
 
 import { z } from 'genkit';
@@ -25,12 +25,13 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
   const personType = data.genero || 'Femenino';
   const hairColor = data.rostro?.cabello?.color_natural || 'natural';
 
+  // Analizar las prendas para crear una descripción coherente
   const analysisResponse = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
       {
         role: "system",
-        content: "Describe brevemente cómo estas prendas visten a una persona en una sola toma de cuerpo completo."
+        content: "Describe brevemente este conjunto de moda puesto sobre una persona en una sola toma de cuerpo completo. Sé muy conciso."
       },
       {
         role: "user",
@@ -43,12 +44,12 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
     ],
   });
 
-  const detailedDescription = analysisResponse.choices[0].message.content || "un conjunto de moda coordinado";
+  const detailedDescription = analysisResponse.choices[0].message.content || "a coordinated fashion outfit";
 
   try {
     const response = await openai.images.generate({
       model: "dall-e-3",
-      prompt: `A professional fashion photograph of ONE SINGLE ${personType}. Wearing exactly: ${detailedDescription}. Full length view from head to toe. Style: 3D character design, Pixar-inspired lighting. Background: Pure solid white void. No text, no lines.`,
+      prompt: `A professional fashion photograph of ONE SINGLE ${personType}. Wearing exactly: ${detailedDescription}. Full length view from head to toe. STYLE: Modern 3D character design, Pixar-inspired lighting. ENVIRONMENT: Pure solid white background. No text, no lines.`,
       n: 1,
       size: "1024x1024",
       quality: "standard",
@@ -56,13 +57,11 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
     });
 
     const imageData = response.data[0].b64_json;
-    if (!imageData) throw new Error("Error en la generación.");
+    if (!imageData) throw new Error("Error en la generación visual.");
 
-    return {
-      previewImageDataUri: `data:image/png;base64,${imageData}`
-    };
+    return { previewImageDataUri: `data:image/png;base64,${imageData}` };
   } catch (error: any) {
-    console.error("DALL-E Error:", error);
+    console.error("DALL-E Preview Error:", error);
     throw new Error(error.message || "Error al generar el probador virtual.");
   }
 }

@@ -83,6 +83,8 @@ export default function GroomingAssistantPage() {
         openaiApiKey: openaiKey
       });
       setMessages(prev => [...prev, { role: 'assistant', content: response }]);
+      
+      // Llamar a la generación de imagen con la respuesta de la IA
       handleGeneratePreview(response);
     } catch (err) {
       console.error(err);
@@ -95,6 +97,7 @@ export default function GroomingAssistantPage() {
   const handleGeneratePreview = async (description: string) => {
     const openaiKey = localStorage.getItem('openai_api_key') || undefined;
     setPreviewing(true);
+    setResultImage(null); // Limpiar imagen previa
     try {
       const result = await generateGroomingPreview({
         description,
@@ -104,8 +107,9 @@ export default function GroomingAssistantPage() {
       });
       setResultImage(result.previewImageDataUri);
       toast({ title: "Visualización Lista", description: "Look proyectado sobre tu avatar facial." });
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      toast({ variant: "destructive", title: "Visualización Fallida", description: "La IA no pudo procesar la imagen esta vez." });
     } finally {
       setPreviewing(false);
     }
