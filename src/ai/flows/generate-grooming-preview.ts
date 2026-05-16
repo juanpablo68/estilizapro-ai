@@ -23,7 +23,7 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
   const data = input.biometricData || {};
   const gender = data.genero || 'Femenino';
   
-  // Extraemos solo lo visual para el prompt de imagen
+  // Extraemos solo lo visual para el prompt de imagen para evitar sobrecarga de texto
   const visualDescription = input.description.split('.')[0];
 
   const finalPrompt = `Close-up high-end portrait of ONE SINGLE ${gender}. 
@@ -51,6 +51,6 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
     return { previewImageDataUri: `data:image/png;base64,${base64}` };
   } catch (error: any) {
     console.error("Grooming Image Error:", error);
-    throw new Error(error.message || "Error al visualizar el look estético con gpt-image-2.");
+    throw new Error(error.message || "Error al visualizar el look con gpt-image-2.");
   }
 }

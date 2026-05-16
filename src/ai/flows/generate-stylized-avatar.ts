@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview Generación de Avatar Estilizado usando el motor gpt-image-2.
+ * @fileOverview Generación de Avatar Estilizado usando el motor gpt-image-2 de OpenAI.
  */
 
 import { z } from 'genkit';
@@ -30,7 +30,7 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
   ENVIRONMENT: Solid pure white background. NO text.`;
 
   try {
-    // Configuración ultra-limpia para evitar errores 400
+    // Llamada ultra-limpia al modelo gpt-image-2
     const response = await openai.images.generate({
       model: "gpt-image-2" as any,
       prompt: finalPrompt,

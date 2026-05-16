@@ -35,11 +35,11 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
   if (gender === 'Masculino') {
     genderRules = `
     INSTRUCCIONES CRÍTICAS PARA HOMBRE (EL USUARIO ES HOMBRE):
-    1. PROHIBICIÓN TOTAL: Tienes terminantemente prohibido mencionar maquillaje, sombras, delineadores, labiales o cualquier producto cosmético de color.
-    2. ENFOQUE CABELLO Y BARBA: Debes recomendar siempre un estilo de peinado masculino moderno y estructurado. Es obligatorio recomendar el peinado.
-    3. BARBA: El usuario ${hasBeard ? 'TIENE barba actualmente' : 'NO tiene barba actualmente'}. Da consejos específicos para este estado (estilo de recorte, mantenimiento o afeitado impecable).
-    4. PIEL: Recomienda solo rutinas de limpieza, exfoliación e hidratación efecto mate para hombres.
-    REGLA: Tu respuesta DEBE dividirse claramente en: "ESTILO DE CABELLO Y BARBA" y "CUIDADO DE PIEL".`;
+    1. PROHIBICIÓN TOTAL: Tienes terminantemente prohibido mencionar maquillaje, sombras, delineadores, labiales, bases de color o cualquier producto cosmético.
+    2. ENFOQUE CABELLO Y BARBA: Debes recomendar siempre un estilo de peinado masculino moderno (ej: Undercut, Pompadour, Texturizado). Es obligatorio recomendar el peinado.
+    3. BARBA: El usuario ${hasBeard ? 'TIENE barba' : 'NO tiene barba'}. Da consejos específicos para este estado (ej: perfilado de barba, aceite para barba o afeitado clásico).
+    4. PIEL: Recomienda solo rutinas de limpieza, exfoliación e hidratación efecto mate para la piel del hombre.
+    REGLA: Tu respuesta DEBE dividirse en: "ESTILO DE CABELLO Y BARBA" y "CUIDADO DE PIEL".`;
   } else {
     genderRules = `
     INSTRUCCIONES PARA MUJER:
@@ -56,7 +56,7 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
   
   ${genderRules}
 
-  REGLA DE ORO: Sé directo, profesional y humano. No uses introducciones largas ni conclusiones genéricas. Responde de tú.`;
+  REGLA DE ORO: Sé directo, profesional y humano. No uses introducciones largas. Responde de tú.`;
 
   try {
     const response = await openai.chat.completions.create({
