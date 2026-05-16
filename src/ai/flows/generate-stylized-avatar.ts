@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Generación de Avatar Estilizado Profesional.
- * Versión ultra-estable sin parámetros experimentales.
+ * Versión ultra-estable sin parámetro 'style' para evitar Error 400.
  */
 
 import { ai, getOpenAIKey } from '@/ai/genkit';
@@ -29,7 +29,7 @@ const generateStylizedAvatarFlow = ai.defineFlow(
   },
   async (input) => {
     const apiKey = getOpenAIKey(input.openaiApiKey);
-    if (!apiKey) throw new Error("API Key de OpenAI no disponible.");
+    if (!apiKey) throw new Error("API Key de OpenAI requerida.");
 
     const openai = new OpenAI({ apiKey });
     const data = input.biometricData || {};
@@ -41,9 +41,9 @@ const generateStylizedAvatarFlow = ai.defineFlow(
 
     const finalPrompt = `A high-end professional fashion editorial photograph of ONE SINGLE ${personType}. 
     PHYSICAL TRAITS: Skin tone ${skinTone}, Hair ${hairColor}, Eyes ${eyeColor}.
-    STYLE: Modern 3D stylized character, Pixar-quality lighting. 
-    COMPOSITION: Full length shot, standing centrally, neutral pose, minimalist fashion clothing.
-    ENVIRONMENT: Solid pure white background (#FFFFFF). Clean, artistic, and minimalist.`;
+    STYLE: Modern 3D stylized character design, high-end studio lighting. 
+    COMPOSITION: Full length body shot, standing centrally, neutral pose, minimalist fashion clothes.
+    ENVIRONMENT: Solid pure white background (#FFFFFF). Extremely clean and artistic.`;
 
     try {
       const response = await openai.images.generate({

@@ -1,7 +1,8 @@
 'use server';
 /**
- * @fileOverview Generación visual de Visagismo.
+ * @fileOverview Generación visual de Visagismo (Grooming).
  * Traduce el consejo del asistente en una imagen técnica y limpia.
+ * Versión ultra-estable sin parámetros experimentales.
  */
 
 import { ai, getOpenAIKey } from '@/ai/genkit';
@@ -41,27 +42,28 @@ const generateGroomingPreviewFlow = ai.defineFlow(
     const skinTone = data.colorimetria?.tono_piel || 'light skin';
     const hasBeard = input.hasBeard || false;
 
-    // Resumir el consejo para que DALL-E no se bloquee con instrucciones conversacionales
+    // Resumir el consejo conversacional en un prompt físico de imagen
     const summaryResponse = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         { 
           role: "system", 
-          content: `Translate this beauty advice into a 1-sentence physical description for an image generator. 
-          Focus ONLY on hairstyle and skin finish. If gender is Male, focus on beard state: ${hasBeard ? 'groomed beard' : 'clean shaven'}. 
+          content: `Translate this beauty advice into a 1-sentence physical description for DALL-E. 
+          Focus on hairstyle, skin finish, and grooming. 
+          If gender is Male, describe the beard state clearly: ${hasBeard ? 'neatly groomed beard' : 'clean shaven face'}. 
           Language: English.` 
         },
         { role: "user", content: input.description }
       ],
     });
 
-    const visualTrait = summaryResponse.choices[0].message.content || "neat grooming";
+    const visualTrait = summaryResponse.choices[0].message.content || "professional grooming";
 
-    const finalPrompt = `A high-end professional beauty editorial portrait of ONE SINGLE ${personType}. 
-    LOOK: ${visualTrait}. 
-    PHYSICAL: Skin ${skinTone}, Hair ${hairColor}. 
-    STYLE: Modern 3D stylized character design, high-end fashion photography lighting. 
-    ENVIRONMENT: Solid pure white background. Extremely clean and professional.`;
+    const finalPrompt = `A high-end professional beauty editorial portrait of ONE ${personType}. 
+    GROOMING: ${visualTrait}. 
+    PHYSICAL: Skin tone ${skinTone}, Hair ${hairColor}. 
+    STYLE: Modern 3D stylized character design, Pixar-quality lighting, high fashion photography. 
+    ENVIRONMENT: Solid pure white background (#FFFFFF). Extremely clean and centered.`;
 
     try {
       const response = await openai.images.generate({
@@ -74,12 +76,12 @@ const generateGroomingPreviewFlow = ai.defineFlow(
       });
 
       const imageData = response.data[0].b64_json;
-      if (!imageData) throw new Error("Error en la generación visual.");
+      if (!imageData) throw new Error("La IA no devolvió datos de imagen.");
 
       return { previewImageDataUri: `data:image/png;base64,${imageData}` };
     } catch (error: any) {
       console.error("DALL-E Grooming Error:", error);
-      throw new Error(error.message || "Error al generar la vista previa estética.");
+      throw new Error(error.message || "Error al generar la vista previa visual.");
     }
   }
 );

@@ -1,8 +1,8 @@
 'use server';
 /**
- * @fileOverview Chat especializado en Visagismo (Peinado y Maquillaje).
- * Sugiere looks basados en colorimetría, piel y evento.
- * REGLA DE ORO: Si es hombre, NUNCA sugiere maquillaje.
+ * @fileOverview Chat especializado en Visagismo (Peinado y Grooming).
+ * Sugiere looks basados en género, colorimetría, piel y evento.
+ * REGLA DE ORO: Si es hombre, PROHIBIDO sugerir maquillaje.
  */
 
 import { z } from 'genkit';
@@ -36,30 +36,31 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
   let genderSpecificRules = "";
   if (gender === 'Masculino') {
     genderSpecificRules = `
-    REGLAS ESTRICTAS PARA HOMBRE:
-    1. PROHIBIDO EL MAQUILLAJE: No menciones sombras de ojos, labiales, rímel o delineadores. Si el usuario pregunta por esto, recuérdale con elegancia que tu asesoría masculina se centra en "Grooming" y cuidado de la piel.
-    2. CUIDADO DE LA PIEL: Sugiere limpieza profunda, hidratación mate y productos anti-brillo para el evento: ${input.eventType}.
-    3. BARBA: El usuario ${hasBeard ? 'TIENE' : 'NO TIENE'} barba. Da consejos específicos para este estado (aceites, perfilado o afeitado impecable).
-    4. CABELLO: Sugiere peinados masculinos profesionales.`;
+    REGLAS ESTRICTAS PARA HOMBRE (MAESTRO GROOMING):
+    1. PROHIBIDO EL MAQUILLAJE: Absolutamente prohibido mencionar sombras, labiales, rímel, colorete o delineadores. Si el usuario pregunta por maquillaje, aclara que tu asesoría masculina se enfoca en salud de la piel y estética de vello facial.
+    2. CUIDADO DE LA PIEL: Sugiere limpieza profunda, hidratación con acabado mate y bálsamos labiales neutros (no labiales de color).
+    3. BARBA Y VELLO: El usuario ${hasBeard ? 'TIENE' : 'NO TIENE'} barba. Sugiere perfilado, aceites de barba o afeitado impecable según sea el caso.
+    4. CABELLO: Sugiere estilos de peinado masculinos profesionales (pomadas, ceras mate, cortes clásicos).`;
   } else {
     genderSpecificRules = `
-    REGLAS PARA MUJER:
-    1. MAQUILLAJE: Sé específico con técnicas y colores según su temperatura ${temp}.
-    2. PEINADO: Sugiere peinados femeninos sofisticados.`;
+    REGLAS PARA MUJER (VISAGISMO):
+    1. MAQUILLAJE: Sé específico con técnicas de ojos, labios y piel según su temperatura ${temp}.
+    2. PEINADO: Sugiere peinados femeninos (ondas, recogidos, alisados) adecuados para el evento.`;
   }
 
-  const systemPrompt = `Eres un experto visagista y director de estética de la marca Pilar Cifuentes. 
+  const systemPrompt = `Eres el Director de Estética de la marca Pilar Cifuentes. Tu especialidad es el Visagismo de alto nivel.
   
   CONTEXTO DEL USUARIO:
   - Género: ${gender}
   - Evento: ${input.eventType}
-  - Piel: ${skin} (${temp})
-  - Cabello: ${hairColor}
+  - Tono de Piel: ${skin} (${temp})
+  - Cabello Natural: ${hairColor}
   ${genderSpecificRules}
 
   PERSONALIDAD:
-  - Directo, experto y humano. Habla de tú.
-  - No des introducciones largas. Responde en 2-3 párrafos máximo.`;
+  - Experto, directo y humano. Habla de "tú".
+  - Sé muy conciso. Responde en un máximo de 2 párrafos cortos.
+  - No uses introducciones robóticas como "Como experto...".`;
 
   const response = await openai.chat.completions.create({
     model: "gpt-4o",
@@ -69,5 +70,5 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
     ]
   });
 
-  return response.choices[0].message.content || "Dime, ¿qué estilo buscamos hoy?";
+  return response.choices[0].message.content || "Dime, ¿qué estilo de imagen buscamos para hoy?";
 }
