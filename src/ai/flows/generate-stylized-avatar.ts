@@ -39,38 +39,57 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
   
   const userId = input.userId || 'anonymous';
 
-  // Estabilización: Calidad media para asegurar respuesta < 45s
+  // Estabilización: Calidad media para asegurar respuesta < 45s y evitar timeouts
   const targetQuality = "medium"; 
 
-  // Prompt Editorial de Alta Fidelidad (Actualizado para eliminar estilos animados)
-  const finalPrompt = `Create a highly realistic full-body editorial fashion avatar for a ${personType}.
+  // Prompt de Máxima Fidelidad Editorial (Sustituye cualquier estilo animado)
+  const finalPrompt = `Create a highly realistic full-body editorial fashion avatar based strictly on the provided reference images.
 
-IDENTITY CONTEXT:
-- Facial Features: ${facialStructure}, ${hairDetail} (${hairColor} hair), ${eyeColor}.
-- Physical Build: ${bodySilhouette} silhouette.
-- Skin Tone: ${skinTone}.
+The face reference image is the primary identity source. Preserve the person’s facial identity cues as closely as possible: face shape, forehead proportion, ${facialStructure} structure, jawline shape, chin shape, nose shape, mouth shape, lip proportion, eyebrow shape, eye shape (${eyeColor}), eye spacing, skin tone (${skinTone}), hair color (${hairColor}), hairstyle (${hairDetail}), hair volume, hair length, and natural expression.
 
-The avatar must look like a realistic fashion studio photograph, not a cartoon, not a 3D toy, not an animated character, not anime, not illustration, and not a generic fashion model.
+The body reference image is the primary body-shape source. Preserve the person’s natural body proportions, posture, shoulder proportion, torso proportion, waist proportion, hip proportion, leg proportion, general ${bodySilhouette} silhouette, and stance.
 
-Preserve the person’s natural appearance and identity cues. Do not change gender presentation. Do not make the person thinner, taller, younger, older, more muscular, more glamorous, or more conventionally attractive than shown in the reference traits.
+Do not invent a new face. Do not create a generic fashion model. Do not replace the person with an idealized character. Do not change gender presentation (${personType}). Do not change age impression. Do not alter natural facial structure. Do not make the person thinner, taller, younger, older, more muscular, or more stylized than shown in the reference images.
 
-Keep realistic facial proportions, realistic body proportions, natural skin tone, realistic skin texture, realistic hair detail, believable eyes, natural posture, and accurate overall silhouette.
+The avatar must look like the same person represented as a realistic fashion studio avatar. Prioritize likeness over beauty, stylization, glamour, or artistic interpretation.
 
-Generate the avatar wearing simple neutral fitted clothing suitable for fashion analysis: plain fitted top, simple pants, and neutral shoes. The clothing should help evaluate the body silhouette without being revealing, exaggerated, distracting, or overly fashionable.
+Generate a realistic full-body fashion studio image with soft neutral lighting, neutral background, realistic camera perspective, natural skin texture, believable hair detail, realistic eyes, natural facial proportions, and accurate body silhouette.
 
-Use soft studio lighting, neutral background, full-body framing, front-facing or slightly natural posture, and realistic camera perspective.
+The avatar should wear simple neutral fitted clothing suitable for fashion analysis: plain fitted top, simple pants, and neutral shoes. The clothing must not hide the general silhouette and must not be revealing, exaggerated, distracting, or overly fashionable.
 
-The final image must be suitable for:
-- colorimetry analysis
-- body shape analysis
-- outfit recommendations
-- personalized fashion capsule suggestions
-- wardrobe advisory workflows
+The final result must be suitable for:
+- visual user profile
+- fashion advisory
+- colorimetry support
+- body shape reference
+- outfit recommendation
+- personalized capsule suggestions
 
-Avoid: cartoon face, oversized eyes, plastic skin, doll-like appearance, toy-like body, generic fashion model, unrealistic proportions, fantasy character, beauty filter, changed face, changed body, changed gender presentation, anime style, flat illustration.`;
+Avoid:
+- generic model face
+- changed face
+- changed body
+- exaggerated beauty filter
+- cartoon
+- Pixar style
+- animated feature film
+- animated character
+- 3D toy
+- anime
+- toy-like appearance
+- doll-like skin
+- oversized eyes
+- unrealistic proportions
+- fantasy character
+- plastic skin
+- excessive glamour
+- heavy makeup unless present in the reference photo
+
+Important:
+The avatar should resemble the reference person more than it resembles a stock model.`;
 
   const startTime = Date.now();
-  console.log(">>> Avatar generation process started (Realistic Mode)");
+  console.log(">>> Avatar generation process started (High Likeness Mode)");
 
   try {
     console.log(`>>> Calling OpenAI (model: gpt-image-2, quality: ${targetQuality}, size: 1024x1536)...`);
@@ -99,7 +118,7 @@ Avoid: cartoon face, oversized eyes, plastic skin, doll-like appearance, toy-lik
     console.log(`>>> Buffer created. Total elapsed: ${Date.now() - startTime}ms`);
 
     try {
-      console.log(">>> Uploading realistic avatar to Firebase Storage...");
+      console.log(">>> Uploading high-likeness avatar to Firebase Storage...");
       const timestamp = Date.now();
       const fileName = `avatars/${userId}/${timestamp}.png`;
       const bucket = adminStorage.bucket();
@@ -137,7 +156,7 @@ Avoid: cartoon face, oversized eyes, plastic skin, doll-like appearance, toy-lik
       errorMsg.includes("network") ||
       errorMsg.includes("unexpected response")
     ) {
-      throw new Error("La generación del avatar tardó demasiado debido a la alta complejidad. Por favor, intenta nuevamente.");
+      throw new Error("La generación del avatar tardó demasiado. Por favor, intenta nuevamente en unos momentos.");
     }
 
     if (error.status === 401) throw new Error("Error 401: API Key de OpenAI inválida.");
