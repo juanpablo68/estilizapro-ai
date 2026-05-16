@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useRef, useEffect } from 'react';
@@ -35,7 +36,7 @@ export default function GroomingAssistantPage() {
   const { toast } = useToast();
   const router = useRouter();
 
-  // Determinación de género robusta
+  // Determinación de género robusta basada en perfil y biometría
   const isMale = profile.gender === 'Masculino' || profile.biometricData?.genero === 'Masculino';
 
   useEffect(() => {
@@ -60,7 +61,7 @@ export default function GroomingAssistantPage() {
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
     
-    // Consumo de créditos local
+    // Consumo de crédito
     if (!hasConsumedCredit) {
       setProfile(prev => ({ ...prev, groomingCredits: Math.max(0, (Number(prev.groomingCredits) || 0) - 1) }));
       setHasConsumedCredit(true);

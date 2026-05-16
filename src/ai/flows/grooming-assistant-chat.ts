@@ -2,7 +2,7 @@
 'use server';
 /**
  * @fileOverview Asistente de Visagismo con lógica de género blindada.
- * Prohíbe maquillaje en hombres y obliga a recomendar peinado/barba.
+ * Prohíbe terminantemente el maquillaje en hombres y obliga a recomendar peinado y barba.
  */
 
 import { z } from 'genkit';
@@ -34,29 +34,29 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
   let genderRules = "";
   if (gender === 'Masculino') {
     genderRules = `
-    INSTRUCCIONES CRÍTICAS PARA HOMBRE:
-    1. PROHIBICIÓN TOTAL: Tienes terminantemente prohibido mencionar maquillaje, sombras, labiales o cualquier cosmético.
-    2. ENFOQUE CABELLO Y BARBA: Debes recomendar siempre un estilo de peinado masculino moderno y consejos para la barba.
-    3. BARBA ACTUAL: El usuario ${hasBeard ? 'TIENE barba' : 'NO tiene barba'}. Adapta el consejo a este estado.
-    4. PIEL: Recomienda solo limpieza profunda e hidratación mate.
-    REGLA: Tu respuesta DEBE tener una sección de "PEINADO Y BARBA" y otra de "CUIDADO DE PIEL".`;
+    INSTRUCCIONES CRÍTICAS PARA HOMBRE (EL USUARIO ES HOMBRE):
+    1. PROHIBICIÓN TOTAL: Tienes terminantemente prohibido mencionar maquillaje, sombras, delineadores, labiales o cualquier cosmético.
+    2. ENFOQUE CABELLO Y BARBA: Debes recomendar siempre un estilo de peinado masculino moderno.
+    3. BARBA: El usuario ${hasBeard ? 'TIENE barba actualmente' : 'NO tiene barba actualmente'}. Da consejos específicos para este estado.
+    4. PIEL: Recomienda solo limpieza, exfoliación e hidratación efecto mate.
+    REGLA: Tu respuesta DEBE dividirse en: "ESTILO DE CABELLO Y BARBA" y "CUIDADO DE PIEL".`;
   } else {
     genderRules = `
     INSTRUCCIONES PARA MUJER:
-    1. CABELLO Y MAQUILLAJE: Sugiere un peinado elegante y una paleta de maquillaje acorde a su temperatura ${bio.temperatura || 'Cálida/Fría'}.
+    1. CABELLO Y MAQUILLAJE: Sugiere un peinado elegante y una paleta de maquillaje acorde a su temperatura ${bio.temperatura || 'Cálida'}.
     REGLA: Tu respuesta DEBE tener una sección de "PEINADO" y otra de "MAQUILLAJE".`;
   }
 
   const systemPrompt = `Eres el Director Maestro de Visagismo de Pilar Cifuentes Catalán.
   
-  CONTEXTO DEL CLIENTE:
+  DATOS DEL CLIENTE:
   - Género: ${gender}
   - Evento: ${input.eventType}
-  - Colorimetría: ${bio.temperatura || 'Detectada'}
+  - Colorimetría: ${bio.temperatura || 'Cálida'}
   
   ${genderRules}
 
-  REGLA DE ORO: Tus respuestas deben ser breves, profesionales y directas. No des introducciones largas.`;
+  REGLA DE ORO: Sé directo, profesional y humano. No uses introducciones largas.`;
 
   try {
     const response = await openai.chat.completions.create({

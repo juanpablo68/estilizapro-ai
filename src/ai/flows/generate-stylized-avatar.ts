@@ -1,8 +1,8 @@
 
 'use server';
 /**
- * @fileOverview Generación de Avatar Estilizado usando DALL-E 3 (OpenAI).
- * Configuración ultra-estable para evitar errores de parámetros desconocidos.
+ * @fileOverview Generación de Avatar Estilizado usando el motor moderno de OpenAI.
+ * Se eliminan parámetros obsoletos para garantizar estabilidad total.
  */
 
 import { z } from 'genkit';
@@ -28,10 +28,10 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
   FEATURES: ${skinTone} skin, ${hairColor} hair.
   STYLE: Modern 3D stylized character design, high-end studio lighting. 
   COMPOSITION: Full length body shot, standing centrally, neutral pose, minimalist clothes.
-  ENVIRONMENT: Solid pure white background.`;
+  ENVIRONMENT: Solid pure white background. NO text.`;
 
   try {
-    // Usamos solo los parámetros esenciales para evitar errores 400
+    // Usamos la configuración más limpia posible para el motor moderno
     const response = await openai.images.generate({
       model: "dall-e-3",
       prompt: finalPrompt,
@@ -42,14 +42,14 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
     const imageUrl = response.data[0].url;
     if (!imageUrl) throw new Error("No se pudo obtener la URL de la imagen.");
 
-    // Convertimos a base64 para consistencia con el resto de la app
+    // Descargamos la imagen en el servidor para convertirla a base64
     const imageResponse = await fetch(imageUrl);
     const buffer = await imageResponse.arrayBuffer();
     const base64 = Buffer.from(buffer).toString('base64');
 
     return { avatarDataUri: `data:image/png;base64,${base64}` };
   } catch (error: any) {
-    console.error("DALL-E Avatar Error:", error);
-    throw new Error(error.message || "Error al generar el avatar con OpenAI.");
+    console.error("Image Generation Error:", error);
+    throw new Error(error.message || "Error al conectar con el motor de imágenes.");
   }
 }

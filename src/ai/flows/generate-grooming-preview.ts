@@ -1,8 +1,8 @@
 
 'use server';
 /**
- * @fileOverview Generación de Visagismo usando DALL-E 3 (OpenAI).
- * Optimizado para evitar errores de parámetros y respetar el género.
+ * @fileOverview Generación de Visagismo usando motor moderno.
+ * Asegura la coherencia visual con el género y estado de barba.
  */
 
 import { z } from 'genkit';
@@ -24,15 +24,12 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
   const data = input.biometricData || {};
   const gender = data.genero || 'Femenino';
   
-  // Limpiamos la descripción para que sea un prompt visual conciso
-  const visualRef = input.description.length > 300 ? input.description.substring(0, 300) : input.description;
-
   const finalPrompt = `Close-up high-end portrait of ONE SINGLE ${gender}. 
   STYLE: Modern 3D stylized character.
-  LOOK: ${visualRef}. 
-  ${gender === 'Masculino' && input.hasBeard ? 'Include a perfectly groomed beard.' : ''}
+  LOOK: ${input.description.substring(0, 400)}. 
+  ${gender === 'Masculino' && input.hasBeard ? 'With a perfectly groomed beard.' : ''}
   ${gender === 'Masculino' && !input.hasBeard ? 'Clean-shaven face.' : ''}
-  ENVIRONMENT: Solid pure white background.`;
+  ENVIRONMENT: Solid pure white background. NO TEXT.`;
 
   try {
     const response = await openai.images.generate({
@@ -51,7 +48,7 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
 
     return { previewImageDataUri: `data:image/png;base64,${base64}` };
   } catch (error: any) {
-    console.error("DALL-E Grooming Error:", error);
+    console.error("Grooming Image Error:", error);
     throw new Error(error.message || "Error al visualizar el look estético.");
   }
 }

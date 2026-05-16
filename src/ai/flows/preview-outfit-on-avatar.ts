@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview Probador Virtual Maestro usando DALL-E 3 (OpenAI).
+ * @fileOverview Probador Virtual usando el motor moderno de OpenAI.
  */
 
 import { z } from 'genkit';
@@ -26,7 +26,7 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
   const analysis = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
-      { role: "system", content: "Describe este conjunto de ropa puesto sobre una persona en una sola frase técnica y visual." },
+      { role: "system", content: "Describe este conjunto de ropa puesto sobre una persona en una sola frase técnica." },
       {
         role: "user",
         content: [
@@ -41,7 +41,7 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
   const description = analysis.choices[0].message.content || "a stylish fashion outfit";
 
   try {
-    const finalPrompt = `A professional high-end fashion photograph of ONE SINGLE ${gender}. Wearing: ${description}. Full body shot. STYLE: Modern 3D stylized character design. ENVIRONMENT: Pure solid white background.`;
+    const finalPrompt = `A professional high-end fashion photograph of ONE SINGLE ${gender}. Wearing: ${description}. Full body shot. STYLE: Modern 3D stylized character design. ENVIRONMENT: Pure solid white background. NO text.`;
     
     const response = await openai.images.generate({
       model: "dall-e-3",
@@ -59,7 +59,7 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
 
     return { previewImageDataUri: `data:image/png;base64,${base64}` };
   } catch (error: any) {
-    console.error("DALL-E Preview Error:", error);
+    console.error("Preview Generation Error:", error);
     throw new Error(error.message || "Error al generar el montaje visual.");
   }
 }
