@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview Generación de Visagismo usando DALL-E 3 (Configuración ultra-estable).
+ * @fileOverview Generación de Visagismo usando gpt-image-2.
  */
 
 import { z } from 'genkit';
@@ -23,8 +23,8 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
   const data = input.biometricData || {};
   const gender = data.genero || 'Femenino';
   
-  // Limpiamos la descripción para que sea puramente visual y concisa
-  const visualDescription = input.description.split('.')[0] + ". " + (input.description.split('ESTILO')[1] || "").substring(0, 300);
+  // Extraemos solo lo visual para el prompt de imagen
+  const visualDescription = input.description.split('.')[0];
 
   const finalPrompt = `Close-up high-end portrait of ONE SINGLE ${gender}. 
   STYLE: Modern 3D stylized character.
@@ -35,7 +35,7 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
 
   try {
     const response = await openai.images.generate({
-      model: "dall-e-3",
+      model: "gpt-image-2" as any,
       prompt: finalPrompt,
       n: 1,
       size: "1024x1024",
@@ -51,6 +51,6 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
     return { previewImageDataUri: `data:image/png;base64,${base64}` };
   } catch (error: any) {
     console.error("Grooming Image Error:", error);
-    throw new Error(error.message || "Error al visualizar el look estético.");
+    throw new Error(error.message || "Error al visualizar el look estético con gpt-image-2.");
   }
 }
