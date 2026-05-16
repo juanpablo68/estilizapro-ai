@@ -84,7 +84,7 @@ export default function GroomingAssistantPage() {
       });
       setMessages(prev => [...prev, { role: 'assistant', content: response }]);
       
-      // Llamar a la generación de imagen con la respuesta de la IA
+      // Llamar a la generación de imagen
       handleGeneratePreview(response);
     } catch (err) {
       console.error(err);
@@ -97,7 +97,7 @@ export default function GroomingAssistantPage() {
   const handleGeneratePreview = async (description: string) => {
     const openaiKey = localStorage.getItem('openai_api_key') || undefined;
     setPreviewing(true);
-    setResultImage(null); // Limpiar imagen previa
+    setResultImage(null);
     try {
       const result = await generateGroomingPreview({
         description,
@@ -120,7 +120,7 @@ export default function GroomingAssistantPage() {
   return (
     <div className="flex-1 max-w-6xl mx-auto w-full p-6 space-y-6 pb-20">
       <header className="flex items-center gap-4 pt-4">
-        <Link href="/capsules">
+        <Link href="/dashboard">
           <Button variant="ghost" size="icon" className="rounded-full"><ArrowLeft /></Button>
         </Link>
         <div className="flex-1">
@@ -133,11 +133,11 @@ export default function GroomingAssistantPage() {
       </header>
 
       <div className="grid lg:grid-cols-12 gap-8 items-start">
-        <div className="lg:col-span-7 space-y-6 h-[700px] flex flex-col">
+        <div className="lg:col-span-7 space-y-6 flex flex-col min-h-[600px]">
           <Card className="border-none shadow-xl bg-white rounded-3xl p-6">
             <div className="flex flex-col md:flex-row md:items-center gap-6">
               <div className="flex-1 space-y-1">
-                <span className="text-[10px] font-black text-primary uppercase">Ocasión</span>
+                <span className="text-[10px] font-black text-primary uppercase">Tipo de Evento</span>
                 <Select value={eventType} onValueChange={setEventType}>
                   <SelectTrigger className="rounded-xl h-10"><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -150,7 +150,7 @@ export default function GroomingAssistantPage() {
               </div>
 
               {isMale && (
-                <div className="flex items-center gap-3 bg-primary/5 p-3 rounded-xl border border-primary/10">
+                <div className="flex items-center gap-3 bg-primary/5 p-3 rounded-xl border border-primary/10 transition-all hover:bg-primary/10">
                   <Switch 
                     id="beard-mode" 
                     checked={profile.hasBeard} 
@@ -169,8 +169,8 @@ export default function GroomingAssistantPage() {
             </div>
           </Card>
 
-          <Card className="flex-1 flex flex-col overflow-hidden border-none shadow-xl bg-white rounded-3xl">
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/5" ref={scrollRef}>
+          <Card className="flex-1 flex flex-col overflow-hidden border-none shadow-xl bg-white rounded-3xl min-h-[400px]">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/5 max-h-[400px]" ref={scrollRef}>
               {messages.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${
@@ -184,7 +184,7 @@ export default function GroomingAssistantPage() {
             </div>
             <div className="p-4 border-t flex gap-2 bg-white">
               <Input 
-                placeholder={isMale ? "Dime si buscas un estilo de barba o peinado..." : "Describe el look de maquillaje o peinado..."}
+                placeholder={isMale ? "Pregunta sobre tu barba o corte..." : "Pregunta sobre maquillaje o peinado..."}
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && sendMessage()}
@@ -197,7 +197,7 @@ export default function GroomingAssistantPage() {
 
         <div className="lg:col-span-5 space-y-6">
            <h2 className="text-lg font-bold flex items-center gap-2">
-            <Camera className="w-5 h-5 text-primary" /> Espejo Digital
+            <Camera className="w-5 h-5 text-primary" /> Visualización Proyectada
            </h2>
            <Card className="aspect-[3/4] w-full overflow-hidden relative shadow-2xl border-none ring-[12px] ring-primary/5 rounded-[3rem] bg-white">
             {resultImage ? (
@@ -206,14 +206,14 @@ export default function GroomingAssistantPage() {
                 <div className="absolute bottom-6 right-6">
                   <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg border border-primary/20 flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-primary" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-primary">Visualización Maestro</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-primary">Alta Fidelidad</span>
                   </div>
                 </div>
               </div>
             ) : previewing ? (
               <div className="w-full h-full flex flex-col items-center justify-center bg-muted/20 space-y-4">
                 <Loader2 className="w-12 h-12 animate-spin text-primary" />
-                <p className="text-xs font-bold text-primary animate-pulse">Analizando Visagismo...</p>
+                <p className="text-xs font-bold text-primary animate-pulse">Generando Visualización...</p>
               </div>
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center p-12 text-center bg-muted/5 space-y-6">
@@ -221,9 +221,9 @@ export default function GroomingAssistantPage() {
                     <Scissors className="w-12 h-12 text-primary" />
                  </div>
                  <div className="space-y-2">
-                    <h3 className="font-bold">Proyección Visual</h3>
+                    <h3 className="font-bold">Espejo Digital AI</h3>
                     <p className="text-[10px] text-muted-foreground leading-relaxed">
-                      Envía un mensaje para activar el análisis. {isMale ? 'La IA proyectará el peinado y cuidado de barba sobre tu avatar.' : 'La IA proyectará el peinado y maquillaje sobre tu rostro.'}
+                      El asistente proyectará aquí tu peinado e imagen ideal basada en el consejo recibido.
                     </p>
                  </div>
               </div>

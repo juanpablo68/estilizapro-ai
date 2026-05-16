@@ -1,8 +1,7 @@
 'use server';
 /**
- * @fileOverview Generación visual de maquillaje y peinado (Visagismo).
- * - Transforma el consejo del chat en un prompt visual conciso.
- * - Elimina parámetros conflictivos para evitar Error 400.
+ * @fileOverview Generación visual de Visagismo.
+ * Traduce el consejo del asistente en una imagen técnica y limpia.
  */
 
 import { ai, getOpenAIKey } from '@/ai/genkit';
@@ -42,32 +41,27 @@ const generateGroomingPreviewFlow = ai.defineFlow(
     const skinTone = data.colorimetria?.tono_piel || 'light skin';
     const hasBeard = input.hasBeard || false;
 
-    // Paso 1: Resumir el consejo en un prompt visual corto para evitar errores de longitud o contenido
+    // Resumir el consejo para que DALL-E no se bloquee con instrucciones conversacionales
     const summaryResponse = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         { 
           role: "system", 
-          content: "Resume este consejo de belleza en una descripción visual muy breve de 2 frases para un generador de imágenes. Enfócate solo en peinado y maquillaje. Responde en inglés." 
+          content: `Translate this beauty advice into a 1-sentence physical description for an image generator. 
+          Focus ONLY on hairstyle and skin finish. If gender is Male, focus on beard state: ${hasBeard ? 'groomed beard' : 'clean shaven'}. 
+          Language: English.` 
         },
         { role: "user", content: input.description }
       ],
     });
 
-    const visualPrompt = summaryResponse.choices[0].message.content || input.description;
+    const visualTrait = summaryResponse.choices[0].message.content || "neat grooming";
 
-    let facialHairInstruction = "";
-    if (personType === 'Masculino') {
-      facialHairInstruction = hasBeard 
-        ? "The man has a well-groomed beard." 
-        : "The man is clean-shaven.";
-    }
-
-    const finalPrompt = `High-end beauty editorial close-up portrait of ONE ${personType}. 
-    LOOK: ${visualPrompt}. 
-    TRAITS: Skin ${skinTone}, Hair ${hairColor}. ${facialHairInstruction}
-    STYLE: Modern 3D stylized character, Pixar-quality lighting. 
-    ENVIRONMENT: Solid pure white background. Minimalist and professional.`;
+    const finalPrompt = `A high-end professional beauty editorial portrait of ONE SINGLE ${personType}. 
+    LOOK: ${visualTrait}. 
+    PHYSICAL: Skin ${skinTone}, Hair ${hairColor}. 
+    STYLE: Modern 3D stylized character design, high-end fashion photography lighting. 
+    ENVIRONMENT: Solid pure white background. Extremely clean and professional.`;
 
     try {
       const response = await openai.images.generate({
