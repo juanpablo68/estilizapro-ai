@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Generación de Avatar Estilizado usando gpt-image-2.
- * Procesa b64_json, sube a Firebase Storage y devuelve URL con fallback.
+ * Procesa b64_json, sube a Firebase Storage y devuelve URL pública.
  */
 
 import { z } from 'genkit';
@@ -35,13 +35,17 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
   COMPOSITION: Full length body shot, standing centrally, neutral pose, minimalist clothes.
   ENVIRONMENT: Solid pure white background. NO text.`;
 
+  console.log("Requesting gpt-image-2 without response_format...");
+
   try {
     const response = await openai.images.generate({
       model: "gpt-image-2" as any, 
       prompt: finalPrompt,
       n: 1,
-      size: "1024x1024",
-      response_format: "b64_json"
+      size: "1024x1024", // Usando tamaño estándar compatible para evitar errores de relación de aspecto
+      quality: "medium" as any,
+      // @ts-ignore - Parámetro sugerido para gpt-image-2
+      output_format: "png"
     });
 
     console.log("OpenAI image generated successfully");
@@ -69,13 +73,13 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
       });
       console.log("Firebase Storage upload completed");
 
-      console.log("Generating Firebase download URL");
       const downloadURL = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+      console.log("Generating Firebase download URL:", downloadURL);
       
       return { avatarDataUri: downloadURL };
     } catch (storageError: any) {
       console.error("Firebase Storage Error (Refresco de Token o Permisos):", storageError);
-      console.warn("Activando Fallback: Devolviendo Data URI directamente.");
+      // Fallback a Data URI si el almacenamiento falla
       return { avatarDataUri: `data:image/png;base64,${b64Data}` };
     }
   } catch (error: any) {

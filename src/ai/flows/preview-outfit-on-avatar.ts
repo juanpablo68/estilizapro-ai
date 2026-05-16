@@ -1,18 +1,19 @@
-
 'use server';
 /**
- * @fileOverview Probador Virtual usando el motor gpt-image-2 con b64_json.
+ * @fileOverview Probador Virtual usando gpt-image-2 con b64_json y Storage.
  */
 
 import { z } from 'genkit';
 import OpenAI from 'openai';
 import { getOpenAIKey } from '@/ai/genkit';
+import { adminStorage } from '@/lib/firebase-admin';
 
 const PreviewOutfitOnAvatarInputSchema = z.object({
   avatarDataUri: z.string(),
   clothingItemsDataUris: z.array(z.string()),
   biometricData: z.any().optional(),
   openaiApiKey: z.string().optional(),
+  userId: z.string().optional(),
 });
 
 export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitOnAvatarInputSchema>) {
@@ -22,6 +23,7 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
   const openai = new OpenAI({ apiKey });
   const data = input.biometricData || {};
   const gender = data.genero || 'Femenino';
+  const userId = input.userId || 'anonymous';
 
   const analysis = await openai.chat.completions.create({
     model: "gpt-4o",
@@ -40,6 +42,8 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
 
   const description = analysis.choices[0].message.content || "a stylish fashion outfit";
 
+  console.log("Preview: Requesting gpt-image-2 without response_format...");
+
   try {
     const finalPrompt = `A professional high-end fashion photograph of ONE SINGLE ${gender}. Wearing: ${description}. Full body shot. STYLE: Modern 3D stylized character design. ENVIRONMENT: Pure solid white background. NO text.`;
     
@@ -48,19 +52,37 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
       prompt: finalPrompt,
       n: 1,
       size: "1024x1024",
-      response_format: "b64_json",
+      quality: "medium" as any,
+      // @ts-ignore
+      output_format: "png"
     });
 
     const b64Data = response.data[0].b64_json;
-    if (!b64Data) {
-      console.error("Respuesta Probador sin b64_json:", JSON.stringify(response, null, 2));
-      throw new Error("No se pudo generar el Base64 del montaje.");
-    }
+    if (!b64Data) throw new Error("No b64_json received from preview engine.");
 
-    return { previewImageDataUri: `data:image/png;base64,${b64Data}` };
+    const buffer = Buffer.from(b64Data, 'base64');
+    console.log("Buffer created successfully for outfit preview");
+
+    try {
+      const timestamp = Date.now();
+      const fileName = `previews/${userId}/${timestamp}.png`;
+      const bucket = adminStorage.bucket();
+      const file = bucket.file(fileName);
+
+      await file.save(buffer, {
+        metadata: { contentType: 'image/png' },
+        public: true
+      });
+      console.log("Outfit preview upload to Storage completed");
+
+      const downloadURL = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+      return { previewImageDataUri: downloadURL };
+    } catch (storageError) {
+      console.error("Storage Fallback for Preview:", storageError);
+      return { previewImageDataUri: `data:image/png;base64,${b64Data}` };
+    }
   } catch (error: any) {
     console.error("Preview Generation Error (gpt-image-2):", error);
-    if (error.status === 404) throw new Error("Modelo gpt-image-2 no encontrado.");
-    throw new Error(error.message || "Error al generar el montaje visual con gpt-image-2.");
+    throw new Error(error.message || "Error al generar el montaje visual.");
   }
 }

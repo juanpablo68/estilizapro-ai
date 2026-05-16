@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview Generación de Visagismo usando gpt-image-2 con procesamiento b64 y fallback.
+ * @fileOverview Generación de Visagismo usando gpt-image-2 con procesamiento b64 y Storage.
  */
 
 import { z } from 'genkit';
@@ -34,13 +34,17 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
   ${gender === 'Masculino' && !input.hasBeard ? 'Clean-shaven face.' : ''}
   ENVIRONMENT: Solid pure white background. NO TEXT.`;
 
+  console.log("Grooming: Requesting gpt-image-2 without response_format...");
+
   try {
     const response = await openai.images.generate({
       model: "gpt-image-2" as any,
       prompt: finalPrompt,
       n: 1,
       size: "1024x1024",
-      response_format: "b64_json"
+      quality: "medium" as any,
+      // @ts-ignore
+      output_format: "png"
     });
 
     console.log("OpenAI Grooming image generated successfully");
@@ -48,6 +52,7 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
     if (!b64Data) throw new Error("No b64_json in response.");
 
     const buffer = Buffer.from(b64Data, 'base64');
+    console.log("Buffer created successfully for grooming");
 
     try {
       const timestamp = Date.now();
@@ -59,7 +64,7 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
         metadata: { contentType: 'image/png' },
         public: true
       });
-      console.log("Grooming upload completed");
+      console.log("Grooming upload to Storage completed");
 
       const downloadURL = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
       return { previewImageDataUri: downloadURL };
