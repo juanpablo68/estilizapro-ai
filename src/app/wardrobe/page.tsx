@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -12,15 +13,15 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 
-// Revertido a calidad estándar estable para evitar problemas de LocalStorage
+// Optimizado a 600px para garantizar que el armario no exceda límites de almacenamiento ni de red
 const resizeImage = (base64Str: string): Promise<string> => {
   return new Promise((resolve) => {
     const img = new window.Image();
     img.src = base64Str;
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      const MAX_WIDTH = 800;
-      const MAX_HEIGHT = 800;
+      const MAX_WIDTH = 600;
+      const MAX_HEIGHT = 600;
       let width = img.width;
       let height = img.height;
 
@@ -39,7 +40,8 @@ const resizeImage = (base64Str: string): Promise<string> => {
       canvas.height = height;
       const ctx = canvas.getContext('2d');
       ctx?.drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL('image/jpeg', 0.8));
+      // Calidad 0.7 para minimizar peso del payload en Server Actions
+      resolve(canvas.toDataURL('image/jpeg', 0.7));
     };
   });
 };

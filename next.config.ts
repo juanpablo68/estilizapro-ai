@@ -10,8 +10,8 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   serverActions: {
-    // Se aumenta el límite a 100MB para permitir el envío de strings Base64 de fotos tomadas por el usuario y resultados de IA
-    // Esto previene el error "Body exceeded 1 MB limit" al procesar imágenes.
+    // Se establece el límite a 100MB para permitir el envío de strings Base64 de fotos de alta resolución.
+    // Esta es la configuración oficial para Next.js 15 para evitar el error "Body exceeded 1 MB limit".
     bodySizeLimit: '100mb',
   },
   images: {

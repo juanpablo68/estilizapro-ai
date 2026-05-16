@@ -14,7 +14,8 @@ import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from 'next/link';
 
-const resizeImage = (base64Str: string, maxWidth = 800, maxHeight = 800): Promise<string> => {
+// Optimizado a 600px para asegurar que el payload sea ligero y rápido
+const resizeImage = (base64Str: string, maxWidth = 600, maxHeight = 600): Promise<string> => {
   return new Promise((resolve) => {
     const img = new window.Image();
     img.src = base64Str;
@@ -42,7 +43,8 @@ const resizeImage = (base64Str: string, maxWidth = 800, maxHeight = 800): Promis
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, 0, 0, width, height);
       }
-      resolve(canvas.toDataURL('image/jpeg', 0.8));
+      // JPEG al 70% ofrece excelente balance entre peso y calidad para análisis IA
+      resolve(canvas.toDataURL('image/jpeg', 0.7));
     };
   });
 };
