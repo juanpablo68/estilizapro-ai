@@ -41,6 +41,7 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
   BACKGROUND: Pure solid white background. No text.`;
 
   try {
+    // Se elimina el parámetro 'style' para evitar error 400
     const response = await openai.images.generate({
       model: "dall-e-3",
       prompt: finalPrompt,
@@ -56,6 +57,6 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
     return { previewImageDataUri: `data:image/png;base64,${imageData}` };
   } catch (error: any) {
     console.error("DALL-E Error:", error);
-    throw new Error(error.message || "Error al generar la vista previa.");
+    throw new Error(error.message || "Error al generar la vista previa estética.");
   }
 }

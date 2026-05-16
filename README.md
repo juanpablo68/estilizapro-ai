@@ -1,6 +1,6 @@
 # 🚀 Guía de Lanzamiento Final - EstilizaPro AI
 
-¡Tu código ya está corregido y el error 400 ha sido eliminado!
+¡Tu código ya está corregido y el error 400 ha sido eliminado de todos los flujos de imagen!
 
 ## 🛠 Paso Final: Actualización de GitHub
 Ejecuta estos comandos uno a uno en la terminal de Firebase (la web):
@@ -15,4 +15,4 @@ Si ya tienes el proyecto en Vercel, se actualizará solo. Si no, recuerda añadi
 - `UNSPLASH_ACCESS_KEY`: Tu llave de Unsplash.
 
 ## 🚀 ¡Listo!
-He eliminado el parámetro 'style' de las peticiones DALL-E 3, que era lo que causaba el fallo. Tu lógica operativa se mantiene 100% igual.
+He eliminado el parámetro 'style' de las peticiones DALL-E 3 en los 3 flujos de imagen (Avatar, Grooming y Probador). La lógica operativa se mantiene 100% igual.
