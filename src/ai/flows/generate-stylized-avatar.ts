@@ -1,17 +1,24 @@
 
 'use server';
 /**
- * @fileOverview Generación de Avatar Estilizado usando Imagen 4 (Motor Genkit ultra-estable).
+ * @fileOverview Generación de Avatar Estilizado usando DALL-E 3 (OpenAI).
+ * Configuración ultra-estable para evitar errores de parámetros desconocidos.
  */
 
 import { z } from 'genkit';
-import { ai } from '@/ai/genkit';
+import OpenAI from 'openai';
+import { getOpenAIKey } from '@/ai/genkit';
 
 const GenerateStylizedAvatarInputSchema = z.object({
   biometricData: z.any(),
+  openaiApiKey: z.string().optional(),
 });
 
 export async function generateStylizedAvatar(input: z.infer<typeof GenerateStylizedAvatarInputSchema>) {
+  const apiKey = getOpenAIKey(input.openaiApiKey);
+  if (!apiKey) throw new Error("No se detectó una API Key de OpenAI válida.");
+
+  const openai = new OpenAI({ apiKey });
   const data = input.biometricData || {};
   const personType = data.genero || 'Femenino';
   const hairColor = data.rostro?.cabello?.color_natural || 'natural';
@@ -24,18 +31,25 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
   ENVIRONMENT: Solid pure white background.`;
 
   try {
-    const { media } = await ai.generate({
-      model: 'googleai/imagen-4.0-fast-generate-001',
+    // Usamos solo los parámetros esenciales para evitar errores 400
+    const response = await openai.images.generate({
+      model: "dall-e-3",
       prompt: finalPrompt,
+      n: 1,
+      size: "1024x1024",
     });
 
-    if (!media || !media.url) {
-      throw new Error("El motor visual no devolvió una imagen válida.");
-    }
+    const imageUrl = response.data[0].url;
+    if (!imageUrl) throw new Error("No se pudo obtener la URL de la imagen.");
 
-    return { avatarDataUri: media.url };
+    // Convertimos a base64 para consistencia con el resto de la app
+    const imageResponse = await fetch(imageUrl);
+    const buffer = await imageResponse.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString('base64');
+
+    return { avatarDataUri: `data:image/png;base64,${base64}` };
   } catch (error: any) {
-    console.error("Imagen 4 Avatar Error:", error);
-    throw new Error("Error al conectar con el motor visual de nueva generación.");
+    console.error("DALL-E Avatar Error:", error);
+    throw new Error(error.message || "Error al generar el avatar con OpenAI.");
   }
 }

@@ -1,19 +1,26 @@
 
 'use server';
 /**
- * @fileOverview Generación de Visagismo usando Imagen 4 (Motor Genkit ultra-estable).
+ * @fileOverview Generación de Visagismo usando DALL-E 3 (OpenAI).
+ * Optimizado para evitar errores de parámetros y respetar el género.
  */
 
 import { z } from 'genkit';
-import { ai } from '@/ai/genkit';
+import OpenAI from 'openai';
+import { getOpenAIKey } from '@/ai/genkit';
 
 const GenerateGroomingPreviewInputSchema = z.object({
   description: z.string(),
   biometricData: z.any().optional(),
   hasBeard: z.boolean().optional(),
+  openaiApiKey: z.string().optional(),
 });
 
 export async function generateGroomingPreview(input: z.infer<typeof GenerateGroomingPreviewInputSchema>) {
+  const apiKey = getOpenAIKey(input.openaiApiKey);
+  if (!apiKey) throw new Error("API Key de OpenAI requerida.");
+
+  const openai = new OpenAI({ apiKey });
   const data = input.biometricData || {};
   const gender = data.genero || 'Femenino';
   
@@ -28,18 +35,23 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
   ENVIRONMENT: Solid pure white background.`;
 
   try {
-    const { media } = await ai.generate({
-      model: 'googleai/imagen-4.0-fast-generate-001',
+    const response = await openai.images.generate({
+      model: "dall-e-3",
       prompt: finalPrompt,
+      n: 1,
+      size: "1024x1024",
     });
 
-    if (!media || !media.url) {
-      throw new Error("No se pudo generar la imagen del look.");
-    }
+    const imageUrl = response.data[0].url;
+    if (!imageUrl) throw new Error("No se pudo obtener la URL de la imagen.");
 
-    return { previewImageDataUri: media.url };
+    const imageResponse = await fetch(imageUrl);
+    const buffer = await imageResponse.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString('base64');
+
+    return { previewImageDataUri: `data:image/png;base64,${base64}` };
   } catch (error: any) {
-    console.error("Imagen 4 Grooming Error:", error);
-    throw new Error("Error al visualizar el look estético con el nuevo motor.");
+    console.error("DALL-E Grooming Error:", error);
+    throw new Error(error.message || "Error al visualizar el look estético.");
   }
 }

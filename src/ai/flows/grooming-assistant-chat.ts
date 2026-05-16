@@ -23,7 +23,7 @@ const GroomingChatInputSchema = z.object({
 
 export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingChatInputSchema>) {
   const apiKey = getOpenAIKey(input.openaiApiKey);
-  if (!apiKey) throw new Error("API Key de OpenAI requerida para el chat.");
+  if (!apiKey) throw new Error("API Key de OpenAI requerida.");
 
   const openai = new OpenAI({ apiKey });
 
@@ -35,9 +35,9 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
   if (gender === 'Masculino') {
     genderRules = `
     INSTRUCCIONES CRÍTICAS PARA HOMBRE:
-    1. PROHIBICIÓN TOTAL: Tienes terminantemente prohibido mencionar maquillaje, sombras, labiales o cualquier cosmético de color.
-    2. ENFOQUE CABELLO: Debes recomendar siempre un estilo de peinado masculino moderno acorde a su tipo de rostro.
-    3. BARBA: Como el usuario ${hasBeard ? 'TIENE barba' : 'NO tiene barba'}, da consejos específicos para el cuidado o afeitado.
+    1. PROHIBICIÓN TOTAL: Tienes terminantemente prohibido mencionar maquillaje, sombras, labiales o cualquier cosmético.
+    2. ENFOQUE CABELLO Y BARBA: Debes recomendar siempre un estilo de peinado masculino moderno y consejos para la barba.
+    3. BARBA ACTUAL: El usuario ${hasBeard ? 'TIENE barba' : 'NO tiene barba'}. Adapta el consejo a este estado.
     4. PIEL: Recomienda solo limpieza profunda e hidratación mate.
     REGLA: Tu respuesta DEBE tener una sección de "PEINADO Y BARBA" y otra de "CUIDADO DE PIEL".`;
   } else {
@@ -52,10 +52,11 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
   CONTEXTO DEL CLIENTE:
   - Género: ${gender}
   - Evento: ${input.eventType}
+  - Colorimetría: ${bio.temperatura || 'Detectada'}
   
   ${genderRules}
 
-  REGLA DE ORO: Tus respuestas deben ser breves, profesionales y directas.`;
+  REGLA DE ORO: Tus respuestas deben ser breves, profesionales y directas. No des introducciones largas.`;
 
   try {
     const response = await openai.chat.completions.create({

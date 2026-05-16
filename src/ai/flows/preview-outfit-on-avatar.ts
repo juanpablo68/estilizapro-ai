@@ -1,12 +1,12 @@
 
 'use server';
 /**
- * @fileOverview Probador Virtual Maestro usando Imagen 4 (Motor Genkit ultra-estable).
+ * @fileOverview Probador Virtual Maestro usando DALL-E 3 (OpenAI).
  */
 
 import { z } from 'genkit';
 import OpenAI from 'openai';
-import { ai, getOpenAIKey } from '@/ai/genkit';
+import { getOpenAIKey } from '@/ai/genkit';
 
 const PreviewOutfitOnAvatarInputSchema = z.object({
   avatarDataUri: z.string(),
@@ -17,13 +17,12 @@ const PreviewOutfitOnAvatarInputSchema = z.object({
 
 export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitOnAvatarInputSchema>) {
   const apiKey = getOpenAIKey(input.openaiApiKey);
-  if (!apiKey) throw new Error("API Key de OpenAI requerida para el análisis de prendas.");
+  if (!apiKey) throw new Error("API Key de OpenAI requerida.");
 
   const openai = new OpenAI({ apiKey });
   const data = input.biometricData || {};
   const gender = data.genero || 'Femenino';
 
-  // El análisis de las prendas sigue usando GPT-4o Vision por su alta capacidad de comprensión
   const analysis = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
@@ -44,18 +43,23 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
   try {
     const finalPrompt = `A professional high-end fashion photograph of ONE SINGLE ${gender}. Wearing: ${description}. Full body shot. STYLE: Modern 3D stylized character design. ENVIRONMENT: Pure solid white background.`;
     
-    const { media } = await ai.generate({
-      model: 'googleai/imagen-4.0-fast-generate-001',
+    const response = await openai.images.generate({
+      model: "dall-e-3",
       prompt: finalPrompt,
+      n: 1,
+      size: "1024x1024",
     });
 
-    if (!media || !media.url) {
-      throw new Error("No se pudo generar la vista previa visual.");
-    }
+    const imageUrl = response.data[0].url;
+    if (!imageUrl) throw new Error("No se pudo generar la vista previa.");
 
-    return { previewImageDataUri: media.url };
+    const imageResponse = await fetch(imageUrl);
+    const buffer = await imageResponse.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString('base64');
+
+    return { previewImageDataUri: `data:image/png;base64,${base64}` };
   } catch (error: any) {
-    console.error("Imagen 4 Preview Error:", error);
-    throw new Error("Error al generar el montaje visual con el nuevo motor.");
+    console.error("DALL-E Preview Error:", error);
+    throw new Error(error.message || "Error al generar el montaje visual.");
   }
 }
