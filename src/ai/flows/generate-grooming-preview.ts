@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Generación visual de Visagismo.
- * Versión estable sin parámetros conflictivos.
+ * Optimizado para evitar errores de prompt y parámetros desconocidos.
  */
 
 import { ai, getOpenAIKey } from '@/ai/genkit';
@@ -36,16 +36,18 @@ const generateGroomingPreviewFlow = ai.defineFlow(
     const openai = new OpenAI({ apiKey });
     const data = input.biometricData || {};
     const personType = data.genero || 'Femenino';
-    const skinTone = data.colorimetria?.tono_piel || 'natural skin';
-    const hairColor = data.rostro?.cabello?.color_natural || 'natural hair';
+    const skinTone = data.colorimetria?.tono_piel || 'natural';
+    const hairColor = data.rostro?.cabello?.color_natural || 'natural';
 
-    // Extraemos las primeras oraciones para evitar prompts demasiado largos
-    const visualSummary = input.description.split('.').slice(0, 2).join('.') + ".";
+    // Limpiamos el prompt de cualquier residuo conversacional
+    const visualContext = input.description.length > 300 
+      ? input.description.substring(0, 300) + "..." 
+      : input.description;
 
-    const finalPrompt = `A high-end professional beauty editorial close-up portrait of ONE ${personType}. 
-    GROOMING & STYLE: ${visualSummary}. 
-    PHYSICAL: Skin tone ${skinTone}, Hair ${hairColor}. 
-    ${personType === 'Masculino' ? (input.hasBeard ? 'With a well-groomed beard.' : 'Clean shaven.') : ''}
+    const finalPrompt = `A high-end beauty portrait close-up of ONE SINGLE ${personType}. 
+    GROOMING: ${visualContext}. 
+    FEATURES: ${skinTone} skin, ${hairColor} hair. 
+    ${personType === 'Masculino' ? (input.hasBeard ? 'With a well-groomed beard.' : 'Clean shaven facial skin.') : ''}
     STYLE: Modern 3D stylized character design, cinematic studio lighting. 
     ENVIRONMENT: Solid pure white background.`;
 
@@ -65,7 +67,7 @@ const generateGroomingPreviewFlow = ai.defineFlow(
       return { previewImageDataUri: `data:image/png;base64,${imageData}` };
     } catch (error: any) {
       console.error("DALL-E Grooming Error:", error);
-      throw new Error(error.message || "Error al generar la visualización estética.");
+      throw new Error("No se pudo generar la vista previa estética.");
     }
   }
 );

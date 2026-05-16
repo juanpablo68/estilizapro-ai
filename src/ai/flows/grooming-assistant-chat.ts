@@ -1,8 +1,7 @@
 'use server';
 /**
  * @fileOverview Chat especializado en Visagismo.
- * REGLA DE ORO: Debe incluir SIEMPRE peinado y piel.
- * Coherencia estricta según género detectado.
+ * Asegura recomendaciones de peinado y piel según género.
  */
 
 import { z } from 'genkit';
@@ -33,31 +32,33 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
   const hairColor = bio.rostro?.cabello?.color_natural || 'natural';
   const hasBeard = input.userContext?.hasBeard || false;
 
-  let genderSpecificRules = "";
+  let rules = "";
   if (gender === 'Masculino') {
-    genderSpecificRules = `
-    REGLAS ESTRICTAS PARA HOMBRE (MAESTRO GROOMING):
-    1. PROHIBIDO EL MAQUILLAJE: No menciones sombras, labiales o delineadores bajo ninguna circunstancia.
-    2. PIEL Y CABELLO: Es OBLIGATORIO dar un consejo de cuidado de piel Y un estilo de peinado masculino profesional.
-    3. BARBA: El usuario ${hasBeard ? 'TIENE' : 'NO TIENE'} barba. Sugiere mantenimiento o afeitado acorde.`;
+    rules = `
+    ESTILO MASCULINO (GROOMING):
+    1. PROHIBIDO: No menciones sombras de ojos, labiales, delineadores ni ningún tipo de maquillaje femenino.
+    2. OBLIGATORIO: Sugiere un tipo de peinado masculino profesional acorde al evento.
+    3. PIEL: Sugiere hidratación o control de brillo.
+    4. BARBA: El usuario ${hasBeard ? 'TIENE' : 'NO TIENE'} barba. Sugiere arreglo o afeitado acorde.`;
   } else {
-    genderSpecificRules = `
-    REGLAS PARA MUJER (VISAGISMO):
-    1. MAQUILLAJE Y PEINADO: Es OBLIGATORIO sugerir técnica de maquillaje Y un estilo de peinado femenino acorde al evento.`;
+    rules = `
+    VISAGISMO FEMENINO:
+    1. OBLIGATORIO: Sugiere una técnica de maquillaje (ojos/labios) acorde a su temperatura ${temp}.
+    2. OBLIGATORIO: Sugiere un estilo de peinado femenino (recogido, ondas, liso) para el evento.`;
   }
 
-  const systemPrompt = `Eres el Director de Estética de Pilar Cifuentes. Experto en Visagismo Profesional.
+  const systemPrompt = `Eres el Director de Visagismo de Pilar Cifuentes.
   
-  CONTEXTO:
+  USUARIO:
   - Género: ${gender}
   - Evento: ${input.eventType}
-  - Tono de Piel: ${skin} (${temp})
-  - Pelo: ${hairColor}
-  ${genderSpecificRules}
+  - Rasgos: Pelo ${hairColor}, Piel ${skin} (${temp})
+  
+  ${rules}
 
   PERSONALIDAD:
-  - Humano, directo y conciso. Máximo 2 párrafos cortos. Habla de tú.
-  - Asegúrate de cubrir TANTO el rostro (piel/maquillaje) COMO el cabello (peinado/estilo). No te limites solo a uno.`;
+  - Habla de tú, de forma humana y directa. Máximo 2 párrafos cortos.
+  - Asegúrate de cubrir SIEMPRE tanto el CABELLO (peinado) como el ROSTRO (piel/maquillaje según género).`;
 
   const response = await openai.chat.completions.create({
     model: "gpt-4o",
@@ -67,5 +68,5 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
     ]
   });
 
-  return response.choices[0].message.content || "Dime, ¿qué estilo de peinado y estética buscamos hoy?";
+  return response.choices[0].message.content || "Dime, ¿qué estilo buscamos para tu cabello y piel hoy?";
 }

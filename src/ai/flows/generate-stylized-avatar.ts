@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Generación de Avatar Estilizado Profesional.
- * Versión ultra-estable sin parámetros experimentales para evitar Error 400.
+ * Configuración ultra-estable para DALL-E 3.
  */
 
 import { ai, getOpenAIKey } from '@/ai/genkit';
@@ -39,11 +39,11 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     const skinTone = data.colorimetria?.tono_piel || 'light skin';
     const eyeColor = data.rostro?.ojos?.color_detalle || 'natural eyes';
 
-    const finalPrompt = `A high-end professional fashion editorial photograph of ONE SINGLE ${personType}. 
-    PHYSICAL TRAITS: Skin tone ${skinTone}, Hair ${hairColor}, Eyes ${eyeColor}.
+    const finalPrompt = `A professional fashion portrait of ONE SINGLE ${personType}. 
+    FEATURES: ${skinTone} skin, ${hairColor} hair, ${eyeColor} eyes.
     STYLE: Modern 3D stylized character design, high-end studio lighting. 
-    COMPOSITION: Full length body shot, standing centrally, neutral pose, minimalist fashion clothes.
-    ENVIRONMENT: Solid pure white background (#FFFFFF). Extremely clean and artistic.`;
+    COMPOSITION: Full length body shot, standing centrally, neutral pose, minimalist high-fashion clothes.
+    ENVIRONMENT: Solid pure white background (#FFFFFF). Clean and artistic.`;
 
     try {
       const response = await openai.images.generate({
@@ -61,7 +61,7 @@ const generateStylizedAvatarFlow = ai.defineFlow(
       return { avatarDataUri: `data:image/png;base64,${imageData}` };
     } catch (error: any) {
       console.error("DALL-E Avatar Error:", error);
-      throw new Error(error.message || "Error al generar el avatar estilizado.");
+      throw new Error(error.message || "Error al generar el avatar.");
     }
   }
 );

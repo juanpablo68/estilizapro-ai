@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Probador Virtual Maestro.
- * Versión optimizada sin parámetro 'style' para evitar Error 400.
+ * Configuración de imagen limpia para evitar Error 400.
  */
 
 import { z } from 'genkit';
@@ -48,7 +48,7 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
   try {
     const response = await openai.images.generate({
       model: "dall-e-3",
-      prompt: `A professional fashion photograph of ONE SINGLE ${personType}. Wearing: ${detailedDescription}. Full length view. STYLE: Modern 3D character design. ENVIRONMENT: Pure solid white background.`,
+      prompt: `A high-end fashion photograph of ONE SINGLE ${personType}. Wearing: ${detailedDescription}. Full length shot. STYLE: Modern 3D stylized character design. ENVIRONMENT: Pure solid white background.`,
       n: 1,
       size: "1024x1024",
       quality: "standard",
@@ -61,6 +61,6 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
     return { previewImageDataUri: `data:image/png;base64,${imageData}` };
   } catch (error: any) {
     console.error("DALL-E Preview Error:", error);
-    throw new Error(error.message || "Error al generar el probador virtual.");
+    throw new Error("No se pudo generar el probador virtual.");
   }
 }
