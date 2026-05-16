@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Generación de Avatar Estilizado Profesional.
- * Versión ultra-estable sin parámetros experimentales para evitar errores 400.
+ * Versión corregida: se elimina el parámetro 'style' para evitar error 400 en OpenAI.
  */
 
 import { ai, getOpenAIKey } from '@/ai/genkit';
@@ -48,7 +48,6 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     ENVIRONMENT: Solid pure white background (#FFFFFF). Clean, artistic, and minimalist.`;
 
     try {
-      // Se elimina el parámetro 'style' para evitar error 400
       const response = await openai.images.generate({
         model: "dall-e-3",
         prompt: finalPrompt,

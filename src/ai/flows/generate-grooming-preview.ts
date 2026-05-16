@@ -1,7 +1,7 @@
 'use server';
 /**
- * @fileOverview Generación visual de maquillaje y peinado.
- * Versión optimizada sin parámetros incompatibles.
+ * @fileOverview Generación visual de maquillaje y peinado (Visagismo).
+ * Versión corregida: se elimina el parámetro 'style' para evitar error 400.
  */
 
 import { ai, getOpenAIKey } from '@/ai/genkit';
@@ -41,7 +41,6 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
   BACKGROUND: Pure solid white background. No text.`;
 
   try {
-    // Se elimina el parámetro 'style' para evitar error 400
     const response = await openai.images.generate({
       model: "dall-e-3",
       prompt: finalPrompt,

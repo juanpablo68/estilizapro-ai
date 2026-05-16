@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Probador Virtual Maestro.
- * Versión corregida para evitar el error 400 eliminando parámetros conflictivos.
+ * Versión corregida: se elimina el parámetro 'style' para evitar error 400.
  */
 
 import { z } from 'genkit';
@@ -46,7 +46,6 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
   const detailedDescription = analysisResponse.choices[0].message.content || "un conjunto de moda coordinado";
 
   try {
-    // Se elimina el parámetro 'style' para evitar error 400
     const response = await openai.images.generate({
       model: "dall-e-3",
       prompt: `A professional fashion photograph of ONE SINGLE ${personType}. Wearing exactly: ${detailedDescription}. Full length view from head to toe. Style: 3D character design, Pixar-inspired lighting. Background: Pure solid white void. No text, no lines.`,
