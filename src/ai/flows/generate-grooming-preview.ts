@@ -1,7 +1,6 @@
-
 'use server';
 /**
- * @fileOverview Generación de Visagismo usando gpt-image-2 con carga en Firebase Storage.
+ * @fileOverview Generación de Visagismo usando gpt-image-2 con procesamiento b64 y fallback.
  */
 
 import { z } from 'genkit';
@@ -19,7 +18,7 @@ const GenerateGroomingPreviewInputSchema = z.object({
 
 export async function generateGroomingPreview(input: z.infer<typeof GenerateGroomingPreviewInputSchema>) {
   const apiKey = getOpenAIKey(input.openaiApiKey);
-  if (!apiKey) throw new Error("API Key de OpenAI requerida (401).");
+  if (!apiKey) throw new Error("Error 401: API Key de OpenAI requerida.");
 
   const openai = new OpenAI({ apiKey });
   const data = input.biometricData || {};
@@ -41,36 +40,35 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
       prompt: finalPrompt,
       n: 1,
       size: "1024x1024",
+      response_format: "b64_json"
     });
 
-    const imageData = response.data[0];
-    let buffer: Buffer;
+    console.log("OpenAI Grooming image generated successfully");
+    const b64Data = response.data[0].b64_json;
+    if (!b64Data) throw new Error("No b64_json in response.");
 
-    if (imageData.b64_json) {
-      buffer = Buffer.from(imageData.b64_json, 'base64');
-    } else if (imageData.url) {
-      const imgRes = await fetch(imageData.url);
-      const arrayBuffer = await imgRes.arrayBuffer();
-      buffer = Buffer.from(arrayBuffer);
-    } else {
-      throw new Error("La IA no devolvió datos de imagen válidos.");
+    const buffer = Buffer.from(b64Data, 'base64');
+
+    try {
+      const timestamp = Date.now();
+      const fileName = `grooming/${userId}/${timestamp}.png`;
+      const bucket = adminStorage.bucket();
+      const file = bucket.file(fileName);
+
+      await file.save(buffer, {
+        metadata: { contentType: 'image/png' },
+        public: true
+      });
+      console.log("Grooming upload completed");
+
+      const downloadURL = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+      return { previewImageDataUri: downloadURL };
+    } catch (storageError) {
+      console.error("Storage Fallback for Grooming:", storageError);
+      return { previewImageDataUri: `data:image/png;base64,${b64Data}` };
     }
-
-    const timestamp = Date.now();
-    const fileName = `grooming/${userId}/${timestamp}.png`;
-    const bucket = adminStorage.bucket();
-    const file = bucket.file(fileName);
-
-    await file.save(buffer, {
-      metadata: { contentType: 'image/png' },
-      public: true
-    });
-
-    const downloadURL = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
-
-    return { previewImageDataUri: downloadURL };
   } catch (error: any) {
     console.error("Grooming Image Error (gpt-image-2):", error);
-    throw new Error(error.message || "Error al visualizar el look con gpt-image-2.");
+    throw new Error(error.message || "Error al visualizar el look.");
   }
 }

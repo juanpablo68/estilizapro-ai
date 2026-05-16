@@ -1,7 +1,7 @@
-
 'use server';
 /**
- * @fileOverview Generación de Avatar Estilizado usando gpt-image-2 con carga en Firebase Storage.
+ * @fileOverview Generación de Avatar Estilizado usando gpt-image-2.
+ * Procesa b64_json, sube a Firebase Storage y devuelve URL con fallback.
  */
 
 import { z } from 'genkit';
@@ -19,7 +19,7 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
   const apiKey = getOpenAIKey(input.openaiApiKey);
   
   if (!apiKey || apiKey.trim() === '') {
-    throw new Error("No se detectó una API Key de OpenAI válida. (Error 401)");
+    throw new Error("Error 401: No se detectó una API Key de OpenAI válida.");
   }
 
   const openai = new OpenAI({ apiKey });
@@ -41,36 +41,43 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
       prompt: finalPrompt,
       n: 1,
       size: "1024x1024",
-      // response_format: "b64_json" REMOVIDO para evitar Error 400 si el modelo no lo soporta
+      response_format: "b64_json"
     });
 
-    const imageData = response.data[0];
-    let buffer: Buffer;
+    console.log("OpenAI image generated successfully");
+    const b64Data = response.data[0].b64_json;
 
-    if (imageData.b64_json) {
-      buffer = Buffer.from(imageData.b64_json, 'base64');
-    } else if (imageData.url) {
-      const imgRes = await fetch(imageData.url);
-      const arrayBuffer = await imgRes.arrayBuffer();
-      buffer = Buffer.from(arrayBuffer);
-    } else {
-      console.error("Respuesta OpenAI sin datos de imagen:", JSON.stringify(response, null, 2));
-      throw new Error("La IA no devolvió datos de imagen válidos.");
+    if (!b64Data) {
+      console.error("Respuesta OpenAI sin b64_json:", JSON.stringify(response, null, 2));
+      throw new Error("La IA no devolvió datos de imagen (b64_json) válidos.");
     }
+    console.log("Base64 received successfully");
 
-    const timestamp = Date.now();
-    const fileName = `avatars/${userId}/${timestamp}.png`;
-    const bucket = adminStorage.bucket();
-    const file = bucket.file(fileName);
+    const buffer = Buffer.from(b64Data, 'base64');
+    console.log("Buffer created successfully");
 
-    await file.save(buffer, {
-      metadata: { contentType: 'image/png' },
-      public: true
-    });
+    try {
+      console.log("Uploading to Firebase Storage...");
+      const timestamp = Date.now();
+      const fileName = `avatars/${userId}/${timestamp}.png`;
+      const bucket = adminStorage.bucket();
+      const file = bucket.file(fileName);
 
-    const downloadURL = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+      await file.save(buffer, {
+        metadata: { contentType: 'image/png' },
+        public: true
+      });
+      console.log("Firebase Storage upload completed");
 
-    return { avatarDataUri: downloadURL };
+      console.log("Generating Firebase download URL");
+      const downloadURL = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+      
+      return { avatarDataUri: downloadURL };
+    } catch (storageError: any) {
+      console.error("Firebase Storage Error (Refresco de Token o Permisos):", storageError);
+      console.warn("Activando Fallback: Devolviendo Data URI directamente.");
+      return { avatarDataUri: `data:image/png;base64,${b64Data}` };
+    }
   } catch (error: any) {
     console.error("Image Generation Error (gpt-image-2):", error);
     if (error.status === 401) throw new Error("Error 401: API Key inválida.");
