@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Lock, Sparkles, Settings, Info } from "lucide-react";
+import { Lock, Sparkles, Info } from "lucide-react";
 import Link from 'next/link';
 import { Badge } from "@/components/ui/badge";
 
@@ -45,15 +45,6 @@ export default function LoginPage() {
       {/* Elementos decorativos de fondo */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-3xl" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/5 rounded-full blur-3xl" />
-
-      {/* Botón de Ajustes Flotante */}
-      <div className="absolute top-6 right-6 z-50">
-        <Link href="/settings">
-          <Button variant="outline" className="rounded-full shadow-lg border-primary text-primary font-bold gap-2 bg-white hover:bg-primary/5 transition-all">
-            <Settings className="w-5 h-5" /> Configurar APIs
-          </Button>
-        </Link>
-      </div>
 
       <div className="w-full max-w-md space-y-8 text-center relative z-10">
         <div className="space-y-4">
@@ -104,7 +95,7 @@ export default function LoginPage() {
             <div className="pt-2 flex items-start gap-2 text-left bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100">
               <Info className="w-4 h-4 text-indigo-600 mt-0.5 shrink-0" />
               <p className="text-[10px] text-indigo-700 leading-relaxed">
-                <strong>Nota para Testers:</strong> Esta app usa LocalStorage. Tus fotos no salen de tu navegador, pero necesitarás configurar tu propia <strong>OpenAI Key</strong> en ajustes para que la IA funcione.
+                <strong>Nota para Testers:</strong> Esta app utiliza inteligencia artificial avanzada para analizar tu perfil y generar looks personalizados.
               </p>
             </div>
           </CardContent>
@@ -112,7 +103,7 @@ export default function LoginPage() {
 
         <footer className="space-y-4 pt-4">
           <p className="text-[9px] text-muted-foreground/60 uppercase tracking-[0.2em] font-bold">
-            Powered by Pure OpenAI Architecture (GPT-4o + DALL-E 3)
+            Powered by Pure OpenAI Architecture (GPT-4o + gpt-image-2)
           </p>
         </footer>
       </div>

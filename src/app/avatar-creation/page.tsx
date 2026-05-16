@@ -8,7 +8,7 @@ import { generateStylizedAvatar } from '@/ai/flows/generate-stylized-avatar';
 import { analyzeStyleContext } from '@/ai/flows/analyze-style-context';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, Image as ImageIcon, Loader2, Sparkles, RefreshCw, Brain, CheckCircle, Settings, ArrowLeft } from "lucide-react";
+import { Camera, Image as ImageIcon, Loader2, Sparkles, RefreshCw, Brain, CheckCircle, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -158,11 +158,6 @@ export default function AvatarCreationPage() {
             <p className="text-muted-foreground text-[10px] uppercase font-black tracking-widest">Diagnóstico Real</p>
           </div>
         </div>
-        <Link href="/settings">
-          <Button variant="outline" size="sm" className="rounded-xl border-primary text-primary font-bold gap-2 bg-white">
-            <Settings className="w-4 h-4" /> Configuración
-          </Button>
-        </Link>
       </header>
 
       {!generatedAvatar ? (

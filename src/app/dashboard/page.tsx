@@ -11,7 +11,6 @@ import {
   MessageCircle, 
   UserCircle, 
   PlusCircle, 
-  Settings,
   Sparkles,
   Instagram
 } from "lucide-react";
@@ -34,7 +33,6 @@ export default function DashboardPage() {
     { name: 'Asistente de Vestuario', icon: MessageCircle, color: 'text-primary', bg: 'bg-primary/5', href: '/chat' },
     { name: 'Probador Virtual', icon: UserCircle, color: 'text-secondary', bg: 'bg-secondary/5', href: '/preview' },
     { name: 'Más Cápsulas', icon: PlusCircle, color: 'text-primary', bg: 'bg-primary/5', href: '/purchase' },
-    { name: 'CONFIGURAR APIS', icon: Settings, color: 'text-white', bg: 'bg-primary', href: '/settings', highlight: true },
   ];
 
   if (!mounted) return null;
@@ -48,7 +46,7 @@ export default function DashboardPage() {
         </div>
         <div className="relative h-12 w-12 rounded-full overflow-hidden border-2 border-primary shadow-sm bg-muted cursor-pointer" onClick={() => router.push('/avatar-creation')}>
           {profile.avatarDataUri ? (
-            <Image src={profile.avatarDataUri} alt="Avatar" fill className="object-cover" />
+            <Image src={profile.avatarDataUri} alt="Avatar" fill className="object-cover" unoptimized />
           ) : (
             <UserCircle className="w-full h-full text-muted-foreground p-1" />
           )}
@@ -73,14 +71,14 @@ export default function DashboardPage() {
         {actions.map((action) => (
           <Card 
             key={action.name} 
-            className={`hover:shadow-md transition-shadow cursor-pointer border-none ${action.highlight ? 'ring-4 ring-primary ring-offset-2 animate-pulse' : ''}`} 
+            className="hover:shadow-md transition-shadow cursor-pointer border-none" 
             onClick={() => router.push(action.href)}
           >
             <CardContent className="p-6 flex flex-col items-center justify-center space-y-3">
               <div className={`p-4 rounded-2xl ${action.bg}`}>
                 <action.icon className={`w-8 h-8 ${action.color}`} />
               </div>
-              <span className={`font-bold text-sm text-center ${action.highlight ? 'text-primary' : 'text-foreground'}`}>{action.name}</span>
+              <span className="font-bold text-sm text-center text-foreground">{action.name}</span>
             </CardContent>
           </Card>
         ))}
