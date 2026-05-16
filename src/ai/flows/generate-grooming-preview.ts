@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview Generación de Visagismo con prompt técnico ultra-corto para estabilidad.
+ * @fileOverview Generación de Visagismo con descarga de imagen segura.
  */
 
 import { ai, getOpenAIKey } from '@/ai/genkit';
@@ -36,12 +36,12 @@ const generateGroomingPreviewFlow = ai.defineFlow(
     const data = input.biometricData || {};
     const gender = data.genero || 'Femenino';
     
-    // Extraemos solo lo visual del consejo para evitar que el prompt sea demasiado largo o complejo
+    // Resumimos visualmente para evitar prompts excesivamente largos
     const visualRef = input.description.length > 300 ? input.description.substring(0, 300) : input.description;
 
     const finalPrompt = `Close-up high-end portrait of ONE SINGLE ${gender}. 
     LOOK: ${visualRef}. 
-    ${gender === 'Masculino' && input.hasBeard ? 'Includes a well-groomed beard.' : ''}
+    ${gender === 'Masculino' && input.hasBeard ? 'Include a perfectly groomed beard.' : ''}
     ${gender === 'Masculino' && !input.hasBeard ? 'Clean-shaven face.' : ''}
     ART STYLE: Modern 3D stylized character, studio lighting. 
     ENVIRONMENT: Solid pure white background.`;
@@ -52,13 +52,17 @@ const generateGroomingPreviewFlow = ai.defineFlow(
         prompt: finalPrompt,
         n: 1,
         size: "1024x1024",
-        response_format: "b64_json"
       });
 
-      const imageData = response.data[0].b64_json;
-      if (!imageData) throw new Error("Error en datos de imagen.");
+      const imageUrl = response.data[0].url;
+      if (!imageUrl) throw new Error("No se pudo obtener la URL de la imagen.");
 
-      return { previewImageDataUri: `data:image/png;base64,${imageData}` };
+      const imageResponse = await fetch(imageUrl);
+      const buffer = await imageResponse.arrayBuffer();
+      const base64 = Buffer.from(buffer).toString('base64');
+      const contentType = imageResponse.headers.get('content-type') || 'image/png';
+
+      return { previewImageDataUri: `data:${contentType};base64,${base64}` };
     } catch (error: any) {
       console.error("Grooming Image Error:", error);
       throw new Error("Error técnico al visualizar el look estético.");

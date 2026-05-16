@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview Asistente de Visagismo con lógica de género inquebrantable.
+ * @fileOverview Asistente de Visagismo con lógica de género blindada y enfoque integral.
  */
 
 import { z } from 'genkit';
@@ -31,19 +31,19 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
   const hairColor = bio.rostro?.cabello?.color_natural || 'natural';
   const hasBeard = input.userContext?.hasBeard ?? false;
 
-  let rules = "";
+  let genderRules = "";
   if (gender === 'Masculino') {
-    rules = `
+    genderRules = `
     INSTRUCCIONES CRÍTICAS PARA HOMBRE:
-    1. PROHIBICIÓN ABSOLUTA: No menciones maquillaje, sombras, delineadores, labiales ni correctores de color.
-    2. ENFOQUE OBLIGATORIO: Debes recomendar un estilo de PEINADO o CORTE de cabello (ej: pompadour, liso hacia atrás, fade).
-    3. BARBA: El usuario ${hasBeard ? 'TIENE' : 'NO TIENE'} barba. Sugiere cómo definirla o cuidarla según el caso.
-    4. CUIDADO DE PIEL: Recomienda solo limpieza, hidratación o control de brillo.`;
+    1. PROHIBICIÓN ABSOLUTA: Tienes terminantemente prohibido mencionar maquillaje, sombras, delineadores, labiales, bases de color o máscaras de pestañas. No uses lenguaje femenino.
+    2. ENFOQUE CABELLO: Sugiere siempre un peinado o corte masculino (ej: pompadour, rapado lateral, estilo clásico hacia atrás).
+    3. BARBA: El usuario ${hasBeard ? 'TIENE' : 'NO TIENE'} barba. Sugiere cómo arreglarla, recortarla o hidratarla.
+    4. CUIDADO DE PIEL: Recomienda solo limpieza, exfoliación suave o hidratación mate para evitar brillos.`;
   } else {
-    rules = `
+    genderRules = `
     INSTRUCCIONES PARA MUJER:
-    1. CABELLO: Sugiere un peinado (ondas, liso, recogido) acorde al evento.
-    2. MAQUILLAJE: Sugiere técnicas y colores según su colorimetría fría/cálida.`;
+    1. CABELLO: Sugiere un peinado (ondas, recogido, liso) ideal para el evento.
+    2. MAQUILLAJE: Sugiere una paleta de colores acorde a su temperatura ${bio.temperatura || 'Cálida/Fría'}.`;
   }
 
   const systemPrompt = `Eres el Director Maestro de Visagismo de Pilar Cifuentes Catalán.
@@ -53,10 +53,10 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
   - Evento: ${input.eventType}
   - Rasgos: Cabello ${hairColor}, Piel ${skin}
   
-  ${rules}
+  ${genderRules}
 
-  PERSONALIDAD: Profesional, experto, humano y directo. Habla de tú. Máximo 2 párrafos. 
-  DEBES cubrir siempre el CABELLO y el ROSTRO/BARBA de forma equilibrada.`;
+  PERSONALIDAD: Profesional, experto, humano y directo. Habla de tú. 
+  REGLA DE RESPUESTA: Debes incluir SIEMPRE una recomendación detallada para el CABELLO y otra para el ROSTRO (o barba si aplica). Máximo 2 párrafos.`;
 
   try {
     const response = await openai.chat.completions.create({
@@ -70,6 +70,6 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
     return response.choices[0].message.content || "Como tu asesor, necesito que me digas qué efecto quieres lograr hoy.";
   } catch (error: any) {
     console.error("Grooming Chat Error:", error);
-    throw new Error("El asistente no pudo procesar tu consulta estática.");
+    throw new Error("El asistente no pudo procesar tu consulta.");
   }
 }

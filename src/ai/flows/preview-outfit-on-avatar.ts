@@ -1,7 +1,6 @@
 'use server';
 /**
- * @fileOverview Probador Virtual Maestro.
- * Configuración de imagen limpia sin parámetros conflictivos.
+ * @fileOverview Probador Virtual Maestro con descarga segura de imagen.
  */
 
 import { z } from 'genkit';
@@ -23,11 +22,10 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
   const data = input.biometricData || {};
   const gender = data.genero || 'Femenino';
 
-  // Primero analizamos el conjunto para tener una descripción visual
   const analysis = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
-      { role: "system", content: "Describe este outfit de moda puesto sobre una persona en una sola frase descriptiva." },
+      { role: "system", content: "Describe este outfit de moda puesto sobre una persona en una sola frase descriptiva corta." },
       {
         role: "user",
         content: [
@@ -47,14 +45,17 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
       prompt: `A high-end fashion photograph of ONE SINGLE ${gender}. Wearing: ${description}. Full body shot. STYLE: Modern 3D stylized character design. ENVIRONMENT: Pure solid white background.`,
       n: 1,
       size: "1024x1024",
-      quality: "standard",
-      response_format: "b64_json",
     });
 
-    const imageData = response.data[0].b64_json;
-    if (!imageData) throw new Error("Error visual.");
+    const imageUrl = response.data[0].url;
+    if (!imageUrl) throw new Error("Error visual.");
 
-    return { previewImageDataUri: `data:image/png;base64,${imageData}` };
+    const imageResponse = await fetch(imageUrl);
+    const buffer = await imageResponse.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString('base64');
+    const contentType = imageResponse.headers.get('content-type') || 'image/png';
+
+    return { previewImageDataUri: `data:${contentType};base64,${base64}` };
   } catch (error: any) {
     console.error("DALL-E Preview Error:", error);
     throw new Error("No se pudo generar la vista previa del conjunto.");

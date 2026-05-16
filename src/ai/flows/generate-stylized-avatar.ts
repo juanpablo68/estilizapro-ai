@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Generación de Avatar Estilizado.
- * Versión ultra-estable: Elimina parámetros opcionales para evitar errores de API.
+ * Versión de ultra-estabilidad: Descarga la imagen manualmente para evitar Error 400.
  */
 
 import { ai, getOpenAIKey } from '@/ai/genkit';
@@ -45,19 +45,24 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     ENVIRONMENT: Solid pure white background.`;
 
     try {
-      // Objeto de configuración minimalista para evitar Error 400 "Unknown parameter"
+      // Configuración minimalista extrema para evitar Error 400
       const response = await openai.images.generate({
         model: "dall-e-3",
         prompt: finalPrompt,
         n: 1,
         size: "1024x1024",
-        response_format: "b64_json"
       });
 
-      const imageData = response.data[0].b64_json;
-      if (!imageData) throw new Error("La IA no devolvió datos de imagen.");
+      const imageUrl = response.data[0].url;
+      if (!imageUrl) throw new Error("La IA no devolvió una URL de imagen.");
 
-      return { avatarDataUri: `data:image/png;base64,${imageData}` };
+      // Descargamos la imagen y la convertimos a base64 en el servidor
+      const imageResponse = await fetch(imageUrl);
+      const buffer = await imageResponse.arrayBuffer();
+      const base64 = Buffer.from(buffer).toString('base64');
+      const contentType = imageResponse.headers.get('content-type') || 'image/png';
+
+      return { avatarDataUri: `data:${contentType};base64,${base64}` };
     } catch (error: any) {
       console.error("DALL-E Avatar Error:", error);
       throw new Error(error.message || "Error al conectar con el motor de imágenes.");
