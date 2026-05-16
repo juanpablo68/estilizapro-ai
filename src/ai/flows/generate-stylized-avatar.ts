@@ -1,16 +1,13 @@
 'use server';
 /**
- * @fileOverview Generación de Avatar Estilizado.
- * Versión de ultra-estabilidad: Descarga la imagen manualmente para evitar Error 400.
+ * @fileOverview Generación de Avatar Estilizado usando Imagen 4 (Motor ultra-estable).
  */
 
-import { ai, getOpenAIKey } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import OpenAI from 'openai';
 
 const GenerateStylizedAvatarInputSchema = z.object({
   biometricData: z.any(),
-  openaiApiKey: z.string().optional(),
 });
 
 const GenerateStylizedAvatarOutputSchema = z.object({
@@ -28,12 +25,7 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     outputSchema: GenerateStylizedAvatarOutputSchema,
   },
   async (input) => {
-    const apiKey = getOpenAIKey(input.openaiApiKey);
-    if (!apiKey) throw new Error("API Key de OpenAI requerida.");
-
-    const openai = new OpenAI({ apiKey });
     const data = input.biometricData || {};
-
     const personType = data.genero || 'Femenino';
     const hairColor = data.rostro?.cabello?.color_natural || 'natural';
     const skinTone = data.colorimetria?.tono_piel || 'light skin';
@@ -45,27 +37,20 @@ const generateStylizedAvatarFlow = ai.defineFlow(
     ENVIRONMENT: Solid pure white background.`;
 
     try {
-      // Configuración minimalista extrema para evitar Error 400
-      const response = await openai.images.generate({
-        model: "dall-e-3",
+      // Uso de Imagen 4 a través de Genkit (Motor más moderno y estable)
+      const { media } = await ai.generate({
+        model: 'googleai/imagen-4.0-fast-generate-001',
         prompt: finalPrompt,
-        n: 1,
-        size: "1024x1024",
       });
 
-      const imageUrl = response.data[0].url;
-      if (!imageUrl) throw new Error("La IA no devolvió una URL de imagen.");
+      if (!media?.url) {
+        throw new Error("El motor visual Imagen 4 no devolvió una imagen.");
+      }
 
-      // Descargamos la imagen y la convertimos a base64 en el servidor
-      const imageResponse = await fetch(imageUrl);
-      const buffer = await imageResponse.arrayBuffer();
-      const base64 = Buffer.from(buffer).toString('base64');
-      const contentType = imageResponse.headers.get('content-type') || 'image/png';
-
-      return { avatarDataUri: `data:${contentType};base64,${base64}` };
+      return { avatarDataUri: media.url };
     } catch (error: any) {
-      console.error("DALL-E Avatar Error:", error);
-      throw new Error(error.message || "Error al conectar con el motor de imágenes.");
+      console.error("Imagen 4 Avatar Error:", error);
+      throw new Error("Error al conectar con el motor visual de nueva generación.");
     }
   }
 );

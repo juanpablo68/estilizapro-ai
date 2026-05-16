@@ -1,6 +1,7 @@
 'use server';
 /**
- * @fileOverview Asistente de Visagismo con lógica de género blindada y enfoque integral.
+ * @fileOverview Asistente de Visagismo con lógica de género blindada.
+ * Prohíbe maquillaje en hombres y asegura recomendación de cabello.
  */
 
 import { z } from 'genkit';
@@ -35,10 +36,10 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
   if (gender === 'Masculino') {
     genderRules = `
     INSTRUCCIONES CRÍTICAS PARA HOMBRE:
-    1. PROHIBICIÓN ABSOLUTA: Tienes terminantemente prohibido mencionar maquillaje, sombras, delineadores, labiales, bases de color o máscaras de pestañas. No uses lenguaje femenino.
-    2. ENFOQUE CABELLO: Sugiere siempre un peinado o corte masculino (ej: pompadour, rapado lateral, estilo clásico hacia atrás).
-    3. BARBA: El usuario ${hasBeard ? 'TIENE' : 'NO TIENE'} barba. Sugiere cómo arreglarla, recortarla o hidratarla.
-    4. CUIDADO DE PIEL: Recomienda solo limpieza, exfoliación suave o hidratación mate para evitar brillos.`;
+    1. PROHIBICIÓN ABSOLUTA: Tienes terminantemente prohibido mencionar maquillaje, sombras, labiales o cualquier cosmético de color. No uses lenguaje femenino.
+    2. ENFOQUE CABELLO: Sugiere siempre un peinado masculino (ej: pompadour, estilo clásico, degradado) ideal para el evento ${input.eventType}.
+    3. BARBA: El usuario ${hasBeard ? 'TIENE' : 'NO TIENE'} barba. Da consejos específicos para su mantenimiento o afeitado impecable.
+    4. PIEL: Limítate a limpieza facial e hidratación mate para evitar brillos.`;
   } else {
     genderRules = `
     INSTRUCCIONES PARA MUJER:
@@ -55,8 +56,8 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
   
   ${genderRules}
 
-  PERSONALIDAD: Profesional, experto, humano y directo. Habla de tú. 
-  REGLA DE RESPUESTA: Debes incluir SIEMPRE una recomendación detallada para el CABELLO y otra para el ROSTRO (o barba si aplica). Máximo 2 párrafos.`;
+  PERSONALIDAD: Profesional, experto y directo. Habla de tú. 
+  REGLA DE RESPUESTA: Debes incluir SIEMPRE una recomendación para el CABELLO y otra para el ROSTRO (piel/barba). Máximo 2 párrafos.`;
 
   try {
     const response = await openai.chat.completions.create({
@@ -67,7 +68,7 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
       ]
     });
 
-    return response.choices[0].message.content || "Como tu asesor, necesito que me digas qué efecto quieres lograr hoy.";
+    return response.choices[0].message.content || "Como tu asesor, dime qué efecto quieres lograr hoy.";
   } catch (error: any) {
     console.error("Grooming Chat Error:", error);
     throw new Error("El asistente no pudo procesar tu consulta.");

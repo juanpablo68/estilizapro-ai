@@ -1,17 +1,16 @@
 'use server';
 /**
- * @fileOverview Generación de Visagismo con descarga de imagen segura.
+ * @fileOverview Generación de Visagismo usando Imagen 4.
+ * Extrae solo los rasgos visuales para evitar errores de prompt.
  */
 
-import { ai, getOpenAIKey } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import OpenAI from 'openai';
 
 const GenerateGroomingPreviewInputSchema = z.object({
   description: z.string(),
   biometricData: z.any().optional(),
   hasBeard: z.boolean().optional(),
-  openaiApiKey: z.string().optional(),
 });
 
 const GenerateGroomingPreviewOutputSchema = z.object({
@@ -29,14 +28,10 @@ const generateGroomingPreviewFlow = ai.defineFlow(
     outputSchema: GenerateGroomingPreviewOutputSchema,
   },
   async (input) => {
-    const apiKey = getOpenAIKey(input.openaiApiKey);
-    if (!apiKey) throw new Error("API Key de OpenAI requerida.");
-
-    const openai = new OpenAI({ apiKey });
     const data = input.biometricData || {};
     const gender = data.genero || 'Femenino';
     
-    // Resumimos visualmente para evitar prompts excesivamente largos
+    // Simplificamos la descripción para que Imagen 4 la procese mejor
     const visualRef = input.description.length > 300 ? input.description.substring(0, 300) : input.description;
 
     const finalPrompt = `Close-up high-end portrait of ONE SINGLE ${gender}. 
@@ -47,25 +42,17 @@ const generateGroomingPreviewFlow = ai.defineFlow(
     ENVIRONMENT: Solid pure white background.`;
 
     try {
-      const response = await openai.images.generate({
-        model: "dall-e-3",
+      const { media } = await ai.generate({
+        model: 'googleai/imagen-4.0-fast-generate-001',
         prompt: finalPrompt,
-        n: 1,
-        size: "1024x1024",
       });
 
-      const imageUrl = response.data[0].url;
-      if (!imageUrl) throw new Error("No se pudo obtener la URL de la imagen.");
+      if (!media?.url) throw new Error("Error visual con Imagen 4.");
 
-      const imageResponse = await fetch(imageUrl);
-      const buffer = await imageResponse.arrayBuffer();
-      const base64 = Buffer.from(buffer).toString('base64');
-      const contentType = imageResponse.headers.get('content-type') || 'image/png';
-
-      return { previewImageDataUri: `data:${contentType};base64,${base64}` };
+      return { previewImageDataUri: media.url };
     } catch (error: any) {
-      console.error("Grooming Image Error:", error);
-      throw new Error("Error técnico al visualizar el look estético.");
+      console.error("Imagen 4 Grooming Error:", error);
+      throw new Error("Error técnico al visualizar el look estético con el nuevo motor.");
     }
   }
 );
