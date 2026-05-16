@@ -1,35 +1,24 @@
 
 'use server';
 /**
- * @fileOverview Generación de Visagismo usando DALL-E 3.
- * Procesa la descripción para que sea un prompt visual apto.
+ * @fileOverview Generación de Visagismo usando Imagen 4 (Motor Genkit ultra-estable).
  */
 
 import { z } from 'genkit';
-import OpenAI from 'openai';
-import { getOpenAIKey } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 
 const GenerateGroomingPreviewInputSchema = z.object({
   description: z.string(),
   biometricData: z.any().optional(),
   hasBeard: z.boolean().optional(),
-  openaiApiKey: z.string().optional(),
 });
 
-const GenerateGroomingPreviewOutputSchema = z.object({
-  previewImageDataUri: z.string(),
-});
-
-export async function generateGroomingPreview(input: z.infer<typeof GenerateGroomingPreviewInputSchema>): Promise<z.infer<typeof GenerateGroomingPreviewOutputSchema>> {
-  const apiKey = getOpenAIKey(input.openaiApiKey);
-  if (!apiKey) throw new Error("API Key de OpenAI requerida.");
-
-  const openai = new OpenAI({ apiKey });
+export async function generateGroomingPreview(input: z.infer<typeof GenerateGroomingPreviewInputSchema>) {
   const data = input.biometricData || {};
   const gender = data.genero || 'Femenino';
   
-  // Limpiamos la descripción para que sea puramente visual
-  const visualRef = input.description.length > 400 ? input.description.substring(0, 400) : input.description;
+  // Limpiamos la descripción para que sea un prompt visual conciso
+  const visualRef = input.description.length > 300 ? input.description.substring(0, 300) : input.description;
 
   const finalPrompt = `Close-up high-end portrait of ONE SINGLE ${gender}. 
   STYLE: Modern 3D stylized character.
@@ -39,24 +28,18 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
   ENVIRONMENT: Solid pure white background.`;
 
   try {
-    const response = await openai.images.generate({
-      model: "dall-e-3",
+    const { media } = await ai.generate({
+      model: 'googleai/imagen-4.0-fast-generate-001',
       prompt: finalPrompt,
-      n: 1,
-      size: "1024x1024",
     });
 
-    const imageUrl = response.data[0].url;
-    if (!imageUrl) throw new Error("No se recibió la imagen del look.");
+    if (!media || !media.url) {
+      throw new Error("No se pudo generar la imagen del look.");
+    }
 
-    const imageRes = await fetch(imageUrl);
-    const arrayBuffer = await imageRes.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const base64 = `data:image/png;base64,${buffer.toString('base64')}`;
-
-    return { previewImageDataUri: base64 };
+    return { previewImageDataUri: media.url };
   } catch (error: any) {
-    console.error("DALL-E Grooming Error:", error);
-    throw new Error("Error al visualizar el look estético.");
+    console.error("Imagen 4 Grooming Error:", error);
+    throw new Error("Error al visualizar el look estético con el nuevo motor.");
   }
 }

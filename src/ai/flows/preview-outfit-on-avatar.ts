@@ -1,12 +1,12 @@
 
 'use server';
 /**
- * @fileOverview Probador Virtual Maestro usando DALL-E 3 con descarga segura.
+ * @fileOverview Probador Virtual Maestro usando Imagen 4 (Motor Genkit ultra-estable).
  */
 
 import { z } from 'genkit';
 import OpenAI from 'openai';
-import { getOpenAIKey } from '@/ai/genkit';
+import { ai, getOpenAIKey } from '@/ai/genkit';
 
 const PreviewOutfitOnAvatarInputSchema = z.object({
   avatarDataUri: z.string(),
@@ -17,17 +17,17 @@ const PreviewOutfitOnAvatarInputSchema = z.object({
 
 export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitOnAvatarInputSchema>) {
   const apiKey = getOpenAIKey(input.openaiApiKey);
-  if (!apiKey) throw new Error("API Key de OpenAI requerida.");
+  if (!apiKey) throw new Error("API Key de OpenAI requerida para el análisis de prendas.");
 
   const openai = new OpenAI({ apiKey });
   const data = input.biometricData || {};
   const gender = data.genero || 'Femenino';
 
-  // Paso 1: Análisis visual del conjunto
+  // El análisis de las prendas sigue usando GPT-4o Vision por su alta capacidad de comprensión
   const analysis = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
-      { role: "system", content: "Describe este outfit de moda puesto sobre una persona en una sola frase corta." },
+      { role: "system", content: "Describe este conjunto de ropa puesto sobre una persona en una sola frase técnica y visual." },
       {
         role: "user",
         content: [
@@ -42,26 +42,20 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
   const description = analysis.choices[0].message.content || "a stylish fashion outfit";
 
   try {
-    const finalPrompt = `A high-end fashion photograph of ONE SINGLE ${gender}. Wearing: ${description}. Full body shot. STYLE: Modern 3D stylized character design. ENVIRONMENT: Pure solid white background.`;
+    const finalPrompt = `A professional high-end fashion photograph of ONE SINGLE ${gender}. Wearing: ${description}. Full body shot. STYLE: Modern 3D stylized character design. ENVIRONMENT: Pure solid white background.`;
     
-    const response = await openai.images.generate({
-      model: "dall-e-3",
+    const { media } = await ai.generate({
+      model: 'googleai/imagen-4.0-fast-generate-001',
       prompt: finalPrompt,
-      n: 1,
-      size: "1024x1024",
     });
 
-    const imageUrl = response.data[0].url;
-    if (!imageUrl) throw new Error("No se pudo generar la vista previa.");
+    if (!media || !media.url) {
+      throw new Error("No se pudo generar la vista previa visual.");
+    }
 
-    const imageRes = await fetch(imageUrl);
-    const arrayBuffer = await imageRes.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const base64 = `data:image/png;base64,${buffer.toString('base64')}`;
-
-    return { previewImageDataUri: base64 };
+    return { previewImageDataUri: media.url };
   } catch (error: any) {
-    console.error("DALL-E Preview Error:", error);
-    throw new Error("No se pudo generar la vista previa visual.");
+    console.error("Imagen 4 Preview Error:", error);
+    throw new Error("Error al generar el montaje visual con el nuevo motor.");
   }
 }
