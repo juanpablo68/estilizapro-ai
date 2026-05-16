@@ -15,7 +15,10 @@ const GenerateStylizedAvatarInputSchema = z.object({
 
 export async function generateStylizedAvatar(input: z.infer<typeof GenerateStylizedAvatarInputSchema>) {
   const apiKey = getOpenAIKey(input.openaiApiKey);
-  if (!apiKey) throw new Error("No se detectó una API Key de OpenAI válida.");
+  
+  if (!apiKey || apiKey.trim() === '') {
+    throw new Error("No se detectó una API Key de OpenAI válida. (Error 401)");
+  }
 
   const openai = new OpenAI({ apiKey });
   const data = input.biometricData || {};
@@ -30,25 +33,32 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
   ENVIRONMENT: Solid pure white background. NO text.`;
 
   try {
-    // Migración al modelo gpt-image-2 según indicación del usuario
-    // Llamada limpia sin parámetros conflictivos
     const response = await openai.images.generate({
       model: "gpt-image-2" as any, 
       prompt: finalPrompt,
       n: 1,
       size: "1024x1024",
+      response_format: "b64_json",
     });
 
-    const imageUrl = response.data[0].url;
-    if (!imageUrl) throw new Error("La IA no devolvió una URL válida.");
+    const b64Data = response.data[0].b64_json;
+    
+    if (!b64Data) {
+      console.error("Respuesta completa de OpenAI sin b64_json:", JSON.stringify(response, null, 2));
+      throw new Error("La IA no devolvió los datos de imagen (b64_json).");
+    }
 
-    const imageResponse = await fetch(imageUrl);
-    const buffer = await imageResponse.arrayBuffer();
-    const base64 = Buffer.from(buffer).toString('base64');
-
-    return { avatarDataUri: `data:image/png;base64,${base64}` };
+    // Devolvemos el Data URI para mantener compatibilidad con el frontend actual
+    return { avatarDataUri: `data:image/png;base64,${b64Data}` };
   } catch (error: any) {
     console.error("Image Generation Error (gpt-image-2):", error);
+    
+    // Manejo de errores específicos solicitado
+    if (error.status === 401) throw new Error("Llave de API de OpenAI inválida o mal configurada (401).");
+    if (error.status === 403) throw new Error("El proyecto no tiene acceso al modelo gpt-image-2 o falta autorización (403).");
+    if (error.status === 404) throw new Error("Modelo gpt-image-2 no disponible o nombre incorrecto (404).");
+    if (error.status === 429) throw new Error("Límite de uso, cuota o crédito insuficiente en OpenAI (429).");
+    
     throw new Error(error.message || "Error al conectar con el motor gpt-image-2.");
   }
 }
