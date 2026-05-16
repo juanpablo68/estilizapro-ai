@@ -1,7 +1,9 @@
+
 'use server';
 /**
  * @fileOverview Generación de Avatar Estilizado usando gpt-image-2.
  * Procesa b64_json, sube a Firebase Storage y devuelve URL pública.
+ * Optimizado para evitar errores de 1MB limit.
  */
 
 import { z } from 'genkit';
@@ -35,16 +37,16 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
   COMPOSITION: Full length body shot, standing centrally, neutral pose, minimalist clothes.
   ENVIRONMENT: Solid pure white background. NO text.`;
 
-  console.log("Requesting gpt-image-2 without response_format...");
+  console.log("Requesting gpt-image-2 (b64_json default)...");
 
   try {
     const response = await openai.images.generate({
       model: "gpt-image-2" as any, 
       prompt: finalPrompt,
       n: 1,
-      size: "1024x1024", // Usando tamaño estándar compatible para evitar errores de relación de aspecto
+      size: "1024x1024",
       quality: "medium" as any,
-      // @ts-ignore - Parámetro sugerido para gpt-image-2
+      // @ts-ignore
       output_format: "png"
     });
 
@@ -52,7 +54,6 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
     const b64Data = response.data[0].b64_json;
 
     if (!b64Data) {
-      console.error("Respuesta OpenAI sin b64_json:", JSON.stringify(response, null, 2));
       throw new Error("La IA no devolvió datos de imagen (b64_json) válidos.");
     }
     console.log("Base64 received successfully");
@@ -74,19 +75,15 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
       console.log("Firebase Storage upload completed");
 
       const downloadURL = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
-      console.log("Generating Firebase download URL:", downloadURL);
-      
       return { avatarDataUri: downloadURL };
     } catch (storageError: any) {
-      console.error("Firebase Storage Error (Refresco de Token o Permisos):", storageError);
-      // Fallback a Data URI si el almacenamiento falla
+      console.error("Firebase Storage Error:", storageError);
+      // Fallback a Data URI si el almacenamiento falla (aunque superará el límite de 1MB si no se configuró next.config)
       return { avatarDataUri: `data:image/png;base64,${b64Data}` };
     }
   } catch (error: any) {
     console.error("Image Generation Error (gpt-image-2):", error);
     if (error.status === 401) throw new Error("Error 401: API Key inválida.");
-    if (error.status === 403) throw new Error("Error 403: Sin acceso al modelo o autorización.");
-    if (error.status === 404) throw new Error("Error 404: Modelo gpt-image-2 no disponible.");
     if (error.status === 429) throw new Error("Error 429: Cuota excedida.");
     throw new Error(error.message || "Error al conectar con el motor gpt-image-2.");
   }

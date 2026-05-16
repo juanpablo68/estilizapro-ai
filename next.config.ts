@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -9,7 +10,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   serverActions: {
-    // Límite ampliado a 50MB para permitir la transferencia de imágenes generadas por IA y fotos de alta resolución sin errores de "Body exceeded 1 MB limit"
+    // Se aumenta el límite a 50MB para permitir el envío de strings Base64 de fotos tomadas por el usuario y resultados de IA
     bodySizeLimit: '50mb',
   },
   images: {
@@ -35,6 +36,12 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'img.imageboss.me',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'storage.googleapis.com',
         port: '',
         pathname: '/**',
       },
