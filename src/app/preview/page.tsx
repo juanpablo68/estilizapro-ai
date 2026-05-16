@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -12,6 +11,38 @@ import Image from 'next/image';
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+
+// Función de ultra-compresión para Server Actions (máximo 512px para evitar el límite de 1MB)
+const compressForAction = (base64Str: string): Promise<string> => {
+  return new Promise((resolve) => {
+    const img = new window.Image();
+    img.src = base64Str;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX_SIZE = 512;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > MAX_SIZE) {
+          height *= MAX_SIZE / width;
+          width = MAX_SIZE;
+        }
+      } else {
+        if (height > MAX_SIZE) {
+          width *= MAX_SIZE / height;
+          height = MAX_SIZE;
+        }
+      }
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, 0, 0, width, height);
+      // Calidad 0.6 para asegurar que el string sea ligero
+      resolve(canvas.toDataURL('image/jpeg', 0.6));
+    };
+  });
+};
 
 export default function PreviewPage() {
   const [profile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
@@ -45,20 +76,41 @@ export default function PreviewPage() {
 
     setPreviewing(true);
     setResultImage(null);
+
     try {
-      const result = await previewOutfitOnAvatar({
+      // COMPRESIÓN AGRESIVA ANTES DE ENVIAR
+      console.log(">>> Iniciando ultra-compresión de prendas para el Probador...");
+      const lightClothingItems = await Promise.all(
+        selectedItems.map(async (item) => {
+          const compressed = await compressForAction(item.imageDataUri);
+          console.log(`Item [${item.name}] size compressed to: ${(compressed.length / 1024).toFixed(2)} KB`);
+          return compressed;
+        })
+      );
+
+      const payload = {
         avatarDataUri: profile.avatarDataUri,
-        clothingItemsDataUris: selectedItems.map(i => i.imageDataUri),
+        clothingItemsDataUris: lightClothingItems,
         biometricData: profile.biometricData,
-        openaiApiKey: openaiKey
-      });
+        openaiApiKey: openaiKey,
+        userId: profile.name || 'user'
+      };
+
+      const payloadSizeMB = new Blob([JSON.stringify(payload)]).size / 1024 / 1024;
+      console.log(">>> Virtual try-on total payload size MB:", payloadSizeMB.toFixed(2));
+
+      if (payloadSizeMB > 0.9) {
+        console.warn("ADVERTENCIA: El payload está muy cerca del límite de 1MB. Reduciendo selección...");
+      }
+
+      const result = await previewOutfitOnAvatar(payload);
       setResultImage(result.previewImageDataUri);
       toast({
         title: "¡Montaje Completado!",
-        description: "El artista de OpenAI ha vestido tu avatar Pixar con tu selección.",
+        description: "El artista de OpenAI ha vestido tu avatar con tu selección.",
       });
     } catch (err: any) {
-      console.error(err);
+      console.error(">>> Error en el Probador Virtual:", err);
       toast({
         variant: "destructive",
         title: "Error de Pipeline",

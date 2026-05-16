@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -14,8 +13,8 @@ import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from 'next/link';
 
-// Optimizado a 600px para asegurar que el payload sea ligero y rápido
-const resizeImage = (base64Str: string, maxWidth = 600, maxHeight = 600): Promise<string> => {
+// Optimizado para asegurar que el payload sea muy ligero antes de enviarlo a la Server Action
+const resizeImageForAction = (base64Str: string, maxWidth = 512, maxHeight = 512): Promise<string> => {
   return new Promise((resolve) => {
     const img = new window.Image();
     img.src = base64Str;
@@ -39,12 +38,10 @@ const resizeImage = (base64Str: string, maxWidth = 600, maxHeight = 600): Promis
       canvas.height = height;
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, 0, 0, width, height);
       }
-      // JPEG al 70% ofrece excelente balance entre peso y calidad para análisis IA
-      resolve(canvas.toDataURL('image/jpeg', 0.7));
+      // JPEG 0.6 para garantizar que no exceda el límite de 1MB en la petición
+      resolve(canvas.toDataURL('image/jpeg', 0.6));
     };
   });
 };
@@ -72,9 +69,9 @@ export default function AvatarCreationPage() {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = async () => {
-        const optimized = await resizeImage(reader.result as string);
-        if (type === 'face') setFacePhoto(optimized);
-        else setFigurePhoto(optimized);
+        // Redimensión inicial para visualización y almacenamiento local
+        if (type === 'face') setFacePhoto(reader.result as string);
+        else setFigurePhoto(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -95,10 +92,17 @@ export default function AvatarCreationPage() {
 
     setLoading(true);
     try {
+      setLoadingStatus('Comprimiendo fotos...');
+      const lightFace = await resizeImageForAction(facePhoto);
+      const lightFigure = await resizeImageForAction(figurePhoto);
+
+      console.log("Face photo size KB:", (lightFace.length / 1024).toFixed(2));
+      console.log("Figure photo size KB:", (lightFigure.length / 1024).toFixed(2));
+
       setLoadingStatus('Análisis Biométrico...');
       const analysis = await analyzeStyleContext({
-        facePhotoDataUri: facePhoto,
-        figurePhotoDataUri: figurePhoto,
+        facePhotoDataUri: lightFace,
+        figurePhotoDataUri: lightFigure,
         openaiApiKey: openaiKey
       });
 
@@ -111,23 +115,23 @@ export default function AvatarCreationPage() {
       
       setProfile(updatedProfile);
 
-      setLoadingStatus('Creando Avatar 3D...');
+      setLoadingStatus('Creando Avatar Realista...');
       const result = await generateStylizedAvatar({
         biometricData: analysis.biometricData,
         openaiApiKey: openaiKey,
         userId: profile.name || 'user'
       });
       
-      if (!result.avatarDataUri) {
+      if (!result.imageUrl) {
         throw new Error("La IA no devolvió el avatar. Verifica la conexión.");
       }
 
-      setGeneratedAvatar(result.avatarDataUri);
-      setProfile({ ...updatedProfile, avatarDataUri: result.avatarDataUri });
+      setGeneratedAvatar(result.imageUrl);
+      setProfile({ ...updatedProfile, avatarDataUri: result.imageUrl });
       
       toast({
         title: "¡Diagnóstico Completo!",
-        description: "Tu identidad Pixar ha sido generada.",
+        description: "Tu identidad editorial ha sido generada.",
       });
     } catch (error: any) {
       console.error("Avatar Creation Error:", error);
@@ -168,7 +172,7 @@ export default function AvatarCreationPage() {
             <Sparkles className="h-4 w-4 text-primary" />
             <AlertTitle className="text-primary font-bold">Diagnóstico de Alta Fidelidad</AlertTitle>
             <AlertDescription className="text-xs">
-              La IA analizará quirúrgicamente el matiz de tus ojos, cabello y silueta para personalizar cada consejo de vestuario.
+              La IA analizará quirúrgicamente tus rasgos y silueta para personalizar cada consejo de vestuario.
             </AlertDescription>
           </Alert>
 

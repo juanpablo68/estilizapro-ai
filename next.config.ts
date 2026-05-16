@@ -1,4 +1,3 @@
-
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -9,10 +8,11 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  serverActions: {
-    // Se establece el límite a 100MB para permitir el envío de strings Base64 de fotos de alta resolución.
-    // Esta es la configuración oficial para Next.js 15 para evitar el error "Body exceeded 1 MB limit".
-    bodySizeLimit: '100mb',
+  // Según instrucciones senior, movemos serverActions a experimental para asegurar su aplicación
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '100mb',
+    },
   },
   images: {
     remotePatterns: [
