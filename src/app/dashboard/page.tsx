@@ -14,7 +14,8 @@ import {
   Sparkles,
   Instagram,
   Scissors,
-  LogOut
+  LogOut,
+  User
 } from "lucide-react";
 import { useLocalStorage, useUserScopedStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
 import Image from 'next/image';
@@ -56,8 +57,20 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-headline font-bold text-foreground">Hola, {profile.name || 'Invitado'}</h1>
           <p className="text-sm text-muted-foreground">¿Qué vamos a estilizar hoy?</p>
         </div>
-        <div className="flex gap-2">
-           <Button variant="ghost" size="icon" onClick={handleLogout} className="rounded-full text-muted-foreground"><LogOut className="w-5 h-5" /></Button>
+        <div className="flex items-center gap-2">
+           <div className="flex flex-col items-end mr-2">
+             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Sesión de</span>
+             <span className="text-xs font-bold text-primary truncate max-w-[80px]">{profile.name || 'Invitado'}</span>
+           </div>
+           <Button 
+             variant="ghost" 
+             size="icon" 
+             onClick={handleLogout} 
+             className="rounded-full text-destructive hover:bg-destructive/10"
+             title={`Cerrar sesión de ${profile.name}`}
+           >
+             <LogOut className="w-5 h-5" />
+           </Button>
            <div className="relative h-12 w-12 rounded-full overflow-hidden border-2 border-primary shadow-sm bg-muted cursor-pointer" onClick={() => router.push('/avatar-creation')}>
             {profile.avatarDataUri ? (
                 <Image src={profile.avatarDataUri} alt="Avatar" fill className="object-cover" unoptimized />
@@ -99,9 +112,14 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      <footer className="text-center pt-8 space-y-2">
-        <p className="text-xs text-muted-foreground">Sesión activa: {profile.name}</p>
-        <p className="text-[10px] text-muted-foreground/60 uppercase tracking-widest font-bold">EstilizaPro AI v1.0 - Motor Híbrido Activo</p>
+      <footer className="text-center pt-8 space-y-2 border-t mt-4 pt-6">
+        <div className="inline-flex items-center gap-2 bg-muted/50 px-4 py-1.5 rounded-full">
+          <User className="w-3 h-3 text-muted-foreground" />
+          <p className="text-xs text-muted-foreground font-medium">Sesión activa: <span className="font-bold">{profile.name || 'Invitado'}</span></p>
+        </div>
+        <p className="text-[10px] text-muted-foreground/60 uppercase tracking-widest font-black block pt-2">
+          EstilizaPro AI v1.0 • Motor Híbrido Activo • Pilar Catalán
+        </p>
       </footer>
     </div>
   );
