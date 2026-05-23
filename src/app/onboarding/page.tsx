@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -22,18 +23,22 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const router = useRouter();
 
-  // Inicializamos el formulario con el nombre que ya se puso en el login
+  // Nombre formateado para mostrar
+  const displayName = activeUser !== 'default' 
+    ? activeUser.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+    : '';
+
   const [formData, setFormData] = useState<UserProfile>({
     ...INITIAL_USER_PROFILE,
-    name: activeUser !== 'default' ? activeUser.charAt(0).toUpperCase() + activeUser.slice(1) : ''
+    name: displayName
   });
 
-  // Si ya existía un perfil parcial, lo cargamos
   useEffect(() => {
-    if (profile.name) {
-      setFormData(profile);
+    // Si el usuario ya completó el onboarding, no debería estar aquí
+    if (profile.onboardingComplete) {
+      router.push('/dashboard');
     }
-  }, [profile]);
+  }, [profile, router]);
 
   const toggleList = (category: keyof UserProfile['stylePreferences'], value: string) => {
     setFormData(prev => {
@@ -59,8 +64,12 @@ export default function OnboardingPage() {
   const prevStep = () => setStep(s => s - 1);
 
   const finishOnboarding = () => {
-    // Al finalizar, guardamos en el almacenamiento escopado del usuario
-    setProfile({ ...formData, onboardingComplete: true });
+    // Guardamos los datos y marcamos como completo
+    setProfile({ 
+      ...formData, 
+      onboardingComplete: true 
+    });
+    // El siguiente paso obligatorio es la creación del avatar
     router.push('/avatar-creation');
   };
 
@@ -68,7 +77,7 @@ export default function OnboardingPage() {
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8">
       <div className="space-y-2 text-center pt-8">
         <h1 className="text-3xl font-headline font-bold text-primary">Perfil de Estilo</h1>
-        <p className="text-muted-foreground text-sm">Paso {step} de 3 para {formData.name || activeUser}</p>
+        <p className="text-muted-foreground text-sm">Paso {step} de 3 para {formData.name || 'Nuevo Usuario'}</p>
       </div>
 
       <Card className="shadow-lg border-none bg-white rounded-3xl overflow-hidden">
@@ -76,7 +85,7 @@ export default function OnboardingPage() {
           {step === 1 && (
             <div className="space-y-8">
               <div className="space-y-3">
-                <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-primary">Confirmar Nombre</Label>
+                <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-primary">Tu Nombre</Label>
                 <Input 
                   id="name" 
                   placeholder="Tu nombre" 

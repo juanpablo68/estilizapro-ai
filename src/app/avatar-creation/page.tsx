@@ -1,8 +1,9 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
+import { useLocalStorage, useUserScopedStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
 import { generateStylizedAvatar } from '@/ai/flows/generate-stylized-avatar';
 import { analyzeStyleContext } from '@/ai/flows/analyze-style-context';
 import { Button } from "@/components/ui/button";
@@ -36,7 +37,7 @@ const resizeImageForAction = (base64Str: string, maxWidth = 512, maxHeight = 512
 };
 
 export default function AvatarCreationPage() {
-  const [profile, setProfile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
+  const [profile, setProfile] = useUserScopedStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
   const [facePhoto, setFacePhoto] = useState<string | null>(null);
   const [figurePhoto, setFigurePhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -117,12 +118,10 @@ export default function AvatarCreationPage() {
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-20">
       <header className="flex items-center justify-between pt-8">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard">
-             <Button variant="ghost" size="icon" className="rounded-full"><ArrowLeft /></Button>
-          </Link>
+          <Button variant="ghost" size="icon" className="rounded-full" onClick={() => router.push('/dashboard')}><ArrowLeft /></Button>
           <div className="space-y-0.5">
             <h1 className="text-2xl font-headline font-bold text-primary leading-none">Esencia Biométrica</h1>
-            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Diagnóstico Real</p>
+            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Paso Final: Avatar</p>
           </div>
         </div>
       </header>
@@ -133,7 +132,7 @@ export default function AvatarCreationPage() {
             <Sparkles className="h-4 w-4 text-primary" />
             <AlertTitle className="text-primary font-bold">Diagnóstico de Alta Fidelidad</AlertTitle>
             <AlertDescription className="text-xs">
-              La IA analizará quirúrgicamente tus rasgos para personalizar tu avatar y consejos.
+              Sube tus fotos para que la IA genere tu avatar y analice tu colorimetría.
             </AlertDescription>
           </Alert>
 
@@ -189,10 +188,10 @@ export default function AvatarCreationPage() {
               </div>
               <div className="space-y-1">
                 <p className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center justify-center gap-2">
-                  <User className="w-3 h-3" /> Género: {profile.biometricData?.genero || 'Detectado'}
+                  <User className="w-3 h-3" /> Género: {profile.biometricData?.genero || profile.gender}
                 </p>
                 <p className="text-[10px] font-black text-primary uppercase tracking-widest">
-                  Ojos: {profile.biometricData?.rostro?.ojos?.color_detalle || 'Detectado'} • Cabello: {profile.biometricData?.rostro?.cabello?.color_natural || 'Detectado'}
+                  {profile.colorimetryAnalysis} • {profile.figureAnalysis}
                 </p>
               </div>
             </CardContent>
@@ -202,7 +201,7 @@ export default function AvatarCreationPage() {
               <RefreshCw className="mr-2 w-4 h-4" /> Re-analizar
             </Button>
             <Button className="flex-1 bg-primary font-bold shadow-md h-12 rounded-xl" onClick={() => router.push('/dashboard')}>
-              Ir al Dashboard →
+              Finalizar y entrar →
             </Button>
           </div>
         </div>

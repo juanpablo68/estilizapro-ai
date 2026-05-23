@@ -19,20 +19,23 @@ export default function LoginPage() {
 
   useEffect(() => {
     setMounted(true);
+    // Limpiamos rastro de sesiones previas al entrar al login para evitar el estado "Invitado"
+    localStorage.removeItem('estiliza_auth');
   }, []);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    const cleanName = name.trim();
+    if (!cleanName) return;
 
     if (passcode === '1,2,3,4') {
-      // 1. Establecer el usuario activo para el particionamiento de datos
-      const activeUserName = name.trim().toLowerCase();
+      // 1. Establecer el usuario activo
+      const activeUserName = cleanName.toLowerCase().replace(/\s+/g, '_');
       localStorage.setItem('estiliza_active_user', activeUserName);
       localStorage.setItem('estiliza_auth', 'true');
 
       // 2. Verificar si este usuario específico ya completó el onboarding
-      const scopedKey = `estiliza_profile_${activeUserName.replace(/\s+/g, '_')}`;
+      const scopedKey = `estiliza_profile_${activeUserName}`;
       const profileStr = localStorage.getItem(scopedKey);
       
       if (profileStr) {
@@ -47,7 +50,7 @@ export default function LoginPage() {
         }
       }
       
-      // Si no existe o no está completo, al onboarding
+      // Si el perfil no existe o no está completo, vamos al inicio del flujo: Onboarding
       router.push('/onboarding');
     } else {
       setError(true);
@@ -68,26 +71,26 @@ export default function LoginPage() {
               <Sparkles className="w-12 h-12 text-primary" />
             </div>
             <Badge variant="secondary" className="bg-primary/10 text-primary font-black px-4 py-1 rounded-full uppercase tracking-widest text-[10px]">
-              Beta Test v1.6
+              Acceso Seguro v1.7
             </Badge>
           </div>
           <div className="space-y-1">
             <h1 className="text-4xl font-headline font-bold text-foreground">EstilizaPro AI</h1>
-            <p className="text-muted-foreground text-sm">Asesoría de Imagen de Pilar Catalán</p>
+            <p className="text-muted-foreground text-sm font-medium">Asesoría de Imagen de Pilar Catalán</p>
           </div>
         </div>
 
-        <Card className="border-none shadow-2xl bg-white/80 backdrop-blur-md rounded-[2.5rem] overflow-hidden">
+        <Card className="border-none shadow-2xl bg-white/90 backdrop-blur-md rounded-[2.5rem] overflow-hidden">
           <CardHeader className="pb-2">
-            <CardTitle className="text-xl font-headline">Acceso al Sistema</CardTitle>
+            <CardTitle className="text-xl font-headline">Identificación</CardTitle>
             <CardDescription className="text-xs px-4">
-              Identifícate para cargar tu perfil personal de estilo.
+              Ingresa tu nombre para cargar o crear tu perfil personal.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6 p-8">
             <form onSubmit={handleLogin} className="space-y-5">
               <div className="space-y-2 text-left">
-                <Label htmlFor="user-name" className="text-[10px] uppercase font-black tracking-widest ml-1 text-primary">Tu Nombre</Label>
+                <Label htmlFor="user-name" className="text-[10px] uppercase font-black tracking-widest ml-1 text-primary">Tu Nombre de Usuario</Label>
                 <div className="relative">
                   <User className="absolute left-4 top-3.5 w-5 h-5 text-muted-foreground/50" />
                   <Input
@@ -97,6 +100,7 @@ export default function LoginPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
+                    autoFocus
                     className="pl-12 h-14 rounded-2xl border-muted bg-muted/5 focus:ring-primary/20 font-bold"
                   />
                 </div>
@@ -109,7 +113,7 @@ export default function LoginPage() {
                   <Input
                     id="passcode"
                     type="text"
-                    placeholder="1 2 3 4"
+                    placeholder="* * * *"
                     value={passcode}
                     onChange={(e) => {
                       setPasscode(e.target.value);
@@ -122,7 +126,7 @@ export default function LoginPage() {
               </div>
 
               {error && (
-                <p className="text-destructive text-[10px] font-black uppercase tracking-wider animate-bounce">Código incorrecto</p>
+                <p className="text-destructive text-[10px] font-black uppercase tracking-wider animate-bounce text-center">Código incorrecto</p>
               )}
               
               <Button type="submit" className="w-full h-16 text-lg font-bold bg-primary shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform rounded-2xl">
@@ -130,18 +134,18 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            <div className="pt-2 flex items-start gap-2 text-left bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100">
-              <Info className="w-4 h-4 text-indigo-600 mt-0.5 shrink-0" />
-              <p className="text-[10px] text-indigo-700 leading-relaxed">
-                Cada usuario tiene su propio <strong>armario y avatar</strong> independiente en este dispositivo.
+            <div className="pt-2 flex items-start gap-2 text-left bg-primary/5 p-4 rounded-2xl border border-primary/10">
+              <Info className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
+                Si es tu primera vez con este nombre, pasarás por el <strong>cuestionario de estilo</strong> antes de generar tu avatar.
               </p>
             </div>
           </CardContent>
         </Card>
 
-        <footer className="space-y-4 pt-4">
+        <footer className="pt-4">
           <p className="text-[9px] text-muted-foreground/60 uppercase tracking-[0.2em] font-bold">
-            Pilar Catalán • EstilizaPro AI v1.6
+            Pilar Catalán • Privacidad de Datos Local
           </p>
         </footer>
       </div>
