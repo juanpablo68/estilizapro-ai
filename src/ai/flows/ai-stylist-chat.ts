@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview Chat interactivo con Restricción de Dominio (Guardrail).
@@ -65,13 +64,21 @@ export async function chatWithAIStylist(input: z.infer<typeof AIChatInputSchema>
 
   const openai = new OpenAI({ apiKey });
 
-  // 1. Cargar Configuración de Firestore (Capa 1)
-  // Corregido: La ruta debe tener componentes pares (app_config/assistant_scope)
-  const configDoc = await adminFirestore.doc('app_config/assistant_scope').get();
-  const config = configDoc.exists ? configDoc.data() : {
+  // 1. Cargar Configuración de Firestore (Capa 1) con Fallback Seguro
+  let config = {
     fallbackMessage: "Lo siento, como tu asesor de Pilar Catalán, solo puedo responder preguntas relacionadas con moda, vestuario, colorimetría y estilo personal. ¿En qué look trabajamos hoy?",
     strictMode: true
   };
+
+  try {
+    const configDoc = await adminFirestore.doc('app_config/assistant_scope').get();
+    if (configDoc.exists) {
+      const data = configDoc.data();
+      config = { ...config, ...data };
+    }
+  } catch (e) {
+    console.warn("Firestore Admin Error (Token/Auth): Usando configuración local por defecto.", e);
+  }
 
   // 2. Ejecutar Guardrail (Capa 2)
   const isAllowed = await checkDomain(openai, input.message);

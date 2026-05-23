@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview Asistente de Tips de Peinado y Maquillaje con Restricción de Dominio.
@@ -55,12 +54,20 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
 
   const openai = new OpenAI({ apiKey });
 
-  // 1. Cargar Configuración
-  // Corregido: La ruta debe tener componentes pares (app_config/assistant_scope)
-  const configDoc = await adminFirestore.doc('app_config/assistant_scope').get();
-  const config = configDoc.exists ? configDoc.data() : {
+  // 1. Cargar Configuración con Fallback Seguro
+  let config = {
     fallbackMessage: "Como tu asesor de peinado y maquillaje de Pilar Catalán, mi especialidad es tu estética facial y capilar. No puedo ayudarte con temas fuera de ese ámbito.",
   };
+
+  try {
+    const configDoc = await adminFirestore.doc('app_config/assistant_scope').get();
+    if (configDoc.exists) {
+      const data = configDoc.data();
+      config = { ...config, ...data };
+    }
+  } catch (e) {
+    console.warn("Firestore Admin Error (Grooming): Usando configuración local por defecto.", e);
+  }
 
   // 2. Guardrail
   const isAllowed = await checkGroomingDomain(openai, input.message);
