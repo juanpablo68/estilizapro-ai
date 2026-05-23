@@ -56,7 +56,8 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
   const openai = new OpenAI({ apiKey });
 
   // 1. Cargar Configuración
-  const configDoc = await adminFirestore.doc('app_config/assistant_scope/main').get();
+  // Corregido: La ruta debe tener componentes pares (app_config/assistant_scope)
+  const configDoc = await adminFirestore.doc('app_config/assistant_scope').get();
   const config = configDoc.exists ? configDoc.data() : {
     fallbackMessage: "Como tu asesor de peinado y maquillaje de Pilar Catalán, mi especialidad es tu estética facial y capilar. No puedo ayudarte con temas fuera de ese ámbito.",
   };

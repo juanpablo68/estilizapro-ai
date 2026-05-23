@@ -66,7 +66,8 @@ export async function chatWithAIStylist(input: z.infer<typeof AIChatInputSchema>
   const openai = new OpenAI({ apiKey });
 
   // 1. Cargar Configuración de Firestore (Capa 1)
-  const configDoc = await adminFirestore.doc('app_config/assistant_scope/main').get();
+  // Corregido: La ruta debe tener componentes pares (app_config/assistant_scope)
+  const configDoc = await adminFirestore.doc('app_config/assistant_scope').get();
   const config = configDoc.exists ? configDoc.data() : {
     fallbackMessage: "Lo siento, como tu asesor de Pilar Catalán, solo puedo responder preguntas relacionadas con moda, vestuario, colorimetría y estilo personal. ¿En qué look trabajamos hoy?",
     strictMode: true

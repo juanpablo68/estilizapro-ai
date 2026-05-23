@@ -32,7 +32,7 @@
     "providers": ["google.com"]
   },
   "firestore": {
-    "/app_config/assistant_scope/main": {
+    "/app_config/assistant_scope": {
       "schema": "#/backend/entities/AssistantConfig",
       "description": "Documento central de restricción de dominio para la IA."
     }
