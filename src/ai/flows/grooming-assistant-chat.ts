@@ -1,6 +1,7 @@
 'use server';
 /**
  * @fileOverview Asistente de Tips de Peinado y Maquillaje con Restricción de Dominio.
+ * Optimizado para permitir contexto de eventos y situaciones sociales.
  */
 
 import { z } from 'genkit';
@@ -21,20 +22,24 @@ const GroomingChatInputSchema = z.object({
 });
 
 async function checkGroomingDomain(openai: OpenAI, message: string): Promise<boolean> {
-  const guardrailPrompt = `Actúa como un clasificador de dominio. Determina si el mensaje está relacionado con: 
+  const guardrailPrompt = `Actúa como un clasificador de dominio inteligente para un asesor de estética. 
+  Determina si el mensaje está relacionado con: 
   PEINADO, MAQUILLAJE, CUIDADO DE BARBA, CUIDADO DE PIEL O ESTÉTICA FACIAL.
 
+  REGLA CRÍTICA: También debes permitir mensajes que describan EVENTOS, REUNIONES O CONTEXTO SOCIAL (ej: "tengo una reunión con CEOs", "quiero causar buena impresión") siempre que el objetivo sea recibir asesoría estética para esa situación.
+
   Responde ÚNICAMENTE "PERMITIDO" o "BLOQUEADO".
+
+  EJEMPLOS PERMITIDOS:
+  - "¿Qué peinado me recomiendas?"
+  - "Tengo una reunión muy importante con directivos y quiero verme profesional"
+  - "Quiero causar una gran impresión en un evento de gala"
+  - "¿Cómo cuido mi barba para una boda?"
 
   EJEMPLOS DE BLOQUEO:
   - "¿Quién ganó el mundial?"
   - "¿Cómo está el clima?"
   - "Dame una receta de cocina"
-
-  EJEMPLOS PERMITIDOS:
-  - "¿Qué peinado me recomiendas?"
-  - "¿Cómo cuido mi barba?"
-  - "¿Qué maquillaje combina con mi piel?"
 
   MENSAJE: "${message}"`;
 
@@ -54,9 +59,8 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
 
   const openai = new OpenAI({ apiKey });
 
-  // 1. Cargar Configuración con Fallback Seguro
   let config = {
-    fallbackMessage: "Como tu asesor de peinado y maquillaje de Pilar Catalán, mi especialidad es tu estética facial y capilar. No puedo ayudarte con temas fuera de ese ámbito.",
+    fallbackMessage: "Como tu asesor de peinado y maquillaje de Pilar Catalán, mi especialidad es tu estética facial y capilar. Por favor, cuéntame sobre tu evento o qué look buscas para poder asesorarte mejor.",
   };
 
   try {
@@ -69,7 +73,6 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
     console.warn("Firestore Admin Error (Grooming): Usando configuración local por defecto.", e);
   }
 
-  // 2. Guardrail
   const isAllowed = await checkGroomingDomain(openai, input.message);
   if (!isAllowed) {
     return config.fallbackMessage;
@@ -83,8 +86,9 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
   if (gender === 'Masculino') {
     genderRules = `
     INSTRUCCIONES CRÍTICAS PARA HOMBRE:
-    1. PROHIBICIÓN TOTAL: Tienes prohibido mencionar maquillaje, sombras o labiales.
-    2. ENFOQUE: Peinado masculino y cuidado de barba (${hasBeard ? 'TIENE barba' : 'NO tiene barba'}).`;
+    1. PROHIBICIÓN TOTAL: Tienes TERMINANTEMENTE PROHIBIDO mencionar maquillaje, sombras, labiales o cualquier cosmético femenino.
+    2. ENFOQUE: Céntrate exclusivamente en Peinado masculino y cuidado de barba (${hasBeard ? 'el usuario TIENE barba' : 'el usuario NO tiene barba'}).
+    3. Si el usuario pregunta por maquillaje siendo hombre, declina amablemente y ofrece consejos de cuidado de piel o afeitado.`;
   } else {
     genderRules = `
     INSTRUCCIONES PARA MUJER:
@@ -95,11 +99,12 @@ export async function chatWithGroomingAssistant(input: z.infer<typeof GroomingCh
   
   REGLA DE DOMINIO:
   Solo puedes responder sobre PEINADO, MAQUILLAJE y CUIDADO DE PIEL/BARBA. 
-  Cualquier otro tema (historia, ciencia, política, etc.) debe ser rechazado.
+  
+  CONTEXTO DE EVENTO: El usuario te está dando contexto sobre su situación: "${input.eventType}". Usa esta información para dar consejos apropiados al nivel de formalidad requerido.
 
-  CLIENTE: ${gender} | EVENTO: ${input.eventType}
+  CLIENTE: ${gender}
   ${genderRules}
-  REGLA DE ORO: Sé directo, profesional y humano. Responde de tú.`;
+  REGLA DE ORO: Sé directo, profesional y humano. Responde de tú. Mantenlo breve (máximo 3 frases).`;
 
   const response = await openai.chat.completions.create({
     model: "gpt-4o",

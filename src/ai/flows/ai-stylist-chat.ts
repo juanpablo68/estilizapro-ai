@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Chat interactivo con Restricción de Dominio (Guardrail).
- * Solo responde sobre moda, vestuario y estilo personal.
+ * Optimizado para permitir contexto de eventos y situaciones sociales.
  */
 
 import { z } from 'genkit';
@@ -25,8 +25,10 @@ const AIChatInputSchema = z.object({
 });
 
 async function checkDomain(openai: OpenAI, message: string): Promise<boolean> {
-  const guardrailPrompt = `Actúa como un clasificador de seguridad. Determina si la pregunta del usuario está relacionada con: 
+  const guardrailPrompt = `Actúa como un clasificador de seguridad inteligente. Determina si la pregunta del usuario está relacionada con: 
   MODA, VESTUARIO, OUTFITS, GUARDARROPA, COLORIMETRÍA, ACCESORIOS, TEXTILES O ESTILO PERSONAL.
+
+  REGLA CRÍTICA: También debes permitir mensajes que describan EVENTOS, REUNIONES O CONTEXTO SOCIAL donde el usuario necesite asesoría de imagen (ej: "voy a una cena con inversores", "quiero impresionar en mi nuevo trabajo").
 
   Responde ÚNICAMENTE con la palabra "PERMITIDO" o "BLOQUEADO".
 
@@ -50,7 +52,7 @@ export async function chatWithAIStylist(input: z.infer<typeof AIChatInputSchema>
   const openai = new OpenAI({ apiKey });
 
   let config = {
-    fallbackMessage: "Lo siento, como tu asesor de Pilar Catalán, solo puedo responder preguntas relacionadas con moda, vestuario, colorimetría y estilo personal. ¿En qué look trabajamos hoy?",
+    fallbackMessage: "Lo siento, como tu asesor de Pilar Catalán, solo puedo responder preguntas relacionadas con moda y estilo personal. Por favor, cuéntame más sobre el look o el evento que tienes en mente.",
     strictMode: true
   };
 
@@ -75,9 +77,9 @@ export async function chatWithAIStylist(input: z.infer<typeof AIChatInputSchema>
   const systemPrompt = `Eres el asesor personal de imagen de Pilar Catalán. 
   
   GÉNERO DEL USUARIO: ${gender}. 
-  REGLA DE ORO DE DOMINIO: SOLO puedes responder sobre asesoramiento de imagen, moda, colorimetría y vestuario para el género ${gender}.
-  Si el género es "Masculino", NO sugieras prendas femeninas como vestidos o faldas.
-  Si el usuario intenta cambiar de tema, declina amablemente.
+  REGLA DE ORO DE DOMINIO: SOLO puedes responder sobre asesoramiento de imagen y moda para el género ${gender}.
+  Si el género es "Masculino", NO sugieras bajo ninguna circunstancia prendas femeninas como vestidos, faldas o blusas.
+  Si el usuario describe un evento o reunión, usa esa información para dar el consejo de vestuario más profesional y adecuado.
 
   PERSONALIDAD:
   1. Humano y directo. Habla de tú.
