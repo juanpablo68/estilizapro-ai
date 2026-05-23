@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -58,7 +57,9 @@ export default function CapsulesPage() {
 
     setLoading(true);
     try {
-      const gender = profile.biometricData?.genero || 'Femenino';
+      // Prioridad de género: Selección manual de onboarding > IA
+      const gender = profile.gender || profile.biometricData?.genero || 'Femenino';
+      
       const result = await receiveAICapsuleRecommendations({
         stylePreferences: profile.stylePreferences,
         colorimetryAnalysis: profile.colorimetryAnalysis || 'Cálida',
@@ -143,7 +144,7 @@ export default function CapsulesPage() {
         </Link>
         <div className="flex-1">
           <h1 className="text-2xl font-headline font-bold">Capsulizador AI</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Estilo {profile.biometricData?.genero || 'Personalizado'}</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Estilo {profile.gender || profile.biometricData?.genero || 'Personalizado'}</p>
         </div>
         <Button 
           variant="outline" 

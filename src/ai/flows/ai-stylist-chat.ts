@@ -12,6 +12,7 @@ import { adminFirestore } from '@/lib/firebase-admin';
 const AIChatInputSchema = z.object({
   message: z.string(),
   userContext: z.object({
+    gender: z.string().optional(),
     biometricData: z.any().optional(),
     figure: z.string().optional(),
     colorimetry: z.string().optional(),
@@ -23,27 +24,11 @@ const AIChatInputSchema = z.object({
   openaiApiKey: z.string().optional(),
 });
 
-/**
- * Capa 2: Backend Guardrail
- * Clasifica si el mensaje está en el dominio permitido.
- */
 async function checkDomain(openai: OpenAI, message: string): Promise<boolean> {
   const guardrailPrompt = `Actúa como un clasificador de seguridad. Determina si la pregunta del usuario está relacionada con: 
   MODA, VESTUARIO, OUTFITS, GUARDARROPA, COLORIMETRÍA, ACCESORIOS, TEXTILES O ESTILO PERSONAL.
 
   Responde ÚNICAMENTE con la palabra "PERMITIDO" o "BLOQUEADO".
-
-  EJEMPLOS DE BLOQUEO:
-  - "¿Quién ganó el mundial anterior?"
-  - "¿Cuál es el presidente de X país?"
-  - "¿Qué marca vende más tenis en el mundo?"
-  - "Explícame bitcoin"
-  - "Resuelve esta ecuación"
-
-  EJEMPLOS PERMITIDOS:
-  - "¿Qué outfit me recomiendas para una cena formal?"
-  - "¿Qué colores me favorecen?"
-  - "¿Qué zapatos combinan con este look?"
 
   MENSAJE DEL USUARIO: "${message}"`;
 
@@ -64,7 +49,6 @@ export async function chatWithAIStylist(input: z.infer<typeof AIChatInputSchema>
 
   const openai = new OpenAI({ apiKey });
 
-  // 1. Cargar Configuración de Firestore (Capa 1) con Fallback Seguro
   let config = {
     fallbackMessage: "Lo siento, como tu asesor de Pilar Catalán, solo puedo responder preguntas relacionadas con moda, vestuario, colorimetría y estilo personal. ¿En qué look trabajamos hoy?",
     strictMode: true
@@ -80,32 +64,25 @@ export async function chatWithAIStylist(input: z.infer<typeof AIChatInputSchema>
     console.warn("Firestore Admin Error (Token/Auth): Usando configuración local por defecto.", e);
   }
 
-  // 2. Ejecutar Guardrail (Capa 2)
   const isAllowed = await checkDomain(openai, input.message);
-  if (!isAllowed) {
-    return config.fallbackMessage;
-  }
+  if (!isAllowed) return config.fallbackMessage;
 
-  // 3. Prompt Estricto (Capa 3)
   const bio = input.userContext?.biometricData || {};
+  const gender = input.userContext?.gender || bio.genero || 'Femenino';
   const temp = bio.temperatura || 'Cálida';
   const figure = bio.cuerpo?.figure_geometrica || 'Reloj de Arena';
 
   const systemPrompt = `Eres el asesor personal de imagen de Pilar Catalán. 
   
-  REGLA DE ORO DE DOMINIO:
-  SOLO puedes responder sobre asesoramiento de imagen, moda, colorimetría y vestuario. 
-  NO debes responder preguntas de cultura general, deportes, política, noticias, finanzas o temas ajenos. 
-  Si el usuario intenta cambiar de tema, declina amablemente y vuelve al contexto de la moda.
+  GÉNERO DEL USUARIO: ${gender}. 
+  REGLA DE ORO DE DOMINIO: SOLO puedes responder sobre asesoramiento de imagen, moda, colorimetría y vestuario para el género ${gender}.
+  Si el género es "Masculino", NO sugieras prendas femeninas como vestidos o faldas.
+  Si el usuario intenta cambiar de tema, declina amablemente.
 
   PERSONALIDAD:
   1. Humano y directo. Habla de tú.
   2. SÍNTESIS EXTREMA: Máximo 2 o 3 frases potentes.
-  3. CONTEXTO REAL: Temperatura ${temp} y figura ${figure}.
-  
-  CONTEXTO DE ESTILO:
-  - Estilos: ${input.userContext?.preferences || 'No definidos'}
-  - Base: ${input.userContext?.knowledgeBase || 'Tendencias modernas'}`;
+  3. CONTEXTO REAL: Temperatura ${temp} y figura ${figure}.`;
 
   const response = await openai.chat.completions.create({
     model: "gpt-4o",

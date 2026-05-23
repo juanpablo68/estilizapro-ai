@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview Generación de cápsulas de moda con prioridad absoluta al armario local.
@@ -61,10 +60,11 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
   Crea exactamente 1 outfit coordinado para: "${input.eventType}" en clima: "${input.weatherConditions}".
 
   REGLAS OBLIGATORIAS:
-  1. GÉNERO: El usuario es ${genderContext}. Todo debe ser exclusivamente para este género.
-  2. COMPOSICIÓN: El outfit DEBE tener exactamente 6 elementos en total.
-  3. ACCESORIOS: Es OBLIGATORIO que incluyas por lo menos 2 accesorios (type: "accessory").
-  4. SIN HUMANOS: Las descripciones para imágenes externas deben ser de producto (ej: "watch on white background", "isolated shirt").
+  1. GÉNERO: El usuario es ${genderContext}. Todo el outfit DEBE ser exclusivamente para este género.
+  2. RESTRICCIÓN ESTRICTA: Si el género es "Masculino", está TOTALMENTE PROHIBIDO incluir vestidos (dresses), faldas o blusas de corte femenino. Usa solo prendas de hombre.
+  3. COMPOSICIÓN: El outfit DEBE tener exactamente 6 elementos en total.
+  4. ACCESORIOS: Es OBLIGATORIO que incluyas por lo menos 2 accesorios (type: "accessory").
+  5. SIN HUMANOS: Las descripciones para imágenes externas deben ser de producto (ej: "watch on white background", "isolated shirt").
   
   ARMARIO REAL (Prioridad):
   ${input.wardrobeItems.length > 0 ? JSON.stringify(input.wardrobeItems) : "Vacío. Usa solo source: 'external'."}
