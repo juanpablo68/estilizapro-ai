@@ -1,0 +1,40 @@
+
+{
+  "entities": {
+    "AssistantConfig": {
+      "title": "Configuración del Asistente",
+      "description": "Define los límites de respuesta de la IA.",
+      "type": "object",
+      "properties": {
+        "allowedTopics": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Temas permitidos para el chat."
+        },
+        "blockedTopics": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Temas que deben ser rechazados."
+        },
+        "fallbackMessage": {
+          "type": "string",
+          "description": "Mensaje de rechazo predeterminado."
+        },
+        "strictMode": {
+          "type": "boolean",
+          "description": "Si es verdadero, la IA será más agresiva bloqueando temas dudosos."
+        }
+      },
+      "required": ["allowedTopics", "fallbackMessage"]
+    }
+  },
+  "auth": {
+    "providers": ["google.com"]
+  },
+  "firestore": {
+    "/app_config/assistant_scope/main": {
+      "schema": "#/backend/entities/AssistantConfig",
+      "description": "Documento central de restricción de dominio para la IA."
+    }
+  }
+}
