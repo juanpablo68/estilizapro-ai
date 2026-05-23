@@ -12,19 +12,17 @@ Para que los cambios que hemos hecho se reflejen en tu repositorio de GitHub, si
 
 ```bash
 git add .
-git commit -m "🚀 Versión FINAL: Identidad Multiusuario + Blindaje de Género"
+git commit -m "🚀 Versión FINAL: Acceso Inteligente + Aislamiento Multiusuario + Blindaje de IA"
 git push -f origin main
 ```
 
 ## 🔑 Novedades de esta versión
-- **Multiusuario**: Ahora puedes cambiar de usuario en el mismo dispositivo. Cada nombre de usuario tiene su propio armario y perfil aislado.
-- **Identidad de Sesión**: El Dashboard muestra siempre quién está usando la aplicación.
-- **Blindaje de Género**: Reglas estrictas para evitar que la IA sugiera ropa inapropiada según el sexo del usuario.
-- **Restricción de Dominio**: Los chats ahora están protegidos contra preguntas fuera de contexto (Guardrail activo).
+- **Acceso Inteligente**: Si ya tienes perfil y avatar, la app te lleva directo al Dashboard. Si eres nuevo, te guía por el cuestionario y la creación de avatar.
+- **Multiusuario**: Puedes cambiar de usuario en el mismo dispositivo. Cada nombre tiene su propio armario y perfil aislado (Aislamiento por LocalStorage Scoped).
+- **Identidad en Dashboard**: Se muestra claramente qué sesión está activa antes de cerrar o cambiar de perfil.
+- **Blindaje de Género y Dominio**: Reglas estrictas para que la IA solo hable de moda y respete las prendas masculinas/femeninas según el perfil.
 
 ## 🚀 Notas Técnicas
-- **Límite de Server Actions**: Configurado a 100MB.
-- **Calidad de Avatar**: Ajustada a "medium" para mayor estabilidad.
-- **Particionamiento**: Uso de `useUserScopedStorage` para aislamiento en `localStorage`.
-
-```
+- **Límite de Server Actions**: Configurado a 100MB para permitir el procesamiento de imágenes de alta resolución.
+- **Particionamiento**: Uso de `useUserScopedStorage` para garantizar la privacidad local entre diferentes nombres de usuario.
+- **Resiliencia Backend**: Los chats ahora tienen manejo de errores (try/catch) para funcionar incluso si hay fallos temporales en los tokens de Firebase Admin.
