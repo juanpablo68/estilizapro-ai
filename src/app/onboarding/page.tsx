@@ -1,7 +1,6 @@
-
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocalStorage, useUserScopedStorage, INITIAL_USER_PROFILE, UserProfile } from '@/lib/storage-hooks';
 import { Button } from "@/components/ui/button";
@@ -18,12 +17,23 @@ const BODY_FOCUS = ["Cintura", "Piernas", "Hombros", "Escote", "Brazos"];
 const OCCASIONS = ["Trabajo", "Casual", "Eventos Noche", "Gimnasio", "Citas"];
 
 export default function OnboardingPage() {
-  const [, setActiveUser] = useLocalStorage<string>('estiliza_active_user', 'default');
+  const [activeUser] = useLocalStorage<string>('estiliza_active_user', 'default');
   const [profile, setProfile] = useUserScopedStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
   const [step, setStep] = useState(1);
   const router = useRouter();
 
-  const [formData, setFormData] = useState<UserProfile>(profile);
+  // Inicializamos el formulario con el nombre que ya se puso en el login
+  const [formData, setFormData] = useState<UserProfile>({
+    ...INITIAL_USER_PROFILE,
+    name: activeUser !== 'default' ? activeUser.charAt(0).toUpperCase() + activeUser.slice(1) : ''
+  });
+
+  // Si ya existía un perfil parcial, lo cargamos
+  useEffect(() => {
+    if (profile.name) {
+      setFormData(profile);
+    }
+  }, [profile]);
 
   const toggleList = (category: keyof UserProfile['stylePreferences'], value: string) => {
     setFormData(prev => {
@@ -49,8 +59,7 @@ export default function OnboardingPage() {
   const prevStep = () => setStep(s => s - 1);
 
   const finishOnboarding = () => {
-    // Al finalizar, marcamos a este usuario como el activo para las llaves de almacenamiento
-    setActiveUser(formData.name);
+    // Al finalizar, guardamos en el almacenamiento escopado del usuario
     setProfile({ ...formData, onboardingComplete: true });
     router.push('/avatar-creation');
   };
@@ -58,16 +67,16 @@ export default function OnboardingPage() {
   return (
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8">
       <div className="space-y-2 text-center pt-8">
-        <h1 className="text-3xl font-headline font-bold text-primary">Conozcámonos</h1>
-        <p className="text-muted-foreground text-sm">Paso {step} de 3</p>
+        <h1 className="text-3xl font-headline font-bold text-primary">Perfil de Estilo</h1>
+        <p className="text-muted-foreground text-sm">Paso {step} de 3 para {formData.name || activeUser}</p>
       </div>
 
-      <Card className="shadow-lg border-none bg-white">
-        <CardContent className="pt-6">
+      <Card className="shadow-lg border-none bg-white rounded-3xl overflow-hidden">
+        <CardContent className="pt-8">
           {step === 1 && (
             <div className="space-y-8">
               <div className="space-y-3">
-                <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-primary">¿Cómo te llamas?</Label>
+                <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-primary">Confirmar Nombre</Label>
                 <Input 
                   id="name" 
                   placeholder="Tu nombre" 
@@ -78,7 +87,7 @@ export default function OnboardingPage() {
               </div>
 
               <div className="space-y-3">
-                <Label className="text-xs font-black uppercase tracking-widest text-primary">¿Cuál es tu género?</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-primary">¿Cuál es tu género?</Label>
                 <RadioGroup 
                   value={formData.gender} 
                   onValueChange={(v: 'Femenino' | 'Masculino') => setFormData({...formData, gender: v})}
@@ -96,7 +105,7 @@ export default function OnboardingPage() {
               </div>
 
               <div className="space-y-4">
-                <Label className="text-xs font-black uppercase tracking-widest text-primary">¿Tus estilos favoritos?</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-primary">¿Tus estilos favoritos?</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {STYLE_OPTIONS.map(style => (
                     <div key={style} className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => toggleList('preferredStyles', style)}>
@@ -112,7 +121,7 @@ export default function OnboardingPage() {
           {step === 2 && (
             <div className="space-y-6">
               <div className="space-y-4">
-                <Label className="text-xs font-black uppercase tracking-widest text-primary">Tus colores predilectos:</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-primary">Tus colores predilectos:</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {COLORS_OPTIONS.map(color => (
                     <div key={color} className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => toggleList('favoriteColors', color)}>
@@ -124,7 +133,7 @@ export default function OnboardingPage() {
               </div>
               <Separator />
               <div className="space-y-4">
-                <Label className="text-xs font-black uppercase tracking-widest text-primary">Ocasiones frecuentes:</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-primary">Ocasiones frecuentes:</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {OCCASIONS.map(occ => (
                     <div key={occ} className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => toggleList('occasionPreferences', occ)}>
@@ -140,7 +149,7 @@ export default function OnboardingPage() {
           {step === 3 && (
             <div className="space-y-6">
               <div className="space-y-4">
-                <Label className="text-xs font-black uppercase tracking-widest text-primary">¿Qué partes resaltar?</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-primary">¿Qué partes resaltar?</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {BODY_FOCUS.map(part => (
                     <div key={part} className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => toggleList('bodyPartsToAccentuate', part)}>
@@ -152,7 +161,7 @@ export default function OnboardingPage() {
               </div>
               <Separator />
               <div className="space-y-4">
-                <Label className="text-xs font-black uppercase tracking-widest text-primary">¿Qué partes disimular?</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-primary">¿Qué partes disimular?</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {BODY_FOCUS.map(part => (
                     <div key={part} className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => toggleList('bodyPartsToMinimize', part)}>
