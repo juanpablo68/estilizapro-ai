@@ -1,7 +1,11 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
 
+/**
+ * Hook base para localStorage.
+ */
 export function useLocalStorage<T>(key: string, initialValue: T) {
   const [storedValue, setStoredValue] = useState<T>(() => {
     if (typeof window === "undefined") return initialValue;
@@ -21,6 +25,43 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
       if (typeof window !== "undefined") {
         window.localStorage.setItem(key, JSON.stringify(valueToStore));
       }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  return [storedValue, setValue] as const;
+}
+
+/**
+ * Hook especializado que añade el sufijo del usuario activo a la clave de búsqueda.
+ * Esto permite que múltiples usuarios usen la app en el mismo dispositivo sin mezclar datos.
+ */
+export function useUserScopedStorage<T>(baseKey: string, initialValue: T) {
+  const [activeUser] = useLocalStorage<string>('estiliza_active_user', 'default');
+  const scopedKey = `${baseKey}_${activeUser.toLowerCase().replace(/\s+/g, '_')}`;
+  
+  const [storedValue, setStoredValue] = useState<T>(() => {
+    if (typeof window === "undefined") return initialValue;
+    try {
+      const item = window.localStorage.getItem(scopedKey);
+      return item ? JSON.parse(item) : initialValue;
+    } catch (error) {
+      return initialValue;
+    }
+  });
+
+  useEffect(() => {
+    const item = window.localStorage.getItem(scopedKey);
+    if (item) setStoredValue(JSON.parse(item));
+    else setStoredValue(initialValue);
+  }, [scopedKey]);
+
+  const setValue = (value: T | ((val: T) => T)) => {
+    try {
+      const valueToStore = value instanceof Function ? value(storedValue) : value;
+      setStoredValue(valueToStore);
+      window.localStorage.setItem(scopedKey, JSON.stringify(valueToStore));
     } catch (error) {
       console.error(error);
     }

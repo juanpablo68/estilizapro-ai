@@ -13,20 +13,30 @@ import {
   PlusCircle, 
   Sparkles,
   Instagram,
-  Scissors
+  Scissors,
+  LogOut
 } from "lucide-react";
-import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
+import { useLocalStorage, useUserScopedStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
 import Image from 'next/image';
 import Link from 'next/link';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [profile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
+  const [, setActiveUser] = useLocalStorage<string>('estiliza_active_user', 'default');
+  const [profile] = useUserScopedStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleLogout = () => {
+    // Para cambiar de usuario en el mismo dispositivo, simplemente limpiamos el usuario activo
+    // y redirigimos al login/onboarding
+    setActiveUser('default');
+    localStorage.removeItem('estiliza_auth');
+    router.push('/');
+  };
 
   const actions = [
     { name: 'Armario', icon: Shirt, color: 'text-primary', bg: 'bg-primary/10', href: '/wardrobe' },
@@ -34,7 +44,7 @@ export default function DashboardPage() {
     { name: 'Peinado y Maquillaje', icon: Scissors, color: 'text-primary', bg: 'bg-primary/10', href: '/grooming' },
     { name: 'Asistente de Vestuario', icon: MessageCircle, color: 'text-primary', bg: 'bg-primary/5', href: '/chat' },
     { name: 'Probador Virtual', icon: UserCircle, color: 'text-secondary', bg: 'bg-secondary/5', href: '/preview' },
-    { name: 'Más Cápsulas', icon: PlusCircle, color: 'text-primary', bg: 'bg-primary/5', href: '/purchase' },
+    { name: 'Ajustes', icon: LogOut, color: 'text-primary', bg: 'bg-primary/5', href: '/settings' },
   ];
 
   if (!mounted) return null;
@@ -46,12 +56,15 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-headline font-bold text-foreground">Hola, {profile.name || 'Invitado'}</h1>
           <p className="text-sm text-muted-foreground">¿Qué vamos a estilizar hoy?</p>
         </div>
-        <div className="relative h-12 w-12 rounded-full overflow-hidden border-2 border-primary shadow-sm bg-muted cursor-pointer" onClick={() => router.push('/avatar-creation')}>
-          {profile.avatarDataUri ? (
-            <Image src={profile.avatarDataUri} alt="Avatar" fill className="object-cover" unoptimized />
-          ) : (
-            <UserCircle className="w-full h-full text-muted-foreground p-1" />
-          )}
+        <div className="flex gap-2">
+           <Button variant="ghost" size="icon" onClick={handleLogout} className="rounded-full text-muted-foreground"><LogOut className="w-5 h-5" /></Button>
+           <div className="relative h-12 w-12 rounded-full overflow-hidden border-2 border-primary shadow-sm bg-muted cursor-pointer" onClick={() => router.push('/avatar-creation')}>
+            {profile.avatarDataUri ? (
+                <Image src={profile.avatarDataUri} alt="Avatar" fill className="object-cover" unoptimized />
+            ) : (
+                <UserCircle className="w-full h-full text-muted-foreground p-1" />
+            )}
+           </div>
         </div>
       </header>
 
@@ -87,7 +100,7 @@ export default function DashboardPage() {
       </div>
 
       <footer className="text-center pt-8 space-y-2">
-        <p className="text-xs text-muted-foreground">Asesoría personalizada: @by.pilarcatalan</p>
+        <p className="text-xs text-muted-foreground">Sesión activa: {profile.name}</p>
         <p className="text-[10px] text-muted-foreground/60 uppercase tracking-widest font-bold">EstilizaPro AI v1.0 - Motor Híbrido Activo</p>
       </footer>
     </div>

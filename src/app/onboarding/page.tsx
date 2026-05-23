@@ -3,11 +3,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useLocalStorage, INITIAL_USER_PROFILE, UserProfile } from '@/lib/storage-hooks';
+import { useLocalStorage, useUserScopedStorage, INITIAL_USER_PROFILE, UserProfile } from '@/lib/storage-hooks';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -18,7 +18,8 @@ const BODY_FOCUS = ["Cintura", "Piernas", "Hombros", "Escote", "Brazos"];
 const OCCASIONS = ["Trabajo", "Casual", "Eventos Noche", "Gimnasio", "Citas"];
 
 export default function OnboardingPage() {
-  const [profile, setProfile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
+  const [, setActiveUser] = useLocalStorage<string>('estiliza_active_user', 'default');
+  const [profile, setProfile] = useUserScopedStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
   const [step, setStep] = useState(1);
   const router = useRouter();
 
@@ -41,14 +42,15 @@ export default function OnboardingPage() {
   };
 
   const nextStep = () => {
-    if (step === 1 && !formData.name) {
-      return; // Podríamos añadir un toast aquí si fuera necesario
-    }
+    if (step === 1 && !formData.name) return;
     setStep(s => s + 1);
   };
+  
   const prevStep = () => setStep(s => s - 1);
 
   const finishOnboarding = () => {
+    // Al finalizar, marcamos a este usuario como el activo para las llaves de almacenamiento
+    setActiveUser(formData.name);
     setProfile({ ...formData, onboardingComplete: true });
     router.push('/avatar-creation');
   };
@@ -91,7 +93,6 @@ export default function OnboardingPage() {
                     <Label htmlFor="masculino" className="font-bold cursor-pointer">Masculino</Label>
                   </div>
                 </RadioGroup>
-                <p className="text-[10px] text-muted-foreground italic">Esto nos ayudará a seleccionar la base de tu avatar y las prendas ideales.</p>
               </div>
 
               <div className="space-y-4">
