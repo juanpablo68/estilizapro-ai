@@ -18,13 +18,13 @@ const BODY_FOCUS = ["Cintura", "Piernas", "Hombros", "Escote", "Brazos"];
 const OCCASIONS = ["Trabajo", "Casual", "Eventos Noche", "Gimnasio", "Citas"];
 
 export default function OnboardingPage() {
-  const [activeUser] = useLocalStorage<string>('estiliza_active_user', 'default');
+  const [activeUser] = useLocalStorage<string>('estiliza_active_user', '');
   const [profile, setProfile] = useUserScopedStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
   const [step, setStep] = useState(1);
   const router = useRouter();
 
-  // Nombre formateado para mostrar
-  const displayName = activeUser !== 'default' 
+  // Nombre formateado para mostrar en la UI basado en el login
+  const displayName = activeUser 
     ? activeUser.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
     : '';
 
@@ -34,11 +34,17 @@ export default function OnboardingPage() {
   });
 
   useEffect(() => {
-    // Si el usuario ya completó el onboarding, no debería estar aquí
-    if (profile.onboardingComplete) {
+    // Si no hay un usuario activo en el sistema, mandarlo al login
+    if (!activeUser) {
+      router.push('/');
+      return;
+    }
+    
+    // Si ya completó avatar y onboarding, al dashboard
+    if (profile.onboardingComplete && profile.avatarDataUri) {
       router.push('/dashboard');
     }
-  }, [profile, router]);
+  }, [activeUser, profile, router]);
 
   const toggleList = (category: keyof UserProfile['stylePreferences'], value: string) => {
     setFormData(prev => {
@@ -64,12 +70,12 @@ export default function OnboardingPage() {
   const prevStep = () => setStep(s => s - 1);
 
   const finishOnboarding = () => {
-    // Guardamos los datos y marcamos como completo
+    // Guardamos los datos y marcamos como completo de onboarding
     setProfile({ 
       ...formData, 
       onboardingComplete: true 
     });
-    // El siguiente paso obligatorio es la creación del avatar
+    // Siguiente paso: El avatar es obligatorio antes del Dashboard
     router.push('/avatar-creation');
   };
 
@@ -77,7 +83,7 @@ export default function OnboardingPage() {
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8">
       <div className="space-y-2 text-center pt-8">
         <h1 className="text-3xl font-headline font-bold text-primary">Perfil de Estilo</h1>
-        <p className="text-muted-foreground text-sm">Paso {step} de 3 para {formData.name || 'Nuevo Usuario'}</p>
+        <p className="text-muted-foreground text-sm">Paso {step} de 3 para {formData.name}</p>
       </div>
 
       <Card className="shadow-lg border-none bg-white rounded-3xl overflow-hidden">

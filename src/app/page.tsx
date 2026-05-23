@@ -21,6 +21,7 @@ export default function LoginPage() {
     setMounted(true);
     // Limpiamos rastro de sesiones previas al entrar al login para evitar el estado "Invitado"
     localStorage.removeItem('estiliza_auth');
+    localStorage.removeItem('estiliza_active_user');
   }, []);
 
   const handleLogin = (e: React.FormEvent) => {
@@ -28,30 +29,34 @@ export default function LoginPage() {
     const cleanName = name.trim();
     if (!cleanName) return;
 
+    // Código de acceso universal para el prototipo
     if (passcode === '1,2,3,4') {
-      // 1. Establecer el usuario activo
-      const activeUserName = cleanName.toLowerCase().replace(/\s+/g, '_');
-      localStorage.setItem('estiliza_active_user', activeUserName);
+      // 1. Establecer el usuario activo (clave de partición)
+      const activeUserSlug = cleanName.toLowerCase().replace(/\s+/g, '_');
+      localStorage.setItem('estiliza_active_user', activeUserSlug);
       localStorage.setItem('estiliza_auth', 'true');
 
-      // 2. Verificar si este usuario específico ya completó el onboarding
-      const scopedKey = `estiliza_profile_${activeUserName}`;
-      const profileStr = localStorage.getItem(scopedKey);
+      // 2. Verificar si este usuario específico ya existe y completó el ciclo
+      const scopedProfileKey = `estiliza_profile_${activeUserSlug}`;
+      const profileData = localStorage.getItem(scopedProfileKey);
       
-      if (profileStr) {
+      if (profileData) {
         try {
-          const profile = JSON.parse(profileStr);
-          if (profile.onboardingComplete) {
+          const profile = JSON.parse(profileData);
+          // Si el usuario ya terminó su onboarding y tiene avatar, va directo al Dashboard
+          if (profile.onboardingComplete && profile.avatarDataUri) {
             router.push('/dashboard');
             return;
           }
+          // Si empezó pero no terminó, lo mandamos al onboarding para asegurar consistencia
+          router.push('/onboarding');
         } catch (e) {
-          console.error("Error parsing profile", e);
+          router.push('/onboarding');
         }
+      } else {
+        // Usuario totalmente nuevo
+        router.push('/onboarding');
       }
-      
-      // Si el perfil no existe o no está completo, vamos al inicio del flujo: Onboarding
-      router.push('/onboarding');
     } else {
       setError(true);
     }
@@ -71,7 +76,7 @@ export default function LoginPage() {
               <Sparkles className="w-12 h-12 text-primary" />
             </div>
             <Badge variant="secondary" className="bg-primary/10 text-primary font-black px-4 py-1 rounded-full uppercase tracking-widest text-[10px]">
-              Acceso Seguro v1.7
+              Acceso Seguro v1.8
             </Badge>
           </div>
           <div className="space-y-1">
@@ -84,7 +89,7 @@ export default function LoginPage() {
           <CardHeader className="pb-2">
             <CardTitle className="text-xl font-headline">Identificación</CardTitle>
             <CardDescription className="text-xs px-4">
-              Ingresa tu nombre para cargar o crear tu perfil personal.
+              Ingresa tu nombre para cargar tu perfil o crear uno nuevo.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6 p-8">
@@ -126,7 +131,7 @@ export default function LoginPage() {
               </div>
 
               {error && (
-                <p className="text-destructive text-[10px] font-black uppercase tracking-wider animate-bounce text-center">Código incorrecto</p>
+                <p className="text-destructive text-[10px] font-black uppercase tracking-wider animate-bounce text-center">Código incorrecto (Prueba 1,2,3,4)</p>
               )}
               
               <Button type="submit" className="w-full h-16 text-lg font-bold bg-primary shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform rounded-2xl">
@@ -137,7 +142,7 @@ export default function LoginPage() {
             <div className="pt-2 flex items-start gap-2 text-left bg-primary/5 p-4 rounded-2xl border border-primary/10">
               <Info className="w-4 h-4 text-primary mt-0.5 shrink-0" />
               <p className="text-[10px] text-muted-foreground leading-relaxed">
-                Si es tu primera vez con este nombre, pasarás por el <strong>cuestionario de estilo</strong> antes de generar tu avatar.
+                Si el nombre es nuevo en este dispositivo, iniciaremos tu <strong>configuración de estilo</strong>.
               </p>
             </div>
           </CardContent>
@@ -145,7 +150,7 @@ export default function LoginPage() {
 
         <footer className="pt-4">
           <p className="text-[9px] text-muted-foreground/60 uppercase tracking-[0.2em] font-bold">
-            Pilar Catalán • Privacidad de Datos Local
+            Pilar Catalán • Privacidad de Datos Particionada
           </p>
         </footer>
       </div>
