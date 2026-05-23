@@ -38,6 +38,7 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
  * Esto permite que múltiples usuarios usen la app en el mismo dispositivo sin mezclar datos.
  */
 export function useUserScopedStorage<T>(baseKey: string, initialValue: T) {
+  // Obtenemos el usuario activo global
   const [activeUser] = useLocalStorage<string>('estiliza_active_user', 'default');
   const scopedKey = `${baseKey}_${activeUser.toLowerCase().replace(/\s+/g, '_')}`;
   
@@ -51,17 +52,20 @@ export function useUserScopedStorage<T>(baseKey: string, initialValue: T) {
     }
   });
 
+  // Re-sincronizar cuando el scopedKey cambie (cambio de usuario)
   useEffect(() => {
     const item = window.localStorage.getItem(scopedKey);
     if (item) setStoredValue(JSON.parse(item));
     else setStoredValue(initialValue);
-  }, [scopedKey]);
+  }, [scopedKey, initialValue]);
 
   const setValue = (value: T | ((val: T) => T)) => {
     try {
       const valueToStore = value instanceof Function ? value(storedValue) : value;
       setStoredValue(valueToStore);
-      window.localStorage.setItem(scopedKey, JSON.stringify(valueToStore));
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(scopedKey, JSON.stringify(valueToStore));
+      }
     } catch (error) {
       console.error(error);
     }

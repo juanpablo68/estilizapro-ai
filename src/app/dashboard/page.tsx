@@ -10,7 +10,6 @@ import {
   Layers, 
   MessageCircle, 
   UserCircle, 
-  PlusCircle, 
   Sparkles,
   Instagram,
   Scissors,
@@ -32,8 +31,7 @@ export default function DashboardPage() {
   }, []);
 
   const handleLogout = () => {
-    // Para cambiar de usuario en el mismo dispositivo, simplemente limpiamos el usuario activo
-    // y redirigimos al login/onboarding
+    // Para cambiar de usuario, limpiamos el usuario activo y redirigimos al login
     setActiveUser('default');
     localStorage.removeItem('estiliza_auth');
     router.push('/');
@@ -60,7 +58,7 @@ export default function DashboardPage() {
         <div className="flex items-center gap-2">
            <div className="flex flex-col items-end mr-2">
              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Sesión de</span>
-             <span className="text-xs font-bold text-primary truncate max-w-[80px]">{profile.name || 'Invitado'}</span>
+             <span className="text-xs font-bold text-primary truncate max-w-[100px]">{profile.name || 'Invitado'}</span>
            </div>
            <Button 
              variant="ghost" 
@@ -118,7 +116,7 @@ export default function DashboardPage() {
           <p className="text-xs text-muted-foreground font-medium">Sesión activa: <span className="font-bold">{profile.name || 'Invitado'}</span></p>
         </div>
         <p className="text-[10px] text-muted-foreground/60 uppercase tracking-widest font-black block pt-2">
-          EstilizaPro AI v1.0 • Motor Híbrido Activo • Pilar Catalán
+          EstilizaPro AI v1.6 • Motor Híbrido Activo • Pilar Catalán
         </p>
       </footer>
     </div>

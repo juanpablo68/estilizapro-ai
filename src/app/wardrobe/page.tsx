@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { useLocalStorage, WardrobeItem } from '@/lib/storage-hooks';
+import { useUserScopedStorage, WardrobeItem, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 
-// Optimizado a 600px para garantizar que el armario no exceda límites de almacenamiento ni de red
 const resizeImage = (base64Str: string): Promise<string> => {
   return new Promise((resolve) => {
     const img = new window.Image();
@@ -26,28 +25,22 @@ const resizeImage = (base64Str: string): Promise<string> => {
       let height = img.height;
 
       if (width > height) {
-        if (width > MAX_WIDTH) {
-          height *= MAX_WIDTH / width;
-          width = MAX_WIDTH;
-        }
+        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
       } else {
-        if (height > MAX_HEIGHT) {
-          width *= MAX_HEIGHT / height;
-          height = MAX_HEIGHT;
-        }
+        if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
       }
       canvas.width = width;
       canvas.height = height;
       const ctx = canvas.getContext('2d');
       ctx?.drawImage(img, 0, 0, width, height);
-      // Calidad 0.7 para minimizar peso del payload en Server Actions
       resolve(canvas.toDataURL('image/jpeg', 0.7));
     };
   });
 };
 
 export default function WardrobePage() {
-  const [items, setItems] = useLocalStorage<WardrobeItem[]>('estiliza_wardrobe', []);
+  const [items, setItems] = useUserScopedStorage<WardrobeItem[]>('estiliza_wardrobe', []);
+  const [profile] = useUserScopedStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
   const [mounted, setMounted] = useState(false);
   const [adding, setAdding] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -74,11 +67,7 @@ export default function WardrobePage() {
 
   const addItem = () => {
     if (!newItem.name || !newItem.imageDataUri) {
-      toast({
-        variant: "destructive",
-        title: "Datos incompletos",
-        description: "Añade un nombre y una foto."
-      });
+      toast({ variant: "destructive", title: "Datos incompletos", description: "Añade un nombre y una foto." });
       return;
     }
     
@@ -92,10 +81,7 @@ export default function WardrobePage() {
     };
     
     setItems([item, ...items]);
-    toast({
-      title: "Guardado",
-      description: `${newItem.name} añadida al armario.`
-    });
+    toast({ title: "Guardado", description: `${newItem.name} añadida al armario de ${profile.name}.` });
     setAdding(false);
     setNewItem({ name: '', type: 'top', imageDataUri: '' });
   };
@@ -113,14 +99,17 @@ export default function WardrobePage() {
         <Link href="/dashboard">
           <Button variant="ghost" size="icon" className="rounded-full"><ArrowLeft /></Button>
         </Link>
-        <h1 className="text-2xl font-headline font-bold">Mi Armario</h1>
+        <div>
+          <h1 className="text-2xl font-headline font-bold">Mi Armario</h1>
+          <p className="text-[10px] text-primary font-black uppercase tracking-widest">Sesión: {profile.name}</p>
+        </div>
       </header>
 
       {adding ? (
         <Card className="border-none shadow-xl bg-white rounded-3xl overflow-hidden">
           <CardContent className="p-8 space-y-6">
             <h2 className="font-bold text-xl text-primary flex items-center gap-2">
-              <Shirt className="w-5 h-5" /> Nueva Prenda
+              <Plus className="w-5 h-5" /> Nueva Prenda
             </h2>
             
             <div className="space-y-6">
@@ -161,9 +150,7 @@ export default function WardrobePage() {
               <div className="space-y-2">
                 <Label className="text-[10px] uppercase font-black">Categoría</Label>
                 <Select value={newItem.type} onValueChange={v => setNewItem({...newItem, type: v})}>
-                  <SelectTrigger className="rounded-xl h-12">
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger className="rounded-xl h-12"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="top">Superior</SelectItem>
                     <SelectItem value="bottom">Inferior</SelectItem>
@@ -191,7 +178,7 @@ export default function WardrobePage() {
           {items.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center space-y-4">
               <Shirt className="w-20 h-20 text-muted-foreground/40" />
-              <p className="font-bold text-muted-foreground">Tu armario está vacío</p>
+              <p className="font-bold text-muted-foreground">El armario de {profile.name} está vacío</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">

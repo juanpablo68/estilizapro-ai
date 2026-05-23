@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -35,10 +36,14 @@ export default function LoginPage() {
       const profileStr = localStorage.getItem(scopedKey);
       
       if (profileStr) {
-        const profile = JSON.parse(profileStr);
-        if (profile.onboardingComplete) {
-          router.push('/dashboard');
-          return;
+        try {
+          const profile = JSON.parse(profileStr);
+          if (profile.onboardingComplete) {
+            router.push('/dashboard');
+            return;
+          }
+        } catch (e) {
+          console.error("Error parsing profile", e);
         }
       }
       
@@ -63,7 +68,7 @@ export default function LoginPage() {
               <Sparkles className="w-12 h-12 text-primary" />
             </div>
             <Badge variant="secondary" className="bg-primary/10 text-primary font-black px-4 py-1 rounded-full uppercase tracking-widest text-[10px]">
-              Beta Test v1.5
+              Beta Test v1.6
             </Badge>
           </div>
           <div className="space-y-1">
@@ -136,7 +141,7 @@ export default function LoginPage() {
 
         <footer className="space-y-4 pt-4">
           <p className="text-[9px] text-muted-foreground/60 uppercase tracking-[0.2em] font-bold">
-            Pilar Catalán • EstilizaPro AI v1.5
+            Pilar Catalán • EstilizaPro AI v1.6
           </p>
         </footer>
       </div>
