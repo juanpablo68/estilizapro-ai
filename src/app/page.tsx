@@ -19,9 +19,6 @@ export default function LoginPage() {
 
   useEffect(() => {
     setMounted(true);
-    // Limpiamos rastro de sesiones previas al entrar al login para evitar el estado "Invitado"
-    localStorage.removeItem('estiliza_auth');
-    localStorage.removeItem('estiliza_active_user');
   }, []);
 
   const handleLogin = (e: React.FormEvent) => {
@@ -31,12 +28,13 @@ export default function LoginPage() {
 
     // Código de acceso universal para el prototipo
     if (passcode === '1,2,3,4') {
-      // 1. Establecer el usuario activo (clave de partición)
       const activeUserSlug = cleanName.toLowerCase().replace(/\s+/g, '_');
-      localStorage.setItem('estiliza_active_user', activeUserSlug);
-      localStorage.setItem('estiliza_auth', 'true');
+      
+      // CRÍTICO: Usamos JSON.stringify para que useLocalStorage pueda leerlo correctamente
+      localStorage.setItem('estiliza_active_user', JSON.stringify(activeUserSlug));
+      localStorage.setItem('estiliza_auth', JSON.stringify('true'));
 
-      // 2. Verificar si este usuario específico ya existe y completó el ciclo
+      // Verificar si este usuario específico ya existe y completó el ciclo
       const scopedProfileKey = `estiliza_profile_${activeUserSlug}`;
       const profileData = localStorage.getItem(scopedProfileKey);
       
@@ -48,9 +46,9 @@ export default function LoginPage() {
             router.push('/dashboard');
             return;
           }
-          // Si empezó pero no terminó, lo mandamos al onboarding para asegurar consistencia
           router.push('/onboarding');
         } catch (e) {
+          console.error("Error parsing profile data:", e);
           router.push('/onboarding');
         }
       } else {
@@ -76,7 +74,7 @@ export default function LoginPage() {
               <Sparkles className="w-12 h-12 text-primary" />
             </div>
             <Badge variant="secondary" className="bg-primary/10 text-primary font-black px-4 py-1 rounded-full uppercase tracking-widest text-[10px]">
-              Acceso Seguro v1.8
+              Acceso Seguro v1.9
             </Badge>
           </div>
           <div className="space-y-1">
