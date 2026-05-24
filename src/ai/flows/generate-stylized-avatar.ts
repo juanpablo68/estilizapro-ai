@@ -1,6 +1,7 @@
 'use server';
 /**
  * @fileOverview Generación de Avatar Realista de Alta Fidelidad con Blindaje de Género.
+ * Garantiza que el avatar respete estrictamente el género detectado o seleccionado.
  */
 
 import { z } from 'genkit';
@@ -25,6 +26,7 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
   const openai = new OpenAI({ apiKey });
   const data = input.biometricData || {};
   
+  // REGLA MAESTRA: El género viene del perfil del usuario (biometricData.genero)
   const personType = data.genero || 'Femenino';
   const hairColor = data.rostro?.cabello?.color_natural || 'natural';
   const hairDetail = data.rostro?.cabello?.color_detalle || '';
@@ -39,9 +41,9 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
   const finalPrompt = `Create a highly realistic full-body editorial fashion avatar.
 
 CRITICAL IDENTITY RULE: The subject MUST be ${personType}. 
-If ${personType} is "Masculino", generate a clear MALE avatar with male facial features and male body proportions. 
-If ${personType} is "Femenino", generate a clear FEMALE avatar with female facial features and female body proportions.
-DO NOT MIX GENDER TRAITS.
+This is a strict requirement. If ${personType} is "Masculino", the subject MUST have clear male facial features, a male jawline, and male body proportions. 
+If ${personType} is "Femenino", the subject MUST have clear female facial features and female body proportions.
+DO NOT MIX GENDER TRAITS. NO ANDROGYNOUS LOOKS.
 
 FAITHFULNESS:
 Preserve the person’s facial identity cues as closely as possible: face shape, forehead proportion, ${facialStructure} structure, jawline shape, nose shape, mouth shape, eye shape (${eyeColor}), skin tone (${skinTone}), hair color (${hairColor}), and hairstyle (${hairDetail}).
@@ -55,7 +57,6 @@ The avatar should wear simple neutral fitted clothing suitable for fashion analy
 
 NO cartoon, NO Pixar style, NO animated character, NO toy-like appearance, NO oversized eyes.`;
 
-  const startTime = Date.now();
   try {
     const response = await openai.images.generate({
       model: "gpt-image-2" as any, 

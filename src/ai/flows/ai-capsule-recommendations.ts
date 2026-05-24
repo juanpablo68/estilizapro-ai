@@ -2,7 +2,7 @@
 /**
  * @fileOverview Generación de cápsulas de moda con prioridad absoluta al armario local.
  * Garantiza 6 imágenes totales por outfit, con al menos 2 accesorios.
- * REGLA DE ORO: Sin humanos en las imágenes sugeridas.
+ * REGLA DE ORO: Blindaje de género absoluto.
  */
 
 import { z } from 'genkit';
@@ -54,17 +54,23 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
   if (!apiKey) throw new Error("API Key de OpenAI requerida.");
 
   const openai = new OpenAI({ apiKey });
+  
+  // FUENTE DE VERDAD: El género pasado desde el frontend (que viene del perfil del usuario)
   const genderContext = input.gender || 'Femenino';
 
   const prompt = `Actúa como el Stylist Maestro de Pilar Catalán. 
   Crea exactamente 1 outfit coordinado para: "${input.eventType}" en clima: "${input.weatherConditions}".
 
-  REGLAS OBLIGATORIAS:
-  1. GÉNERO: El usuario es ${genderContext}. Todo el outfit DEBE ser exclusivamente para este género.
-  2. RESTRICCIÓN ESTRICTA: Si el género es "Masculino", está TOTALMENTE PROHIBIDO incluir vestidos (dresses), faldas o blusas de corte femenino. Usa solo prendas de hombre.
-  3. COMPOSICIÓN: El outfit DEBE tener exactamente 6 elementos en total.
-  4. ACCESORIOS: Es OBLIGATORIO que incluyas por lo menos 2 accesorios (type: "accessory").
-  5. SIN HUMANOS: Las descripciones para imágenes externas deben ser de producto (ej: "watch on white background", "isolated shirt").
+  REGLA DE ORO DE IDENTIDAD (CRÍTICA):
+  El usuario es ${genderContext.toUpperCase()}. 
+  Si el género es "MASCULINO", el outfit DEBE ser EXCLUSIVAMENTE para HOMBRE. 
+  ESTÁ TERMINANTEMENTE PROHIBIDO incluir vestidos (dresses), faldas o blusas de corte femenino si el género es Masculino. 
+  Solo usa pantalones, camisas de hombre, poleras de hombre, chaquetas de hombre y zapatos de hombre.
+
+  REGLAS DE COMPOSICIÓN:
+  1. El outfit DEBE tener exactamente 6 elementos en total.
+  2. ACCESORIOS: Es OBLIGATORIO que incluyas por lo menos 2 accesorios (type: "accessory").
+  3. SIN HUMANOS: Las descripciones para imágenes externas deben ser de producto (ej: "watch on white background").
   
   ARMARIO REAL (Prioridad):
   ${input.wardrobeItems.length > 0 ? JSON.stringify(input.wardrobeItems) : "Vacío. Usa solo source: 'external'."}
@@ -107,6 +113,7 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
 
         if (item.source === 'external') {
           const uKey = getUnsplashKey(input.unsplashAccessKey);
+          // Reforzamos la búsqueda en Unsplash para el género correcto
           const genderTerm = genderContext === 'Masculino' ? 'men' : 'women';
           const query = `${genderTerm} ${item.searchKeywords}`;
           const images = await searchUnsplashImages(query, uKey, item.type);

@@ -1,9 +1,8 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useLocalStorage, useUserScopedStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
+import { useUserScopedStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
 import { generateStylizedAvatar } from '@/ai/flows/generate-stylized-avatar';
 import { analyzeStyleContext } from '@/ai/flows/analyze-style-context';
 import { Button } from "@/components/ui/button";
@@ -84,18 +83,22 @@ export default function AvatarCreationPage() {
         openaiApiKey: openaiKey
       });
 
+      // SINCRONIZACIÓN CRÍTICA: Respetamos el género seleccionado en el onboarding si existe
+      // Pero enviamos a la generación de avatar el género que queremos forzar
+      const finalGender = profile.gender || analysis.biometricData.genero || 'Femenino';
+      
       const updatedProfile = { 
         ...profile, 
-        biometricData: analysis.biometricData,
+        biometricData: { ...analysis.biometricData, genero: finalGender },
         figureAnalysis: analysis.figureAnalysis, 
         colorimetryAnalysis: analysis.colorimetryAnalysis,
-        gender: analysis.biometricData.genero // Sincronización de género detectado
+        gender: finalGender
       };
       setProfile(updatedProfile);
 
       setLoadingStatus('Creando Avatar Realista...');
       const result = await generateStylizedAvatar({
-        biometricData: analysis.biometricData,
+        biometricData: updatedProfile.biometricData, // Enviamos el género blindado
         openaiApiKey: openaiKey,
         userId: profile.name || 'user'
       });
@@ -132,7 +135,8 @@ export default function AvatarCreationPage() {
             <Sparkles className="h-4 w-4 text-primary" />
             <AlertTitle className="text-primary font-bold">Diagnóstico de Alta Fidelidad</AlertTitle>
             <AlertDescription className="text-xs">
-              Sube tus fotos para que la IA genere tu avatar y analice tu colorimetría.
+              Sube tus fotos para que la IA genere tu avatar y analice tu colorimetría. 
+              <strong> Género configurado: {profile.gender}</strong>
             </AlertDescription>
           </Alert>
 
@@ -188,7 +192,7 @@ export default function AvatarCreationPage() {
               </div>
               <div className="space-y-1">
                 <p className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center justify-center gap-2">
-                  <User className="w-3 h-3" /> Género: {profile.biometricData?.genero || profile.gender}
+                  <User className="w-3 h-3" /> Género: {profile.gender}
                 </p>
                 <p className="text-[10px] font-black text-primary uppercase tracking-widest">
                   {profile.colorimetryAnalysis} • {profile.figureAnalysis}
