@@ -56,7 +56,6 @@ export default function DashboardPage() {
     { name: 'Peinado y Maquillaje', icon: Scissors, color: 'text-primary', bg: 'bg-primary/10', href: '/grooming' },
     { name: 'Asistente de Vestuario', icon: MessageCircle, color: 'text-primary', bg: 'bg-primary/5', href: '/chat' },
     { name: 'Probador Virtual', icon: UserCircle, color: 'text-secondary', bg: 'bg-secondary/5', href: '/preview' },
-    { name: 'Ajustes', icon: LogOut, color: 'text-primary', bg: 'bg-primary/5', href: '/settings' },
   ];
 
   if (!mounted) return null;

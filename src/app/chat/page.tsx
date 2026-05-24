@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useRef, useEffect } from 'react';
@@ -61,7 +62,7 @@ export default function ChatPage() {
       setMessages(prev => [...prev, { role: 'assistant', content: response }]);
     } catch (err) {
       console.error(err);
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Lo siento, ha ocurrido un error al procesar tu consulta. Revisa tu clave de OpenAI en Ajustes.' }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Lo siento, ha ocurrido un error al procesar tu consulta. Por favor, inténtalo de nuevo más tarde.' }]);
     } finally {
       setLoading(false);
     }
