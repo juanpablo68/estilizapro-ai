@@ -14,24 +14,37 @@ import {
   Instagram,
   Scissors,
   LogOut,
-  User
+  User,
+  Database
 } from "lucide-react";
-import { useLocalStorage, useUserScopedStorage, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
+import { useLocalStorage, useUserScopedStorage, UserProfile, INITIAL_USER_PROFILE, loadHeavyImage } from '@/lib/storage-hooks';
 import Image from 'next/image';
 import Link from 'next/link';
+import { logStorageStatus } from '@/lib/local-db';
 
 export default function DashboardPage() {
   const router = useRouter();
   const [, setActiveUser] = useLocalStorage<string>('estiliza_active_user', 'default');
   const [profile] = useUserScopedStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    logStorageStatus();
+    
+    const loadAvatar = async () => {
+      if (profile.avatarDataUri && profile.avatarDataUri.startsWith('avatar-')) {
+        const url = await loadHeavyImage(profile.avatarDataUri);
+        if (url) setAvatarUrl(url);
+      } else if (profile.avatarDataUri) {
+        setAvatarUrl(profile.avatarDataUri);
+      }
+    };
+    loadAvatar();
+  }, [profile.avatarDataUri]);
 
   const handleLogout = () => {
-    // Para cambiar de usuario, limpiamos el usuario activo y redirigimos al login
     setActiveUser('default');
     localStorage.removeItem('estiliza_auth');
     router.push('/');
@@ -52,13 +65,13 @@ export default function DashboardPage() {
     <div className="flex-1 max-w-2xl mx-auto w-full p-6 space-y-8 pb-10">
       <header className="flex items-center justify-between pt-8">
         <div>
-          <h1 className="text-2xl font-headline font-bold text-foreground">Hola, {profile.name || 'Invitado'}</h1>
-          <p className="text-sm text-muted-foreground">¿Qué vamos a estilizar hoy?</p>
+          <h1 className="text-2xl font-headline font-bold text-foreground">Hola, {profile.name || 'Usuario'}</h1>
+          <p className="text-sm text-muted-foreground">Persistencia local activa</p>
         </div>
         <div className="flex items-center gap-2">
            <div className="flex flex-col items-end mr-2">
              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Sesión de</span>
-             <span className="text-xs font-bold text-primary truncate max-w-[100px]">{profile.name || 'Invitado'}</span>
+             <span className="text-xs font-bold text-primary truncate max-w-[100px]">{profile.name || 'User'}</span>
            </div>
            <Button 
              variant="ghost" 
@@ -70,8 +83,8 @@ export default function DashboardPage() {
              <LogOut className="w-5 h-5" />
            </Button>
            <div className="relative h-12 w-12 rounded-full overflow-hidden border-2 border-primary shadow-sm bg-muted cursor-pointer" onClick={() => router.push('/avatar-creation')}>
-            {profile.avatarDataUri ? (
-                <Image src={profile.avatarDataUri} alt="Avatar" fill className="object-cover" unoptimized />
+            {avatarUrl ? (
+                <Image src={avatarUrl} alt="Avatar" fill className="object-cover" unoptimized />
             ) : (
                 <UserCircle className="w-full h-full text-muted-foreground p-1" />
             )}
@@ -112,11 +125,11 @@ export default function DashboardPage() {
 
       <footer className="text-center pt-8 space-y-2 border-t mt-4 pt-6">
         <div className="inline-flex items-center gap-2 bg-muted/50 px-4 py-1.5 rounded-full">
-          <User className="w-3 h-3 text-muted-foreground" />
-          <p className="text-xs text-muted-foreground font-medium">Sesión activa: <span className="font-bold">{profile.name || 'Invitado'}</span></p>
+          <Database className="w-3 h-3 text-muted-foreground" />
+          <p className="text-xs text-muted-foreground font-medium">Almacenamiento: <span className="font-bold">IndexedDB Master</span></p>
         </div>
         <p className="text-[10px] text-muted-foreground/60 uppercase tracking-widest font-black block pt-2">
-          EstilizaPro AI v1.6 • Motor Híbrido Activo • Pilar Catalán
+          EstilizaPro AI v2.0 • Blindaje Local Multiusuario • Pilar Catalán
         </p>
       </footer>
     </div>

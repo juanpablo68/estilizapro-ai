@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUserScopedStorage, WardrobeItem, UserProfile, INITIAL_USER_PROFILE } from '@/lib/storage-hooks';
+import { useUserScopedStorage, WardrobeItem, UserProfile, INITIAL_USER_PROFILE, saveHeavyImage, loadHeavyImage } from '@/lib/storage-hooks';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { Camera, Plus, Trash2, ArrowLeft, Shirt, Loader2 } from "lucide-react";
 import Image from 'next/image';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
+import { db } from '@/lib/local-db';
 
 const resizeImage = (base64Str: string): Promise<string> => {
   return new Promise((resolve) => {
@@ -20,8 +21,8 @@ const resizeImage = (base64Str: string): Promise<string> => {
     img.src = base64Str;
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      const MAX_WIDTH = 600;
-      const MAX_HEIGHT = 600;
+      const MAX_WIDTH = 1000;
+      const MAX_HEIGHT = 1000;
       let width = img.width;
       let height = img.height;
 
@@ -34,7 +35,7 @@ const resizeImage = (base64Str: string): Promise<string> => {
       canvas.height = height;
       const ctx = canvas.getContext('2d');
       ctx?.drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL('image/jpeg', 0.7));
+      resolve(canvas.toDataURL('image/jpeg', 0.85));
     };
   });
 };
@@ -47,11 +48,31 @@ export default function WardrobePage() {
   const [adding, setAdding] = useState(false);
   const [loading, setLoading] = useState(false);
   const [newItem, setNewItem] = useState({ name: '', type: 'top', imageDataUri: '' });
+  const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
   const { toast } = useToast();
+
+  const userSlug = profile.name ? profile.name.toLowerCase().replace(/\s+/g, '_') : 'user';
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Cargar imágenes desde IndexedDB al montar o cambiar items
+  useEffect(() => {
+    const loadImages = async () => {
+      const urls: Record<string, string> = {};
+      for (const item of items) {
+        if (item.imageDataUri.startsWith('wardrobe-')) {
+          const url = await loadHeavyImage(item.imageDataUri);
+          if (url) urls[item.id] = url;
+        } else {
+          urls[item.id] = item.imageDataUri;
+        }
+      }
+      setImageUrls(urls);
+    };
+    if (items.length > 0) loadImages();
+  }, [items]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -67,29 +88,38 @@ export default function WardrobePage() {
     }
   };
 
-  const addItem = () => {
+  const addItem = async () => {
     if (!newItem.name || !newItem.imageDataUri) {
       toast({ variant: "destructive", title: "Datos incompletos", description: "Añade un nombre y una foto." });
       return;
     }
     
     const randomId = Math.random().toString(36).substring(2, 9);
+    const itemId = `item-${Date.now()}-${randomId}`;
+
+    // 1. Guardar la imagen en IndexedDB
+    const imageStoreId = await saveHeavyImage(userSlug, 'wardrobe', newItem.imageDataUri);
+
+    // 2. Guardar metadata liviana
     const item: WardrobeItem = {
-      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `item-${Date.now()}-${randomId}`,
+      id: itemId,
       name: newItem.name,
       type: newItem.type,
-      imageDataUri: newItem.imageDataUri,
+      imageDataUri: imageStoreId, // Guardamos el ID de IndexedDB
       dateAdded: new Date().toISOString(),
     };
     
     setItems([item, ...items]);
-    toast({ title: "Guardado", description: `${newItem.name} añadida al armario de ${profile.name}.` });
+    toast({ title: "Guardado", description: `${newItem.name} añadida al armario local.` });
     setAdding(false);
     setNewItem({ name: '', type: 'top', imageDataUri: '' });
   };
 
-  const deleteItem = (id: string) => {
+  const deleteItem = async (id: string, imageStoreId: string) => {
     setItems(items.filter(i => i.id !== id));
+    if (imageStoreId.startsWith('wardrobe-')) {
+      await db.images.delete(imageStoreId);
+    }
     toast({ title: "Eliminado" });
   };
 
@@ -102,8 +132,8 @@ export default function WardrobePage() {
           <ArrowLeft />
         </Button>
         <div>
-          <h1 className="text-2xl font-headline font-bold text-primary">Mi Armario</h1>
-          <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Sesión: {profile.name || 'Cargando...'}</p>
+          <h1 className="text-2xl font-headline font-bold text-primary">Mi Armario Local</h1>
+          <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Aislamiento: {profile.name || 'Cargando...'}</p>
         </div>
       </header>
 
@@ -166,7 +196,7 @@ export default function WardrobePage() {
 
               <div className="flex gap-4 pt-4">
                 <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={() => setAdding(false)}>Cancelar</Button>
-                <Button className="flex-1 h-12 rounded-xl bg-primary font-bold shadow-lg" onClick={addItem}>Guardar Prenda</Button>
+                <Button className="flex-1 h-12 rounded-xl bg-primary font-bold shadow-lg" onClick={addItem}>Guardar en Memoria</Button>
               </div>
             </div>
           </CardContent>
@@ -182,7 +212,7 @@ export default function WardrobePage() {
               <Shirt className="w-20 h-20 text-muted-foreground/20 animate-pulse" />
               <div className="space-y-1">
                 <p className="font-bold text-muted-foreground">Tu armario está vacío</p>
-                <p className="text-xs text-muted-foreground/60">Empieza a digitalizar tus prendas para que la IA cree looks por ti.</p>
+                <p className="text-xs text-muted-foreground/60">Las fotos que subas se guardarán solo en este navegador.</p>
               </div>
             </div>
           ) : (
@@ -190,12 +220,15 @@ export default function WardrobePage() {
               {items.map(item => (
                 <Card key={item.id} className="overflow-hidden border-none shadow-md group rounded-2xl bg-white hover:shadow-xl transition-shadow">
                   <div className="relative aspect-[3/4] bg-muted">
-                    <Image src={item.imageDataUri} alt={item.name} fill className="object-cover" unoptimized />
+                    {imageUrls[item.id] ? (
+                      <Image src={imageUrls[item.id]} alt={item.name} fill className="object-cover" unoptimized />
+                    ) : <div className="flex items-center justify-center h-full"><Loader2 className="animate-spin" /></div>}
+                    
                     <Button 
                       variant="destructive" 
                       size="icon" 
                       className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 h-8 w-8 rounded-full shadow-lg transition-opacity"
-                      onClick={() => deleteItem(item.id)}
+                      onClick={() => deleteItem(item.id, item.imageDataUri)}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -205,7 +238,6 @@ export default function WardrobePage() {
                   </div>
                   <CardContent className="p-4">
                     <p className="font-bold text-[10px] truncate uppercase tracking-tighter">{item.name}</p>
-                    <p className="text-[8px] text-muted-foreground uppercase mt-1">Añadido: {new Date(item.dateAdded).toLocaleDateString()}</p>
                   </CardContent>
                 </Card>
               ))}
