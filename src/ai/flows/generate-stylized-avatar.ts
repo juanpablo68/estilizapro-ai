@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Generación de Avatar Realista de Alta Fidelidad con Blindaje de Género.
- * Garantiza que el avatar respete estrictamente el género detectado o seleccionado.
+ * Utiliza rasgos faciales específicos para garantizar que el avatar represente fielmente al usuario.
  */
 
 import { z } from 'genkit';
@@ -26,52 +26,62 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
   const openai = new OpenAI({ apiKey });
   const data = input.biometricData || {};
   
-  // REGLA MAESTRA: El género viene del perfil del usuario (biometricData.genero)
+  // REGLA MAESTRA: El género viene del perfil del usuario
   const personType = data.genero || 'Femenino';
   const isMale = personType === 'Masculino';
   
   const genderTerm = isMale ? 'MAN' : 'WOMAN';
   const adjective = isMale ? 'MALE' : 'FEMALE';
   
+  // Rasgos faciales específicos para mayor realismo
+  const faceShape = data.rostro?.forma_rostro || 'natural facial structure';
+  const jawline = data.rostro?.mandibula || '';
+  const nose = data.rostro?.nariz || '';
+  const forehead = data.rostro?.frente || '';
   const hairColor = data.rostro?.cabello?.color_natural || 'natural';
   const hairDetail = data.rostro?.cabello?.color_detalle || '';
   const skinTone = data.colorimetria?.tono_piel || 'natural skin tone';
   const eyeColor = data.rostro?.ojos?.color_detalle || 'natural eyes';
-  const facialStructure = data.rostro?.forma_rostro || 'natural facial structure';
   const bodySilhouette = data.cuerpo?.figure_geometrica || 'natural silhouette';
   
   const userId = input.userId || 'anonymous';
-  const targetQuality = "medium"; 
 
-  // Prompt ultra-reforzado para forzar género
-  const finalPrompt = `PHOTOREALISTIC FULL-BODY EDITORIAL PORTRAIT OF A ${genderTerm}.
+  // Prompt ultra-detallado para fidelidad de identidad
+  const finalPrompt = `PHOTOREALISTIC FULL-BODY EDITORIAL FASHION PORTRAIT OF A ${genderTerm}.
 
-CRITICAL IDENTITY REQUIREMENT: THE SUBJECT MUST BE A ${genderTerm}.
-- IF THE GENDER IS ${personType.toUpperCase()}, THE IMAGE MUST SHOW ONLY ${adjective} ANATOMY AND FEATURES.
-- ${isMale ? 'Ensure a strong male jawline, broad male shoulders, masculine facial structure, and a male body type.' : 'Ensure female facial features, female shoulder width, and female body proportions.'}
-- STATED GENDER: ${adjective}.
-- ABSOLUTELY NO OPPOSITE GENDER TRAITS. NO ANDROGYNY.
+CRITICAL IDENTITY FIDELITY:
+The subject's face MUST be based on these specific detected traits to ensure it's a faithful representation of this specific individual, NOT a generic person:
+- Face Shape: ${faceShape}
+- Jawline: ${jawline}
+- Nose: ${nose}
+- Forehead: ${forehead}
+- Eyes: ${eyeColor}
+- Skin Tone: ${skinTone}
+- Hair: ${hairColor}, ${hairDetail}
 
-FAITHFULNESS:
-Preserve the person’s facial identity cues: face shape, forehead proportion, ${facialStructure} structure, jawline shape, nose shape, mouth shape, eye shape (${eyeColor}), skin tone (${skinTone}), hair color (${hairColor}), and hairstyle (${hairDetail}).
-
-Preserve the person’s natural body proportions and general ${bodySilhouette} silhouette.
+CRITICAL GENDER REQUIREMENT:
+- THE SUBJECT IS A ${genderTerm}.
+- IF ${personType.toUpperCase()}, ENSURE ${isMale ? 'MASCULINE FACIAL BONE STRUCTURE, BROAD SHOULDERS, AND MALE ANATOMY' : 'FEMININE FACIAL FEATURES, FEMALE SHOULDERS, AND FEMALE ANATOMY'}.
+- NO ANDROGYNY. ABSOLUTELY NO OPPOSITE GENDER TRAITS.
 
 STYLE:
-Realistic full-body fashion studio photograph. Soft neutral lighting, neutral clean background, realistic camera perspective, natural skin texture.
+Realistic full-body fashion studio photograph. 8k resolution, high-end commercial lighting, neutral studio background. Natural skin texture (not plastic).
+
+BODY:
+Preserve the subject's ${bodySilhouette} body type and proportions.
 
 CLOTHING:
-The ${genderTerm} is wearing simple neutral fitted professional clothing: plain fitted ${isMale ? 'male shirt' : 'female top'}, simple ${isMale ? 'trousers' : 'pants'}, and neutral shoes.
+The ${genderTerm} is wearing simple high-quality neutral professional clothing (plain fitted ${isMale ? 'shirt' : 'top'} and trousers) to focus on identity.
 
-NO CARTOON, NO PIXAR STYLE, NO ANIMATED CHARACTER.`;
+NO CARTOON, NO ANIMATED STYLE, NO GENERIC FACES.`;
 
   try {
     const response = await openai.images.generate({
       model: "gpt-image-2" as any, 
       prompt: finalPrompt,
       n: 1,
-      size: "1024x1792" as any, // Formato más vertical para cuerpo completo
-      quality: targetQuality as any,
+      size: "1024x1792" as any, 
+      quality: "medium" as any,
       // @ts-ignore
       output_format: "png"
     });
@@ -105,6 +115,6 @@ NO CARTOON, NO PIXAR STYLE, NO ANIMATED CHARACTER.`;
     }
   } catch (error: any) {
     console.error("Avatar Generation Error:", error);
-    throw new Error(error.message || "Error al conectar con el motor gpt-image-2.");
+    throw new Error(error.message || "Error al conectar con el motor de imagen.");
   }
 }

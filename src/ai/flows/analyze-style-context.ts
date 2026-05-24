@@ -1,7 +1,7 @@
 'use server';
 /**
- * @fileOverview Análisis Biométrico Quirúrgico.
- * Optimizado para identificar con precisión el género y rasgos físicos.
+ * @fileOverview Análisis Biométrico de Alta Fidelidad.
+ * Extrae rasgos faciales y corporales detallados para garantizar un avatar fiel a la realidad.
  */
 
 import { z } from 'genkit';
@@ -35,25 +35,31 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
       messages: [
         {
           role: "system",
-          content: `Eres un experto en fisionomía y colorimetría profesional. 
+          content: `Eres un experto en fisionomía, colorimetría y análisis de identidad visual. 
           
-          REGLAS CRÍTICAS DE IDENTIFICACIÓN:
-          1. GÉNERO: Identifica con 100% de precisión si el usuario es "Masculino" o "Femenino". No te equivoques.
-          2. RASGOS ÉTNICOS Y PIEL: Identifica el tono de piel real.
-          3. TEMPERATURA: Clasifica exclusivamente como "Cálida" o "Fría".
-          4. SILUETA: Identifica la figura geométrica corporal predominante.
+          Tu misión es describir al usuario con tal detalle que un motor de imagen pueda recrear su esencia única sin ser genérico.
+          
+          REGLAS DE ANÁLISIS FACIAL:
+          1. FORMA: Identifica si el rostro es ovalado, cuadrado, corazón, etc.
+          2. RASGOS CLAVE: Describe la proporción de la frente, la forma de la nariz, la línea de la mandíbula y la distancia entre los ojos.
+          3. CABELLO Y PIEL: Tono exacto de piel y textura/color del cabello.
+          4. GÉNERO: Identifica con 100% de precisión el género (Masculino/Femenino).
 
           RESPONDE SOLO EN JSON:
           {
             "genero": "Masculino/Femenino",
             "temperatura": "Cálida/Fría",
             "colorimetria": {
-              "tono_piel": "Ej: Piel blanca muy clara",
-              "subtono_detalle": "Detalle técnico breve"
+              "tono_piel": "Ej: Piel oliva clara",
+              "subtono_detalle": "Detalle técnico"
             },
             "rostro": {
-              "ojos": { "color_detalle": "..." },
-              "cabello": { "color_natural": "..." }
+              "forma_rostro": "Ej: Rostro angular cuadrado",
+              "mandibula": "Ej: Mandíbula marcada y fuerte",
+              "nariz": "Ej: Nariz recta y proporcionada",
+              "frente": "Ej: Frente amplia",
+              "ojos": { "color_detalle": "Ej: Ojos café almendrados" },
+              "cabello": { "color_natural": "...", "color_detalle": "..." }
             },
             "cuerpo": {
               "figure_geometrica": "..."
@@ -63,7 +69,7 @@ export async function analyzeStyleContext(input: z.infer<typeof AnalyzeStyleInpu
         {
           role: "user",
           content: [
-            { type: "text", text: "Analiza mi género, temperatura de color, figura y rasgos físicos para mi avatar." },
+            { type: "text", text: "Analiza mis rasgos faciales únicos, mi género y mi figura para crear un avatar fiel a mi identidad." },
             { type: "image_url", image_url: { url: input.facePhotoDataUri } },
             { type: "image_url", image_url: { url: input.figurePhotoDataUri } }
           ],
