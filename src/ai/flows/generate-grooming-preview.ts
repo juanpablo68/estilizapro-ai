@@ -1,21 +1,18 @@
-
 'use server';
 /**
- * @fileOverview Generación de Imagen de Tips de Peinado y Maquillaje usando gpt-image-2.
- * Procesa b64_json, sube a Firebase Storage y devuelve URL pública.
+ * @fileOverview Generación de Look Estético.
+ * Retorna Base64 para guardado local en IndexedDB.
  */
 
 import { z } from 'genkit';
 import OpenAI from 'openai';
 import { getOpenAIKey } from '@/ai/genkit';
-import { adminStorage } from '@/lib/firebase-admin';
 
 const GenerateGroomingPreviewInputSchema = z.object({
   description: z.string(),
   biometricData: z.any().optional(),
   hasBeard: z.boolean().optional(),
   openaiApiKey: z.string().optional(),
-  userId: z.string().optional(),
 });
 
 export async function generateGroomingPreview(input: z.infer<typeof GenerateGroomingPreviewInputSchema>) {
@@ -26,20 +23,13 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
   }
 
   const openai = new OpenAI({ apiKey });
-  const data = input.biometricData || {};
-  const gender = data.genero || 'Femenino';
-  const userId = input.userId || 'anonymous';
-  
+  const gender = input.biometricData?.genero || 'Femenino';
   const cleanDescription = input.description.split('.')[0].substring(0, 300);
 
   const finalPrompt = `A high-end professional beauty portrait of ONE SINGLE ${gender}. 
   LOOK: ${cleanDescription}. 
   ${gender === 'Masculino' && input.hasBeard ? 'With a perfectly detailed groomed beard.' : ''}
-  ${gender === 'Masculino' && !input.hasBeard ? 'Clean-shaven face.' : ''}
-  STYLE: Modern 3D stylized character design, high-end studio lighting. 
-  COMPOSITION: Extreme close-up face portrait, solid pure white background. NO text.`;
-
-  console.log("Grooming Tips: Requesting gpt-image-2 (no response_format)...");
+  STYLE: Modern 3D stylized character design, extreme close-up face portrait, solid pure white background. NO text.`;
 
   try {
     const response = await openai.images.generate({
@@ -48,46 +38,15 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
       n: 1,
       size: "1024x1024",
       quality: "medium" as any,
-      // @ts-ignore
-      output_format: "png"
+      response_format: "b64_json"
     });
 
-    console.log("OpenAI Grooming image generated successfully");
     const b64Data = response.data[0].b64_json;
+    if (!b64Data) throw new Error("La IA no devolvió datos de imagen válidos.");
 
-    if (!b64Data) {
-      console.error("Grooming Error: No b64_json received.");
-      throw new Error("La IA no devolvió datos de imagen (b64_json) válidos.");
-    }
-    console.log("Base64 received successfully for grooming tips");
-
-    const buffer = Buffer.from(b64Data, 'base64');
-    console.log("Buffer created successfully for grooming tips");
-
-    try {
-      console.log("Uploading Grooming Image to Firebase Storage...");
-      const timestamp = Date.now();
-      const fileName = `grooming/${userId}/${timestamp}.png`;
-      const bucket = adminStorage.bucket();
-      const file = bucket.file(fileName);
-
-      await file.save(buffer, {
-        metadata: { contentType: 'image/png' },
-        public: true
-      });
-      console.log("Grooming image upload to Storage completed");
-
-      const downloadURL = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
-      return { previewImageDataUri: downloadURL };
-    } catch (storageError) {
-      console.error("Storage Fallback for Grooming:", storageError);
-      return { previewImageDataUri: `data:image/png;base64,${b64Data}` };
-    }
+    return { previewImageDataUri: `data:image/png;base64,${b64Data}` };
   } catch (error: any) {
-    console.error("Grooming Generation Error (gpt-image-2):", error);
-    if (error.status === 401) throw new Error("Error 401: API Key inválida.");
-    if (error.status === 403) throw new Error("Error 403: Sin acceso al modelo o autorización.");
-    if (error.status === 429) throw new Error("Error 429: Cuota o límite excedido.");
+    console.error("Grooming Generation Error:", error);
     throw new Error(error.message || "Error al generar la vista previa del look.");
   }
 }

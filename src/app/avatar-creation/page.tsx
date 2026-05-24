@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -14,7 +13,7 @@ import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { db } from '@/lib/local-db';
 
-const resizeImageForAction = (base64Str: string, maxWidth = 800, maxHeight = 800): Promise<string> => {
+const resizeImage = (base64Str: string, maxWidth = 800, maxHeight = 800): Promise<string> => {
   return new Promise((resolve) => {
     const img = new window.Image();
     img.src = base64Str;
@@ -51,15 +50,13 @@ export default function AvatarCreationPage() {
 
   useEffect(() => {
     setMounted(true);
-    const loadSavedAvatar = async () => {
-      if (profile.avatarDataUri && profile.avatarDataUri.startsWith('avatar-')) {
+    const loadAvatar = async () => {
+      if (profile.avatarDataUri) {
         const url = await loadHeavyImage(profile.avatarDataUri);
         if (url) setAvatarUrl(url);
-      } else if (profile.avatarDataUri) {
-        setAvatarUrl(profile.avatarDataUri);
       }
     };
-    loadSavedAvatar();
+    loadAvatar();
   }, [profile.avatarDataUri]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'face' | 'figure') => {
@@ -67,7 +64,7 @@ export default function AvatarCreationPage() {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = async () => {
-        const optimized = await resizeImageForAction(reader.result as string);
+        const optimized = await resizeImage(reader.result as string);
         if (type === 'face') setFacePhoto(optimized);
         else setFigurePhoto(optimized);
       };
@@ -85,8 +82,8 @@ export default function AvatarCreationPage() {
     setLoading(true);
     try {
       setLoadingStatus('Analizando Identidad...');
-      const lightFace = await resizeImageForAction(facePhoto);
-      const lightFigure = await resizeImageForAction(figurePhoto);
+      const lightFace = await resizeImage(facePhoto);
+      const lightFigure = await resizeImage(figurePhoto);
 
       const analysis = await analyzeStyleContext({
         facePhotoDataUri: lightFace,
@@ -105,13 +102,12 @@ export default function AvatarCreationPage() {
       
       const avatarImageData = result.imageUrl;
 
-      // 1. Guardar imágenes pesadas en IndexedDB
-      console.log("Saving images to IndexedDB...");
+      // 1. Guardar imágenes pesadas en IndexedDB (Memoria Local Binaria)
       const faceId = await saveHeavyImage(userSlug, 'face', lightFace);
       const figureId = await saveHeavyImage(userSlug, 'figure', lightFigure);
       const avatarId = await saveHeavyImage(userSlug, 'avatar', avatarImageData);
 
-      // 2. Guardar análisis detallado en IndexedDB
+      // 2. Guardar análisis detallado en IndexedDB para no saturar localStorage
       await db.analyses.put({
         id: `analysis-${userSlug}-${Date.now()}`,
         userId: userSlug,
@@ -120,12 +116,13 @@ export default function AvatarCreationPage() {
         createdAt: Date.now()
       });
 
-      setAvatarUrl(URL.createObjectURL(dataURItoBlob(avatarImageData)));
+      // Creamos URL temporal para visualización inmediata
+      setAvatarUrl(avatarImageData);
       
-      // 3. Guardar solo metadatos livianos en localStorage
+      // 3. Guardar solo metadatos livianos e IDs de referencia en localStorage
       const finalProfileToSave: UserProfile = { 
         ...profile,
-        avatarDataUri: avatarId, // Solo el ID
+        avatarDataUri: avatarId, 
         detectedFeatures: {
           skinTone: analysis.biometricData.colorimetria?.tono_piel || 'Natural',
           hairColor: analysis.biometricData.rostro?.cabello?.color_natural || 'Natural',
@@ -135,10 +132,10 @@ export default function AvatarCreationPage() {
       };
 
       setProfile(finalProfileToSave);
-      toast({ title: "¡Identidad Generada!", description: `Avatar ${userSelectedGender} listo y guardado localmente.` });
+      toast({ title: "¡Identidad Generada!", description: "Avatar guardado en la memoria segura del equipo." });
     } catch (error: any) {
       console.error("Avatar Creation Error:", error);
-      toast({ variant: "destructive", title: "Error de IA", description: error.message || "Error al conectar con el servidor." });
+      toast({ variant: "destructive", title: "Error", description: error.message || "Error al procesar identidad." });
     } finally {
       setLoading(false);
       setLoadingStatus('');
@@ -154,7 +151,7 @@ export default function AvatarCreationPage() {
           <Button variant="ghost" size="icon" className="rounded-full" onClick={() => router.push('/dashboard')}><ArrowLeft /></Button>
           <div className="space-y-0.5">
             <h1 className="text-2xl font-headline font-bold text-primary leading-none">Esencia Biométrica</h1>
-            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Paso Final: Avatar</p>
+            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Memoria Local Activa</p>
           </div>
         </div>
       </header>
@@ -163,9 +160,9 @@ export default function AvatarCreationPage() {
         <div className="space-y-6 animate-in fade-in duration-500">
           <Alert className="bg-primary/5 border-primary/20">
             <Sparkles className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-primary font-bold">Diagnóstico de Identidad</AlertTitle>
+            <AlertTitle className="text-primary font-bold">Diagnóstico Privado</AlertTitle>
             <AlertDescription className="text-xs">
-              Tus imágenes se guardarán solo en la memoria de este equipo para tu privacidad.
+              Tus fotos se procesan y guardan exclusivamente en este equipo.
             </AlertDescription>
           </Alert>
 
@@ -206,7 +203,7 @@ export default function AvatarCreationPage() {
           </Card>
 
           <Button disabled={!facePhoto || !figurePhoto || loading} onClick={handleProcess} className="w-full h-16 bg-primary text-xl font-bold shadow-xl rounded-2xl transition-all active:scale-95">
-            {loading ? <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> {loadingStatus}</> : <><Brain className="mr-3 h-6 w-6" /> Crear Avatar {profile.gender === 'Masculino' ? 'Masculino' : 'Femenino'}</>}
+            {loading ? <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> {loadingStatus}</> : <><Brain className="mr-3 h-6 w-6" /> Crear Avatar {profile.gender}</>}
           </Button>
         </div>
       ) : (
@@ -217,11 +214,11 @@ export default function AvatarCreationPage() {
             </div>
             <CardContent className="p-6 text-center space-y-4">
               <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-200">
-                <CheckCircle className="w-3 h-3" /> Memoria Local Protegida
+                <CheckCircle className="w-3 h-3" /> Memoria Segura Confirmada
               </div>
               <div className="space-y-1">
                 <p className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center justify-center gap-2">
-                  <User className="w-3 h-3" /> Perfil: {profile.gender}
+                  <User className="w-3 h-3" /> Perfil: {profile.name}
                 </p>
                 {profile.detectedFeatures && (
                   <div className="text-[10px] font-black text-primary uppercase tracking-widest leading-relaxed mt-2 border-t pt-2 border-primary/10">
@@ -238,7 +235,7 @@ export default function AvatarCreationPage() {
               <RefreshCw className="mr-2 w-4 h-4" /> Re-generar
             </Button>
             <Button className="flex-1 bg-primary font-bold shadow-md h-12 rounded-xl" onClick={() => router.push('/dashboard')}>
-              Finalizar y entrar →
+              Entrar al Sistema →
             </Button>
           </div>
         </div>

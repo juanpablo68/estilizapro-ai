@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -75,13 +74,13 @@ export function useUserScopedStorage<T>(baseKey: string, initialValue: T) {
     try {
       const valueToStore = value instanceof Function ? value(storedValue) : value;
       
-      // Limpieza preventiva: Si el objeto contiene datos de imagen base64, los extraemos y avisamos
+      // Limpieza preventiva: Escaneo de imágenes base64 accidentales
       const cleanValue = JSON.parse(JSON.stringify(valueToStore));
       const scanAndClean = (obj: any) => {
         for (const key in obj) {
           if (typeof obj[key] === 'string' && obj[key].startsWith('data:image')) {
-            console.warn(`Detección de imagen pesada en localStorage clave: ${key}. Debería migrarse a IndexedDB.`);
-            // No lo borramos aquí para no romper la app de inmediato, pero logueamos
+            console.warn(`Detección de imagen pesada en localStorage clave: ${key}. Redirigiendo a IndexedDB.`);
+            delete obj[key];
           } else if (typeof obj[key] === 'object' && obj[key] !== null) {
             scanAndClean(obj[key]);
           }
@@ -89,15 +88,14 @@ export function useUserScopedStorage<T>(baseKey: string, initialValue: T) {
       };
       scanAndClean(cleanValue);
 
-      setStoredValue(valueToStore);
+      setStoredValue(cleanValue);
       if (typeof window !== "undefined") {
-        window.localStorage.setItem(scopedKey, JSON.stringify(valueToStore));
-        console.log(`Metadatos guardados para usuario: ${activeUserSlug}`);
+        window.localStorage.setItem(scopedKey, JSON.stringify(cleanValue));
       }
     } catch (error: any) {
       console.error("Error al guardar perfil liviano:", error);
       if (error.name === 'QuotaExceededError') {
-        alert("El almacenamiento del navegador está lleno. Intentando liberar espacio...");
+        console.error("ALERTA: Memoria localStorage llena. Es imperativo limpiar el equipo.");
       }
     }
   };
@@ -106,10 +104,10 @@ export function useUserScopedStorage<T>(baseKey: string, initialValue: T) {
 }
 
 /**
- * Guardado de imagen pesada en IndexedDB
+ * Guardado de imagen pesada en IndexedDB como Blob binario.
  */
-export async function saveHeavyImage(userId: string, kind: LocalImage['kind'], dataUri: string, id?: string): Promise<string> {
-  const imageId = id || `${kind}-${userId}-${Date.now()}`;
+export async function saveHeavyImage(userId: string, kind: 'face' | 'figure' | 'avatar' | 'wardrobe' | 'tryon' | 'grooming', dataUri: string): Promise<string> {
+  const imageId = `${kind}-${userId}-${Date.now()}`;
   try {
     const blob = dataURItoBlob(dataUri);
     await db.images.put({
@@ -120,7 +118,7 @@ export async function saveHeavyImage(userId: string, kind: LocalImage['kind'], d
       mimeType: blob.type,
       createdAt: Date.now()
     });
-    console.log(`Imagen pesada (${kind}) guardada en IndexedDB para: ${userId}`);
+    console.log(`Imagen guardada localmente (${kind}) para: ${userId}`);
     return imageId;
   } catch (e) {
     console.error("Error al guardar en IndexedDB:", e);
@@ -129,9 +127,10 @@ export async function saveHeavyImage(userId: string, kind: LocalImage['kind'], d
 }
 
 /**
- * Carga de imagen desde IndexedDB
+ * Carga de imagen desde IndexedDB y creación de URL temporal.
  */
 export async function loadHeavyImage(imageId: string): Promise<string | null> {
+  if (!imageId) return null;
   try {
     const img = await db.images.get(imageId);
     if (!img) return null;
@@ -146,7 +145,7 @@ export interface WardrobeItem {
   id: string;
   name: string;
   type: string;
-  imageDataUri: string; // En IndexedDB será el ID de la imagen
+  imageDataUri: string; // Almacenará el ID de la imagen en IndexedDB
   dateAdded: string;
 }
 
@@ -165,12 +164,11 @@ export interface UserProfile {
   colorimetryAnalysis?: string;
   figureAnalysis?: string;
   biometricData?: any;
-  avatarDataUri?: string; // ID de IndexedDB o URL
+  avatarDataUri?: string; // ID de IndexedDB
   onboardingComplete: boolean;
   passcode: string;
   purchasedCapsules?: number;
   groomingCredits?: number;
-  onboardingStep?: number;
   hasBeard?: boolean;
   detectedFeatures?: {
     skinTone: string;
@@ -178,12 +176,6 @@ export interface UserProfile {
     eyeColor: string;
   };
 }
-
-export const DEFAULT_KNOWLEDGE_BASE = `REGLAS MAESTRAS DE ESTILO - PILAR CATALÁN:
-1. PRIORIDAD ARMARIO: Siempre priorizar prendas que el usuario ya posee.
-2. COLORIMETRÍA MODERNA: Clasificar en Cálida (dorados/tierra) o Fría (plateados/azules).
-3. FIGURA: Estructurar silueta según morfología detectada.
-4. TONO: Humano, sintetizado y profesional.`;
 
 export const INITIAL_USER_PROFILE: UserProfile = {
   name: '',
@@ -196,7 +188,7 @@ export const INITIAL_USER_PROFILE: UserProfile = {
     bodyPartsToMinimize: [],
     occasionPreferences: [],
   },
-  knowledgeBase: DEFAULT_KNOWLEDGE_BASE,
+  knowledgeBase: '',
   onboardingComplete: false,
   passcode: '1,2,3,4',
   purchasedCapsules: 0,
