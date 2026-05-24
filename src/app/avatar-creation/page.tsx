@@ -83,29 +83,30 @@ export default function AvatarCreationPage() {
         openaiApiKey: openaiKey
       });
 
-      // SINCRONIZACIÓN CRÍTICA: Respetamos el género seleccionado en el onboarding si existe
-      // Pero enviamos a la generación de avatar el género que queremos forzar
-      const finalGender = profile.gender || analysis.biometricData.genero || 'Femenino';
+      // SINCRONIZACIÓN CRÍTICA: Forzamos el género seleccionado por el usuario.
+      // Si el análisis de IA falla, la selección manual del usuario es la ley.
+      const userSelectedGender = profile.gender || 'Femenino';
       
       const updatedProfile = { 
         ...profile, 
-        biometricData: { ...analysis.biometricData, genero: finalGender },
+        biometricData: { ...analysis.biometricData, genero: userSelectedGender },
         figureAnalysis: analysis.figureAnalysis, 
         colorimetryAnalysis: analysis.colorimetryAnalysis,
-        gender: finalGender
+        gender: userSelectedGender
       };
       setProfile(updatedProfile);
 
       setLoadingStatus('Creando Avatar Realista...');
+      // Pasamos los datos biométricos donde ya hemos inyectado el género correcto
       const result = await generateStylizedAvatar({
-        biometricData: updatedProfile.biometricData, // Enviamos el género blindado
+        biometricData: updatedProfile.biometricData, 
         openaiApiKey: openaiKey,
         userId: profile.name || 'user'
       });
       
       setGeneratedAvatar(result.imageUrl);
       setProfile({ ...updatedProfile, avatarDataUri: result.imageUrl });
-      toast({ title: "¡Diagnóstico Completo!", description: "Tu identidad ha sido generada con éxito." });
+      toast({ title: "¡Diagnóstico Completo!", description: `Identidad ${userSelectedGender} generada.` });
     } catch (error: any) {
       console.error("Avatar Creation Error:", error);
       toast({ variant: "destructive", title: "Error de IA", description: error.message || "Error al conectar con el servidor." });
@@ -136,7 +137,7 @@ export default function AvatarCreationPage() {
             <AlertTitle className="text-primary font-bold">Diagnóstico de Alta Fidelidad</AlertTitle>
             <AlertDescription className="text-xs">
               Sube tus fotos para que la IA genere tu avatar y analice tu colorimetría. 
-              <strong> Género configurado: {profile.gender}</strong>
+              <strong> Género Inamovible: {profile.gender.toUpperCase()}</strong>
             </AlertDescription>
           </Alert>
 
@@ -177,7 +178,7 @@ export default function AvatarCreationPage() {
           </Card>
 
           <Button disabled={!facePhoto || !figurePhoto || loading} onClick={handleProcess} className="w-full h-16 bg-primary text-xl font-bold shadow-xl rounded-2xl">
-            {loading ? <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> {loadingStatus}</> : <><Brain className="mr-3 h-6 w-6" /> Iniciar Diagnóstico</>}
+            {loading ? <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> {loadingStatus}</> : <><Brain className="mr-3 h-6 w-6" /> Generar Identidad {profile.gender === 'Masculino' ? 'Masculina' : 'Femenina'}</>}
           </Button>
         </div>
       ) : (
@@ -202,7 +203,7 @@ export default function AvatarCreationPage() {
           </Card>
           <div className="flex gap-4">
             <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={() => setGeneratedAvatar(null)}>
-              <RefreshCw className="mr-2 w-4 h-4" /> Re-analizar
+              <RefreshCw className="mr-2 w-4 h-4" /> Re-generar
             </Button>
             <Button className="flex-1 bg-primary font-bold shadow-md h-12 rounded-xl" onClick={() => router.push('/dashboard')}>
               Finalizar y entrar →

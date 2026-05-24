@@ -28,6 +28,11 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
   
   // REGLA MAESTRA: El género viene del perfil del usuario (biometricData.genero)
   const personType = data.genero || 'Femenino';
+  const isMale = personType === 'Masculino';
+  
+  const genderTerm = isMale ? 'MAN' : 'WOMAN';
+  const adjective = isMale ? 'MALE' : 'FEMALE';
+  
   const hairColor = data.rostro?.cabello?.color_natural || 'natural';
   const hairDetail = data.rostro?.cabello?.color_detalle || '';
   const skinTone = data.colorimetria?.tono_piel || 'natural skin tone';
@@ -38,31 +43,34 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
   const userId = input.userId || 'anonymous';
   const targetQuality = "medium"; 
 
-  const finalPrompt = `Create a highly realistic full-body editorial fashion avatar.
+  // Prompt ultra-reforzado para forzar género
+  const finalPrompt = `PHOTOREALISTIC FULL-BODY EDITORIAL PORTRAIT OF A ${genderTerm}.
 
-CRITICAL IDENTITY RULE: The subject MUST be ${personType}. 
-This is a strict requirement. If ${personType} is "Masculino", the subject MUST have clear male facial features, a male jawline, and male body proportions. 
-If ${personType} is "Femenino", the subject MUST have clear female facial features and female body proportions.
-DO NOT MIX GENDER TRAITS. NO ANDROGYNOUS LOOKS.
+CRITICAL IDENTITY REQUIREMENT: THE SUBJECT MUST BE A ${genderTerm}.
+- IF THE GENDER IS ${personType.toUpperCase()}, THE IMAGE MUST SHOW ONLY ${adjective} ANATOMY AND FEATURES.
+- ${isMale ? 'Ensure a strong male jawline, broad male shoulders, masculine facial structure, and a male body type.' : 'Ensure female facial features, female shoulder width, and female body proportions.'}
+- STATED GENDER: ${adjective}.
+- ABSOLUTELY NO OPPOSITE GENDER TRAITS. NO ANDROGYNY.
 
 FAITHFULNESS:
-Preserve the person’s facial identity cues as closely as possible: face shape, forehead proportion, ${facialStructure} structure, jawline shape, nose shape, mouth shape, eye shape (${eyeColor}), skin tone (${skinTone}), hair color (${hairColor}), and hairstyle (${hairDetail}).
+Preserve the person’s facial identity cues: face shape, forehead proportion, ${facialStructure} structure, jawline shape, nose shape, mouth shape, eye shape (${eyeColor}), skin tone (${skinTone}), hair color (${hairColor}), and hairstyle (${hairDetail}).
 
-Preserve the person’s natural body proportions, general ${bodySilhouette} silhouette, and stance.
+Preserve the person’s natural body proportions and general ${bodySilhouette} silhouette.
 
 STYLE:
-Generate a realistic full-body fashion studio image with soft neutral lighting, neutral background, realistic camera perspective, and natural skin texture.
+Realistic full-body fashion studio photograph. Soft neutral lighting, neutral clean background, realistic camera perspective, natural skin texture.
 
-The avatar should wear simple neutral fitted clothing suitable for fashion analysis: plain fitted top, simple pants, and neutral shoes.
+CLOTHING:
+The ${genderTerm} is wearing simple neutral fitted professional clothing: plain fitted ${isMale ? 'male shirt' : 'female top'}, simple ${isMale ? 'trousers' : 'pants'}, and neutral shoes.
 
-NO cartoon, NO Pixar style, NO animated character, NO toy-like appearance, NO oversized eyes.`;
+NO CARTOON, NO PIXAR STYLE, NO ANIMATED CHARACTER.`;
 
   try {
     const response = await openai.images.generate({
       model: "gpt-image-2" as any, 
       prompt: finalPrompt,
       n: 1,
-      size: "1024x1536" as any,
+      size: "1024x1792" as any, // Formato más vertical para cuerpo completo
       quality: targetQuality as any,
       // @ts-ignore
       output_format: "png"
