@@ -1,6 +1,7 @@
+
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { db, dataURItoBlob, logStorageStatus } from './local-db';
 
 /**
@@ -50,8 +51,14 @@ export function useUserScopedStorage<T>(baseKey: string, initialValue: T) {
   const scopedKey = `${baseKey}_${activeUserSlug}`;
   
   const [storedValue, setStoredValue] = useState<T>(initialValue);
+  const initialValueRef = useRef(initialValue);
 
-  // Carga inicial
+  // Mantener actualizado el ref por si initialValue cambiara (aunque suele ser estático)
+  useEffect(() => {
+    initialValueRef.current = initialValue;
+  }, [initialValue]);
+
+  // Carga inicial y cambio de usuario
   useEffect(() => {
     const load = async () => {
       if (typeof window === "undefined") return;
@@ -60,26 +67,27 @@ export function useUserScopedStorage<T>(baseKey: string, initialValue: T) {
         if (item) {
           setStoredValue(JSON.parse(item));
         } else {
-          setStoredValue(initialValue);
+          setStoredValue(initialValueRef.current);
         }
         await logStorageStatus();
       } catch (e) {
-        setStoredValue(initialValue);
+        setStoredValue(initialValueRef.current);
       }
     };
     load();
-  }, [scopedKey, initialValue]);
+    // Solo re-ejecutar cuando cambia la clave del usuario (scopedKey)
+    // para evitar bucles infinitos causados por la inestabilidad de initialValue
+  }, [scopedKey]);
 
   const setValue = (value: T | ((val: T) => T)) => {
     try {
       const valueToStore = value instanceof Function ? value(storedValue) : value;
       
-      // Limpieza preventiva: Escaneo de imágenes base64 accidentales
+      // Limpieza preventiva: Evitar guardar imágenes base64 en localStorage
       const cleanValue = JSON.parse(JSON.stringify(valueToStore));
       const scanAndClean = (obj: any) => {
         for (const key in obj) {
-          if (typeof obj[key] === 'string' && obj[key].startsWith('data:image')) {
-            console.warn(`Detección de imagen pesada en localStorage clave: ${key}. Redirigiendo a IndexedDB.`);
+          if (typeof obj[key] === 'string' && (obj[key].startsWith('data:image') || obj[key].length > 10000)) {
             delete obj[key];
           } else if (typeof obj[key] === 'object' && obj[key] !== null) {
             scanAndClean(obj[key]);
@@ -88,15 +96,12 @@ export function useUserScopedStorage<T>(baseKey: string, initialValue: T) {
       };
       scanAndClean(cleanValue);
 
-      setStoredValue(cleanValue);
+      setStoredValue(valueToStore);
       if (typeof window !== "undefined") {
         window.localStorage.setItem(scopedKey, JSON.stringify(cleanValue));
       }
     } catch (error: any) {
       console.error("Error al guardar perfil liviano:", error);
-      if (error.name === 'QuotaExceededError') {
-        console.error("ALERTA: Memoria localStorage llena. Es imperativo limpiar el equipo.");
-      }
     }
   };
 
