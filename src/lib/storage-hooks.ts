@@ -28,7 +28,6 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
     } catch (error: any) {
       if (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
         console.warn("Cuota de localStorage excedida. Limpiando datos no críticos...");
-        // Intentar limpiar claves antiguas si es necesario
       }
       console.error("Error al guardar en localStorage:", error);
     }
@@ -75,7 +74,7 @@ export function useUserScopedStorage<T>(baseKey: string, initialValue: T) {
     } catch (error: any) {
       console.error("Error en useUserScopedStorage (setValue):", error);
       if (error.name === 'QuotaExceededError') {
-        alert("Tu dispositivo se ha quedado sin espacio para guardar más datos locales de la app. Por favor, elimina algunos ítems del armario o avatares antiguos.");
+        alert("Tu dispositivo se ha quedado sin espacio para guardar más datos locales. Por favor, elimina algunos ítems del armario.");
       }
     }
   };
@@ -113,6 +112,12 @@ export interface UserProfile {
   groomingCredits?: number;
   onboardingStep?: number;
   hasBeard?: boolean;
+  // Rasgos faciales específicos para mostrar sin cargar el objeto completo
+  detectedFeatures?: {
+    skinTone: string;
+    hairColor: string;
+    eyeColor: string;
+  };
 }
 
 export const DEFAULT_KNOWLEDGE_BASE = `REGLAS MAESTRAS DE ESTILO - PILAR CATALÁN:

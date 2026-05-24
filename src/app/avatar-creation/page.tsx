@@ -31,7 +31,6 @@ const resizeImageForAction = (base64Str: string, maxWidth = 400, maxHeight = 400
       canvas.height = height;
       const ctx = canvas.getContext('2d');
       if (ctx) ctx.drawImage(img, 0, 0, width, height);
-      // Bajamos a 0.5 para ahorrar espacio crítico en localStorage
       resolve(canvas.toDataURL('image/jpeg', 0.5));
     };
   });
@@ -58,7 +57,6 @@ export default function AvatarCreationPage() {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = async () => {
-        // Comprimimos antes de guardar en el estado para evitar lag
         const optimized = await resizeImageForAction(reader.result as string);
         if (type === 'face') setFacePhoto(optimized);
         else setFigurePhoto(optimized);
@@ -86,18 +84,15 @@ export default function AvatarCreationPage() {
         openaiApiKey: openaiKey
       });
 
-      // BLINDAJE DE GÉNERO: Forzamos la selección manual del usuario sobre cualquier detección
       const userSelectedGender = profile.gender || 'Femenino';
       
       const updatedProfile = { 
         ...profile, 
         biometricData: { ...analysis.biometricData, genero: userSelectedGender },
-        figureAnalysis: analysis.figureAnalysis, 
-        colorimetryAnalysis: analysis.colorimetryAnalysis,
         gender: userSelectedGender
       };
 
-      setLoadingStatus('Generando Avatar Masculino...');
+      setLoadingStatus('Generando Avatar...');
       const result = await generateStylizedAvatar({
         biometricData: updatedProfile.biometricData, 
         openaiApiKey: openaiKey,
@@ -106,10 +101,17 @@ export default function AvatarCreationPage() {
       
       setGeneratedAvatar(result.imageUrl);
       
-      // OPTIMIZACIÓN DE ESPACIO: Antes de guardar el perfil, eliminamos datos biométricos temporales pesados si los hubiera
-      const finalProfileToSave = { 
-        ...updatedProfile, 
-        avatarDataUri: result.imageUrl 
+      // OPTIMIZACIÓN EXTREMA: Solo guardamos rasgos de texto para evitar QuotaExceededError
+      const finalProfileToSave: UserProfile = { 
+        ...profile,
+        avatarDataUri: result.imageUrl,
+        detectedFeatures: {
+          skinTone: analysis.biometricData.colorimetria?.tono_piel || 'Natural',
+          hairColor: analysis.biometricData.rostro?.cabello?.color_natural || 'Natural',
+          eyeColor: analysis.biometricData.rostro?.ojos?.color_detalle || 'Natural'
+        },
+        // Limpiamos los datos biométricos pesados después de usarlos para la generación
+        biometricData: undefined 
       };
 
       setProfile(finalProfileToSave);
@@ -201,9 +203,13 @@ export default function AvatarCreationPage() {
                 <p className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center justify-center gap-2">
                   <User className="w-3 h-3" /> Perfil: {profile.gender}
                 </p>
-                <p className="text-[10px] font-black text-primary uppercase tracking-widest">
-                  {profile.colorimetryAnalysis} • {profile.figureAnalysis}
-                </p>
+                {profile.detectedFeatures && (
+                  <p className="text-[10px] font-black text-primary uppercase tracking-widest leading-relaxed">
+                    Piel: {profile.detectedFeatures.skinTone} <br/>
+                    Cabello: {profile.detectedFeatures.hairColor} <br/>
+                    Ojos: {profile.detectedFeatures.eyeColor}
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
