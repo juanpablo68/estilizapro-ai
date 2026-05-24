@@ -1,28 +1,29 @@
 
 # 🚀 Guía de Despliegue Final - EstilizaPro AI (Pilar Catalán)
 
-Tu código ha sido optimizado para producción, con todas las marcas corregidas y **aislamiento de datos multiusuario**.
+Esta versión de la aplicación ha sido blindada para ofrecer una experiencia **profesional, privada y multiusuario**.
 
 ## 🛠 Cómo sincronizar con tu GitHub
 
-Para que los cambios que hemos hecho se reflejen en tu repositorio de GitHub, sigue estos pasos:
-
-1. **Localiza la Terminal**: En la parte inferior de este editor, busca la pestaña que dice **"Terminal"**.
-2. **Ejecuta los comandos**: Escribe estos comandos uno a uno presionando Enter:
+Para aplicar todos los cambios finales, ejecuta estos comandos en tu terminal:
 
 ```bash
 git add .
-git commit -m "🚀 Versión FINAL: Acceso Inteligente + Aislamiento Multiusuario + Blindaje de IA"
+git commit -m "🚀 Versión FINAL: Acceso Inteligente + IndexedDB + Blindaje de Privacidad"
 git push -f origin main
 ```
 
-## 🔑 Novedades de esta versión
-- **Acceso Inteligente**: Si ya tienes perfil y avatar, la app te lleva directo al Dashboard. Si eres nuevo, te guía por el cuestionario y la creación de avatar.
-- **Multiusuario**: Puedes cambiar de usuario en el mismo dispositivo. Cada nombre tiene su propio armario y perfil aislado (Aislamiento por LocalStorage Scoped).
-- **Identidad en Dashboard**: Se muestra claramente qué sesión está activa antes de cerrar o cambiar de perfil.
-- **Blindaje de Género y Dominio**: Reglas estrictas para que la IA solo hable de moda y respete las prendas masculinas/femeninas según el perfil.
+## 🔑 Novedades de la Versión 2.5
+- **Acceso Inteligente**: Si el usuario ya existe y completó su perfil, entra directo al Dashboard. Si es nuevo, el sistema le obliga a pasar por el cuestionario y avatar.
+- **Almacenamiento Binario (IndexedDB)**: Las imágenes ya no saturan la memoria del navegador. Ahora se guardan como archivos binarios reales en el dispositivo.
+- **Privacidad Multiusuario**: Cada nombre de usuario tiene su propio espacio aislado. No hay riesgo de mezcla de datos entre perfiles.
+- **Identidad Realista**: El avatar ahora captura rasgos faciales específicos de tus fotos (mandíbula, frente, nariz) manteniendo el estilo editorial.
+- **Blindaje de Género**: Reglas estrictas para que la IA respete al 100% el género seleccionado en el cuestionario.
 
 ## 🚀 Notas Técnicas
-- **Límite de Server Actions**: Configurado a 100MB para permitir el procesamiento de imágenes de alta resolución.
-- **Particionamiento**: Uso de `useUserScopedStorage` para garantizar la privacidad local entre diferentes nombres de usuario.
-- **Resiliencia Backend**: Los chats ahora tienen manejo de errores (try/catch) para funcionar incluso si hay fallos temporales en los tokens de Firebase Admin.
+- **Cero Nube para Imágenes**: Todo se queda en el equipo del usuario.
+- **Optimización de Memoria**: Uso de `URL.createObjectURL` para un rendimiento fluido.
+- **Seguridad**: Se ha ocultado el panel de ajustes técnicos para evitar modificaciones accidentales por parte de los usuarios.
+
+---
+© 2024 EstilizaPro AI • Asesoría de Imagen de Pilar Catalán

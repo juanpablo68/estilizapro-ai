@@ -14,7 +14,6 @@ import {
   Instagram,
   Scissors,
   LogOut,
-  User,
   Database
 } from "lucide-react";
 import { useLocalStorage, useUserScopedStorage, UserProfile, INITIAL_USER_PROFILE, loadHeavyImage } from '@/lib/storage-hooks';
@@ -128,7 +127,7 @@ export default function DashboardPage() {
           <p className="text-xs text-muted-foreground font-medium">Almacenamiento: <span className="font-bold">IndexedDB Master</span></p>
         </div>
         <p className="text-[10px] text-muted-foreground/60 uppercase tracking-widest font-black block pt-2">
-          EstilizaPro AI v2.0 • Blindaje Local Multiusuario • Pilar Catalán
+          EstilizaPro AI v2.5 • Blindaje Local Multiusuario • Pilar Catalán
         </p>
       </footer>
     </div>
