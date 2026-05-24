@@ -27,10 +27,8 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
   // REGLA MAESTRA: El género viene del perfil del usuario
   const personType = data.genero || 'Femenino';
   const isMale = personType === 'Masculino';
-  
   const genderTerm = isMale ? 'MAN' : 'WOMAN';
   
-  // Rasgos faciales específicos para mayor realismo
   const faceShape = data.rostro?.forma_rostro || 'natural facial structure';
   const jawline = data.rostro?.mandibula || '';
   const nose = data.rostro?.nariz || '';
@@ -43,7 +41,7 @@ export async function generateStylizedAvatar(input: z.infer<typeof GenerateStyli
   const finalPrompt = `PHOTOREALISTIC FULL-BODY EDITORIAL FASHION PORTRAIT OF A ${genderTerm}.
 
 CRITICAL IDENTITY FIDELITY:
-The subject's face MUST be based on these specific detected traits to ensure it's a faithful representation:
+The subject's face MUST be based on these specific detected traits:
 - Face Shape: ${faceShape}
 - Jawline: ${jawline}
 - Nose: ${nose}
@@ -62,19 +60,30 @@ BODY: Preserve ${bodySilhouette} proportions.
 CLOTHING: Simple high-quality professional neutral clothing.`;
 
   try {
+    console.log("Calling gpt-image-2 without response_format");
+    
+    // IMPORTANTE:
+    // No agregar response_format con gpt-image-2.
+    // Los modelos GPT de imagen devuelven b64_json por defecto.
+    // response_format era usado por DALL-E y causa error 400.
     const response = await openai.images.generate({
       model: "gpt-image-2" as any, 
       prompt: finalPrompt,
       n: 1,
-      size: "1024x1792" as any, 
+      size: "1024x1536" as any, 
       quality: "medium" as any,
-      response_format: "b64_json"
     });
 
-    const b64Data = response.data[0].b64_json;
-    if (!b64Data) throw new Error("La IA no devolvió datos de imagen válidos.");
+    const b64Data = response.data?.[0]?.b64_json;
+    
+    if (!b64Data) {
+      console.error("Respuesta completa de OpenAI:", JSON.stringify(response, null, 2));
+      throw new Error("La IA no devolvió datos de imagen (b64_json).");
+    }
 
-    // Retornamos el Data URI directamente para que el cliente lo guarde en su memoria local (IndexedDB)
+    console.log("b64_json received successfully");
+
+    // Retornamos el Data URI para que el cliente lo guarde en IndexedDB
     return { imageUrl: `data:image/png;base64,${b64Data}` };
   } catch (error: any) {
     console.error("Avatar Generation Error:", error);

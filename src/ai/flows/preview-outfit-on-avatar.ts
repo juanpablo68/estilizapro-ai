@@ -45,17 +45,24 @@ export async function previewOutfitOnAvatar(input: z.infer<typeof PreviewOutfitO
     const description = analysis.choices[0].message.content || "a stylish fashion outfit";
     const finalPrompt = `A professional high-end fashion photograph of ONE SINGLE ${gender}. Wearing: ${description}. Full body shot, neutral pose, pure solid white background. NO text.`;
     
+    console.log("Calling gpt-image-2 for preview without response_format");
+
+    // IMPORTANTE:
+    // No agregar response_format con gpt-image-2.
+    // Causaba error 400. Se lee b64_json por defecto.
     const response = await openai.images.generate({
       model: "gpt-image-2" as any,
       prompt: finalPrompt,
       n: 1,
       size: "1024x1024",
       quality: "medium" as any,
-      response_format: "b64_json"
     });
 
-    const b64Data = response.data[0].b64_json;
-    if (!b64Data) throw new Error("La IA no devolvió datos de imagen válidos.");
+    const b64Data = response.data?.[0]?.b64_json;
+    if (!b64Data) {
+      console.error("Respuesta completa OpenAI Preview:", JSON.stringify(response, null, 2));
+      throw new Error("La IA no devolvió datos de imagen válidos.");
+    }
 
     return { previewImageDataUri: `data:image/png;base64,${b64Data}` };
   } catch (error: any) {

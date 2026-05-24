@@ -32,17 +32,24 @@ export async function generateGroomingPreview(input: z.infer<typeof GenerateGroo
   STYLE: Modern 3D stylized character design, extreme close-up face portrait, solid pure white background. NO text.`;
 
   try {
+    console.log("Calling gpt-image-2 for grooming without response_format");
+    
+    // IMPORTANTE:
+    // No agregar response_format con gpt-image-2.
+    // Causaba error 400. Se lee b64_json por defecto.
     const response = await openai.images.generate({
       model: "gpt-image-2" as any,
       prompt: finalPrompt,
       n: 1,
       size: "1024x1024",
       quality: "medium" as any,
-      response_format: "b64_json"
     });
 
-    const b64Data = response.data[0].b64_json;
-    if (!b64Data) throw new Error("La IA no devolvió datos de imagen válidos.");
+    const b64Data = response.data?.[0]?.b64_json;
+    if (!b64Data) {
+      console.error("Respuesta completa OpenAI Grooming:", JSON.stringify(response, null, 2));
+      throw new Error("La IA no devolvió datos de imagen válidos.");
+    }
 
     return { previewImageDataUri: `data:image/png;base64,${b64Data}` };
   } catch (error: any) {
