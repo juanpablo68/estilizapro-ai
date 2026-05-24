@@ -14,7 +14,7 @@ import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from 'next/link';
 
-const resizeImageForAction = (base64Str: string, maxWidth = 400, maxHeight = 400): Promise<string> => {
+const resizeImageForAction = (base64Str: string, maxWidth = 300, maxHeight = 300): Promise<string> => {
   return new Promise((resolve) => {
     const img = new window.Image();
     img.src = base64Str;
@@ -86,15 +86,9 @@ export default function AvatarCreationPage() {
 
       const userSelectedGender = profile.gender || 'Femenino';
       
-      const updatedProfile = { 
-        ...profile, 
-        biometricData: { ...analysis.biometricData, genero: userSelectedGender },
-        gender: userSelectedGender
-      };
-
       setLoadingStatus('Generando Avatar...');
       const result = await generateStylizedAvatar({
-        biometricData: updatedProfile.biometricData, 
+        biometricData: { ...analysis.biometricData, genero: userSelectedGender }, 
         openaiApiKey: openaiKey,
         userId: profile.name || 'user'
       });
@@ -102,6 +96,7 @@ export default function AvatarCreationPage() {
       setGeneratedAvatar(result.imageUrl);
       
       // OPTIMIZACIÓN EXTREMA: Solo guardamos rasgos de texto para evitar QuotaExceededError
+      // No guardamos biometricData ni las fotos de entrada en el perfil local
       const finalProfileToSave: UserProfile = { 
         ...profile,
         avatarDataUri: result.imageUrl,
@@ -110,8 +105,8 @@ export default function AvatarCreationPage() {
           hairColor: analysis.biometricData.rostro?.cabello?.color_natural || 'Natural',
           eyeColor: analysis.biometricData.rostro?.ojos?.color_detalle || 'Natural'
         },
-        // Limpiamos los datos biométricos pesados después de usarlos para la generación
-        biometricData: undefined 
+        biometricData: undefined, // LIMPIEZA CRÍTICA: Eliminamos el objeto pesado
+        onboardingComplete: true
       };
 
       setProfile(finalProfileToSave);
@@ -204,11 +199,11 @@ export default function AvatarCreationPage() {
                   <User className="w-3 h-3" /> Perfil: {profile.gender}
                 </p>
                 {profile.detectedFeatures && (
-                  <p className="text-[10px] font-black text-primary uppercase tracking-widest leading-relaxed">
-                    Piel: {profile.detectedFeatures.skinTone} <br/>
-                    Cabello: {profile.detectedFeatures.hairColor} <br/>
-                    Ojos: {profile.detectedFeatures.eyeColor}
-                  </p>
+                  <div className="text-[10px] font-black text-primary uppercase tracking-widest leading-relaxed mt-2 border-t pt-2 border-primary/10">
+                    <p>Piel: {profile.detectedFeatures.skinTone}</p>
+                    <p>Cabello: {profile.detectedFeatures.hairColor}</p>
+                    <p>Ojos: {profile.detectedFeatures.eyeColor}</p>
+                  </div>
                 )}
               </div>
             </CardContent>
