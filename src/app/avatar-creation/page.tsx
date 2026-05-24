@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -13,7 +14,7 @@ import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from 'next/link';
 
-const resizeImageForAction = (base64Str: string, maxWidth = 512, maxHeight = 512): Promise<string> => {
+const resizeImageForAction = (base64Str: string, maxWidth = 400, maxHeight = 400): Promise<string> => {
   return new Promise((resolve) => {
     const img = new window.Image();
     img.src = base64Str;
@@ -30,7 +31,8 @@ const resizeImageForAction = (base64Str: string, maxWidth = 512, maxHeight = 512
       canvas.height = height;
       const ctx = canvas.getContext('2d');
       if (ctx) ctx.drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL('image/jpeg', 0.6));
+      // Bajamos a 0.5 para ahorrar espacio crítico en localStorage
+      resolve(canvas.toDataURL('image/jpeg', 0.5));
     };
   });
 };
@@ -55,9 +57,11 @@ export default function AvatarCreationPage() {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        if (type === 'face') setFacePhoto(reader.result as string);
-        else setFigurePhoto(reader.result as string);
+      reader.onloadend = async () => {
+        // Comprimimos antes de guardar en el estado para evitar lag
+        const optimized = await resizeImageForAction(reader.result as string);
+        if (type === 'face') setFacePhoto(optimized);
+        else setFigurePhoto(optimized);
       };
       reader.readAsDataURL(file);
     }
@@ -72,19 +76,17 @@ export default function AvatarCreationPage() {
     const openaiKey = localStorage.getItem('openai_api_key') || undefined;
     setLoading(true);
     try {
-      setLoadingStatus('Comprimiendo fotos...');
+      setLoadingStatus('Analizando Identidad...');
       const lightFace = await resizeImageForAction(facePhoto);
       const lightFigure = await resizeImageForAction(figurePhoto);
 
-      setLoadingStatus('Análisis Biométrico...');
       const analysis = await analyzeStyleContext({
         facePhotoDataUri: lightFace,
         figurePhotoDataUri: lightFigure,
         openaiApiKey: openaiKey
       });
 
-      // SINCRONIZACIÓN CRÍTICA: Forzamos el género seleccionado por el usuario.
-      // Si el análisis de IA falla, la selección manual del usuario es la ley.
+      // BLINDAJE DE GÉNERO: Forzamos la selección manual del usuario sobre cualquier detección
       const userSelectedGender = profile.gender || 'Femenino';
       
       const updatedProfile = { 
@@ -94,10 +96,8 @@ export default function AvatarCreationPage() {
         colorimetryAnalysis: analysis.colorimetryAnalysis,
         gender: userSelectedGender
       };
-      setProfile(updatedProfile);
 
-      setLoadingStatus('Creando Avatar Realista...');
-      // Pasamos los datos biométricos donde ya hemos inyectado el género correcto
+      setLoadingStatus('Generando Avatar Masculino...');
       const result = await generateStylizedAvatar({
         biometricData: updatedProfile.biometricData, 
         openaiApiKey: openaiKey,
@@ -105,8 +105,15 @@ export default function AvatarCreationPage() {
       });
       
       setGeneratedAvatar(result.imageUrl);
-      setProfile({ ...updatedProfile, avatarDataUri: result.imageUrl });
-      toast({ title: "¡Diagnóstico Completo!", description: `Identidad ${userSelectedGender} generada.` });
+      
+      // OPTIMIZACIÓN DE ESPACIO: Antes de guardar el perfil, eliminamos datos biométricos temporales pesados si los hubiera
+      const finalProfileToSave = { 
+        ...updatedProfile, 
+        avatarDataUri: result.imageUrl 
+      };
+
+      setProfile(finalProfileToSave);
+      toast({ title: "¡Identidad Generada!", description: `Avatar ${userSelectedGender} listo.` });
     } catch (error: any) {
       console.error("Avatar Creation Error:", error);
       toast({ variant: "destructive", title: "Error de IA", description: error.message || "Error al conectar con el servidor." });
@@ -134,10 +141,9 @@ export default function AvatarCreationPage() {
         <div className="space-y-6 animate-in fade-in duration-500">
           <Alert className="bg-primary/5 border-primary/20">
             <Sparkles className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-primary font-bold">Diagnóstico de Alta Fidelidad</AlertTitle>
+            <AlertTitle className="text-primary font-bold">Diagnóstico de Identidad</AlertTitle>
             <AlertDescription className="text-xs">
-              Sube tus fotos para que la IA genere tu avatar y analice tu colorimetría. 
-              <strong> Género Inamovible: {profile.gender.toUpperCase()}</strong>
+              Sube tus fotos. La IA respetará estrictamente tu género seleccionado: <strong>{profile.gender.toUpperCase()}</strong>
             </AlertDescription>
           </Alert>
 
@@ -177,8 +183,8 @@ export default function AvatarCreationPage() {
                 </CardContent>
           </Card>
 
-          <Button disabled={!facePhoto || !figurePhoto || loading} onClick={handleProcess} className="w-full h-16 bg-primary text-xl font-bold shadow-xl rounded-2xl">
-            {loading ? <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> {loadingStatus}</> : <><Brain className="mr-3 h-6 w-6" /> Generar Identidad {profile.gender === 'Masculino' ? 'Masculina' : 'Femenina'}</>}
+          <Button disabled={!facePhoto || !figurePhoto || loading} onClick={handleProcess} className="w-full h-16 bg-primary text-xl font-bold shadow-xl rounded-2xl transition-all active:scale-95">
+            {loading ? <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> {loadingStatus}</> : <><Brain className="mr-3 h-6 w-6" /> Crear Avatar {profile.gender === 'Masculino' ? 'Masculino' : 'Femenino'}</>}
           </Button>
         </div>
       ) : (
@@ -193,7 +199,7 @@ export default function AvatarCreationPage() {
               </div>
               <div className="space-y-1">
                 <p className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center justify-center gap-2">
-                  <User className="w-3 h-3" /> Género: {profile.gender}
+                  <User className="w-3 h-3" /> Perfil: {profile.gender}
                 </p>
                 <p className="text-[10px] font-black text-primary uppercase tracking-widest">
                   {profile.colorimetryAnalysis} • {profile.figureAnalysis}
