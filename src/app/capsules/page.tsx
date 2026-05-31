@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, ArrowLeft, Sparkles, Trash2, Shirt, Heart, PlusCircle, Sparkle } from "lucide-react";
+import { Loader2, ArrowLeft, Sparkles, Trash2, Shirt, Heart, PlusCircle, Sparkle, Info } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
 import { useToast } from "@/hooks/use-toast";
