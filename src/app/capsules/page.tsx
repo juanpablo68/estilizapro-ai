@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useLocalStorage, UserProfile, INITIAL_USER_PROFILE, WardrobeItem as LocalWardrobeItem } from '@/lib/storage-hooks';
+import { useLocalStorage, useUserScopedStorage, UserProfile, INITIAL_USER_PROFILE, WardrobeItem as LocalWardrobeItem } from '@/lib/storage-hooks';
 import { receiveAICapsuleRecommendations, Capsule, CapsuleItem } from '@/ai/flows/ai-capsule-recommendations';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,7 +23,7 @@ interface EnrichedCapsule extends Capsule {
 export default function CapsulesPage() {
   const router = useRouter();
   const [profile] = useLocalStorage<UserProfile>('estiliza_profile', INITIAL_USER_PROFILE);
-  const [wardrobe] = useLocalStorage<LocalWardrobeItem[]>('estiliza_wardrobe', []);
+  const [wardrobe] = useUserScopedStorage<LocalWardrobeItem[]>('estiliza_wardrobe', []);
   const [savedCapsules, setSavedCapsules] = useLocalStorage<EnrichedCapsule[]>('estiliza_saved_capsules', []);
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
