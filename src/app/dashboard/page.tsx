@@ -14,7 +14,8 @@ import {
   Instagram,
   Scissors,
   LogOut,
-  Database
+  Database,
+  User
 } from "lucide-react";
 import { useLocalStorage, useUserScopedStorage, UserProfile, INITIAL_USER_PROFILE, loadHeavyImage } from '@/lib/storage-hooks';
 import Image from 'next/image';
@@ -55,6 +56,7 @@ export default function DashboardPage() {
     { name: 'Peinado y Maquillaje', icon: Scissors, color: 'text-primary', bg: 'bg-primary/10', href: '/grooming' },
     { name: 'Asistente de Vestuario', icon: MessageCircle, color: 'text-primary', bg: 'bg-primary/5', href: '/chat' },
     { name: 'Probador Virtual', icon: UserCircle, color: 'text-secondary', bg: 'bg-secondary/5', href: '/preview' },
+    { name: 'Editar Perfil', icon: User, color: 'text-primary', bg: 'bg-primary/10', href: '/profile' },
   ];
 
   if (!mounted) return null;
