@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useLocalStorage, useUserScopedStorage, UserProfile, INITIAL_USER_PROFILE, WardrobeItem as LocalWardrobeItem } from '@/lib/storage-hooks';
+import { useLocalStorage, useUserScopedStorage, UserProfile, INITIAL_USER_PROFILE, WardrobeItem as LocalWardrobeItem, loadHeavyImage } from '@/lib/storage-hooks';
 import { receiveAICapsuleRecommendations, Capsule, CapsuleItem } from '@/ai/flows/ai-capsule-recommendations';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,6 +28,7 @@ export default function CapsulesPage() {
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedCapsuleId, setSelectedCapsuleId] = useState<string | null>(null);
+  const [wardrobeUrls, setWardrobeUrls] = useState<Record<string, string>>({});
   const { toast } = useToast();
   
   const [params, setParams] = useState({
@@ -47,6 +48,25 @@ export default function CapsulesPage() {
       setSelectedCapsuleId(savedCapsules[0].id);
     }
   }, [savedCapsules, selectedCapsuleId]);
+
+  // Cargar imágenes reales de armario desde IndexedDB de forma asíncrona
+  useEffect(() => {
+    const loadImages = async () => {
+      const urls: Record<string, string> = {};
+      for (const item of wardrobe) {
+        if (item.imageDataUri.startsWith('wardrobe-')) {
+          const url = await loadHeavyImage(item.imageDataUri);
+          if (url) urls[item.id] = url;
+        } else {
+          urls[item.id] = item.imageDataUri;
+        }
+      }
+      setWardrobeUrls(urls);
+    };
+    if (wardrobe.length > 0) {
+      loadImages();
+    }
+  }, [wardrobe]);
 
   const generateCapsules = async () => {
     if (wardrobe.length < 3) {
@@ -134,8 +154,7 @@ export default function CapsulesPage() {
   const getItemImage = (item: CapsuleItem) => {
     if (!item) return null;
     if (item.source === 'wardrobe' && item.wardrobeItemId) {
-      const found = wardrobe.find(w => w.id === item.wardrobeItemId);
-      if (found?.imageDataUri) return found.imageDataUri;
+      return wardrobeUrls[item.wardrobeItemId] || null;
     }
     if (item.source === 'external' && item.imageUrl) return item.imageUrl;
     return null;
