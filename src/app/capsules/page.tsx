@@ -49,6 +49,15 @@ export default function CapsulesPage() {
   }, [savedCapsules, selectedCapsuleId]);
 
   const generateCapsules = async () => {
+    if (wardrobe.length < 3) {
+      toast({
+        variant: "destructive",
+        title: "Armario insuficiente",
+        description: "Se requieren al menos 3 prendas en tu armario para poder crear outfits combinados.",
+      });
+      return;
+    }
+
     const openaiKey = localStorage.getItem('openai_api_key');
     const unsplashKey = localStorage.getItem('unsplash_access_key');
     
@@ -199,9 +208,28 @@ export default function CapsulesPage() {
             )}
           </div>
 
+          {wardrobe.length < 3 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3 text-amber-800 text-xs shadow-inner">
+              <Info className="w-5 h-5 shrink-0 text-amber-600 mt-0.5" />
+              <div className="space-y-1">
+                <p className="font-bold">Mínimo 3 prendas en tu Armario</p>
+                <p className="text-amber-700/90 leading-relaxed">
+                  Actualmente tienes {wardrobe.length} {wardrobe.length === 1 ? 'prenda' : 'prendas'}. Sube al menos 3 prendas en tu <strong>Armario</strong> para que la IA pueda sugerirte combinaciones mezclando tu ropa real con nuevas prendas.
+                </p>
+                <div className="pt-1.5">
+                  <Link href="/wardrobe">
+                    <Button variant="outline" size="sm" className="rounded-xl border-amber-300 text-amber-800 bg-white hover:bg-amber-100 font-bold text-[10px] h-8 px-3">
+                      Ir al Armario
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+
           <Button 
             onClick={handleMainAction} 
-            disabled={loading} 
+            disabled={loading || (wardrobe.length < 3 && !isLimitReached)} 
             className={cn(
               "w-full h-14 font-bold rounded-2xl shadow-lg transition-all",
               isLimitReached ? "bg-secondary hover:bg-secondary/90" : "bg-primary"

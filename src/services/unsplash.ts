@@ -21,8 +21,10 @@ export async function searchUnsplashImages(query: string, accessKey?: string, it
     return [];
   }
 
-  // Refinamos la búsqueda para que sean fotos de producto limpias
-  const refinedQuery = `${query} fashion clothing product isolated`.trim();
+  // Refinamos la búsqueda para evitar humanos y priorizar fotografía de catálogo/producto limpio
+  const isAccessory = itemType === 'accessory' || itemType === 'shoe';
+  const typeTerm = isAccessory ? 'product isolated' : 'clothing flatlay isolated';
+  const refinedQuery = `${query} ${typeTerm} no people`.trim();
 
   try {
     const response = await fetch(

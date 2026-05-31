@@ -70,10 +70,30 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
   REGLAS DE COMPOSICIÓN:
   1. El outfit DEBE tener exactamente 6 elementos en total.
   2. ACCESORIOS: Es OBLIGATORIO que incluyas por lo menos 2 accesorios (type: "accessory").
-  3. SIN HUMANOS: Las descripciones para imágenes externas deben ser de producto (ej: "watch on white background").
   
-  ARMARIO REAL (Prioridad):
-  ${input.wardrobeItems.length > 0 ? JSON.stringify(input.wardrobeItems) : "Vacío. Usa solo source: 'external'."}
+  ARMARIO REAL DEL CLIENTE (MÁXIMA PRIORIDAD):
+  ${input.wardrobeItems.length > 0 ? JSON.stringify(input.wardrobeItems) : "Vacío."}
+
+  REGLA DE COMBINACIÓN ESTRICTA (CRÍTICA, OBLIGATORIA):
+  De los 6 elementos del outfit coordinado, EXACTAMENTE 3 de ellos DEBEN ser elegidos de la lista del "ARMARIO REAL DEL CLIENTE" anterior.
+  Para cada uno de estos 3 elementos elegidos de su armario:
+  - Su campo "source" DEBE ser "wardrobe".
+  - Su campo "wardrobeItemId" DEBE ser el "id" exacto correspondiente de la prenda seleccionada del armario.
+  - Sus campos "name" y "type" deben coincidir exactamente con los de esa prenda.
+  
+  Los otros 3 elementos del outfit DEBEN ser prendas/accesorios nuevos sugeridos externamente:
+  - Su campo "source" DEBE ser "external".
+  - Su campo "wardrobeItemId" debe ser omitido o nulo.
+  - Estos 3 elementos sugeridos deben ser prendas/accesorios nuevos que complementen y combinen de forma excelente con los 3 artículos seleccionados del armario.
+  
+  SIN HUMANOS EN LAS IMÁGENES SUGERIDAS (CRÍTICO):
+  Las "searchKeywords" para los 3 elementos externos sugeridos deben estar en INGLÉS y describir la prenda en formato de fotografía de catálogo o producto limpio, "flat lay", "ghost mannequin" o "studio shot" sobre fondo neutro/blanco, especificando el género ("mens" o "womens") para evitar que aparezcan personas posando, rostros o partes del cuerpo humano.
+  Ejemplos excelentes de "searchKeywords":
+  - "mens white minimalist sneaker isolated product shot"
+  - "womens red leather handbag flat lay catalog"
+  - "mens blue denim jeans flat lay product photography"
+  - "womens black blazer studio shot on white background"
+  NUNCA uses palabras que inciten a mostrar personas posando.
 
   RESPONDE SOLO EN FORMATO JSON:
   {
@@ -83,7 +103,7 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
         "description": "Explicación",
         "items": [
           { "name": "Prenda", "type": "top/bottom/etc", "source": "wardrobe/external", "wardrobeItemId": "...", "searchKeywords": "product keywords" }
-          ... (6 items en total, mínimo 2 accesorios)
+          ... (6 items en total, 3 de armario y 3 externos, mínimo 2 accesorios en el outfit completo)
         ]
       }
     ]
@@ -113,9 +133,8 @@ export async function receiveAICapsuleRecommendations(input: z.infer<typeof AICa
 
         if (item.source === 'external') {
           const uKey = getUnsplashKey(input.unsplashAccessKey);
-          // Reforzamos la búsqueda en Unsplash para el género correcto
-          const genderTerm = genderContext === 'Masculino' ? 'men' : 'women';
-          const query = `${genderTerm} ${item.searchKeywords}`;
+          // La IA ya incluye los términos de género correctos e instrucciones de exclusión en searchKeywords
+          const query = item.searchKeywords;
           const images = await searchUnsplashImages(query, uKey, item.type);
           imageUrl = images.length > 0 ? images[0].url : undefined;
         }
